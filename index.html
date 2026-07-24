@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#182129">
+  <meta name="description" content="Portfólio comercial, preços e disponibilidade dos empreendimentos da Construtora Senger.">
+  <title>Construtora Senger — Portfólio Comercial</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css?v=2">
+</head>
+<body>
+  <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+
+  <header class="site-header" id="site-header">
+    <div class="shell header-inner">
+      <button class="brand-button" id="brand-home" aria-label="Voltar ao início">
+        <img src="assets/senger-logo.png" alt="Construtora Senger">
+      </button>
+      <div class="header-summary" aria-label="Resumo da tabela">
+        <div><span>Atualização</span><strong id="header-date">—</strong></div>
+        <div><span>Disponíveis</span><strong id="header-available">—</strong></div>
+      </div>
+      <div class="header-actions">
+        <button class="button button-ghost button-small" id="toggle-prices" type="button" aria-pressed="false">Ocultar preços</button>
+        <a class="button button-primary button-small" id="header-whatsapp" href="#" target="_blank" rel="noopener">Falar com a Senger</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="conteudo">
+    <section class="hero" id="home-hero">
+      <div class="hero-media" aria-hidden="true"></div>
+      <div class="hero-overlay"></div>
+      <div class="shell hero-content">
+        <p class="eyebrow">Portfólio comercial oficial</p>
+        <h1>Encontre o imóvel certo.<br><span>Apresente com segurança.</span></h1>
+        <p class="hero-copy">Empreendimentos, unidades, plantas, preços e disponibilidade em um único lugar para apoiar o atendimento dos corretores.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#catalogo">Ver empreendimentos</a>
+          <button class="button button-glass" id="print-catalog" type="button">Gerar PDF / imprimir</button>
+        </div>
+        <div class="hero-stats" id="hero-stats"></div>
+      </div>
+    </section>
+
+    <section class="trust-strip" aria-label="Informações da tabela">
+      <div class="shell trust-grid">
+        <div><span class="trust-label">Tabela comercial</span><strong id="meta-month">—</strong></div>
+        <div><span class="trust-label">INCC informado</span><strong id="meta-incc">—</strong></div>
+        <div><span class="trust-label">Abrangência</span><strong id="meta-cities">—</strong></div>
+        <div><span class="trust-label">Consulta rápida</span><strong>WhatsApp e PDF</strong></div>
+      </div>
+    </section>
+
+    <section class="catalog-section" id="catalogo">
+      <div class="shell">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow dark">Portfólio</p>
+            <h2>Empreendimentos e oportunidades</h2>
+          </div>
+          <p>Use os filtros para encontrar rapidamente opções compatíveis com o cliente.</p>
+        </div>
+
+        <div class="filter-panel" id="filters-panel">
+          <div class="filter-topline">
+            <label class="search-field" for="search-input">
+              <span class="search-icon" aria-hidden="true">⌕</span>
+              <input id="search-input" type="search" placeholder="Buscar empreendimento, unidade, cidade ou característica">
+            </label>
+            <button class="button button-dark button-filter-toggle" id="filter-toggle" type="button" aria-expanded="false">Filtros</button>
+          </div>
+
+          <div class="filters-body" id="filters-body">
+            <div class="filter-group filter-group-wide">
+              <span class="filter-label">Tipo de imóvel</span>
+              <div class="segmented" id="category-filter" role="group" aria-label="Tipo de imóvel"></div>
+            </div>
+            <label class="filter-group">
+              <span class="filter-label">Cidade</span>
+              <select id="city-filter"></select>
+            </label>
+            <label class="filter-group">
+              <span class="filter-label">Etapa</span>
+              <select id="stage-filter">
+                <option value="todos">Todas</option>
+                <option value="pronto">Pronto</option>
+                <option value="obra">Em obras / lançamento</option>
+              </select>
+            </label>
+            <label class="filter-group">
+              <span class="filter-label">Faixa de valor</span>
+              <select id="price-filter">
+                <option value="todos">Qualquer valor</option>
+                <option value="0-300000">Até R$ 300 mil</option>
+                <option value="300000-600000">R$ 300 a 600 mil</option>
+                <option value="600000-1000000">R$ 600 mil a 1 milhão</option>
+                <option value="1000000-inf">Acima de R$ 1 milhão</option>
+              </select>
+            </label>
+            <label class="switch-field">
+              <input id="available-only" type="checkbox" checked>
+              <span class="switch-ui" aria-hidden="true"></span>
+              <span>Somente com disponibilidade</span>
+            </label>
+            <button class="text-button" id="clear-filters" type="button">Limpar filtros</button>
+          </div>
+        </div>
+
+        <div class="results-bar">
+          <p id="results-count">—</p>
+          <label class="sort-control">Ordenar
+            <select id="sort-filter">
+              <option value="destaque">Destaques</option>
+              <option value="menor-preco">Menor preço</option>
+              <option value="maior-preco">Maior preço</option>
+              <option value="mais-opcoes">Mais opções</option>
+              <option value="nome">Nome</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="portfolio-grid" id="portfolio-grid"></div>
+        <div class="empty-state" id="empty-state" hidden>
+          <strong>Nenhuma opção encontrada.</strong>
+          <p>Altere os filtros ou limpe a busca para visualizar todo o portfólio.</p>
+          <button class="button button-dark" type="button" id="empty-clear">Limpar filtros</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="detail-view" id="detail-view" hidden aria-live="polite"></section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell footer-grid">
+      <div>
+        <img class="footer-logo" src="assets/senger-logo-branco.png" alt="Construtora Senger">
+        <p>Solidez, confiança e futuro em empreendimentos residenciais, comerciais e loteamentos.</p>
+      </div>
+      <div>
+        <h3>Contato</h3>
+        <div id="footer-contacts"></div>
+      </div>
+      <div>
+        <h3>Informações</h3>
+        <p id="footer-address"></p>
+        <p id="footer-version"></p>
+      </div>
+    </div>
+    <div class="shell footer-note">Valores e disponibilidade sujeitos a alteração sem aviso prévio. Imagens meramente ilustrativas. Consulte sempre as condições vigentes com a Construtora Senger.</div>
+  </footer>
+
+  <button class="selection-fab" id="selection-fab" type="button" hidden>
+    <span id="selection-count">0</span>
+    <span>Selecionados</span>
+  </button>
+
+  <aside class="selection-drawer" id="selection-drawer" aria-hidden="true" aria-labelledby="selection-title">
+    <div class="drawer-backdrop" data-close-drawer></div>
+    <div class="drawer-panel">
+      <div class="drawer-header">
+        <div><span class="eyebrow dark">Atendimento</span><h2 id="selection-title">Imóveis selecionados</h2></div>
+        <button class="icon-button" type="button" data-close-drawer aria-label="Fechar">×</button>
+      </div>
+      <div class="drawer-list" id="selection-list"></div>
+      <div class="drawer-footer">
+        <button class="button button-primary" id="share-selected-prices" type="button">Compartilhar com preços</button>
+        <button class="button button-outline" id="share-selected-no-prices" type="button">Compartilhar sem preços</button>
+        <button class="text-button" id="clear-selection" type="button">Limpar seleção</button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <div class="lightbox-backdrop" data-close-lightbox></div>
+    <div class="lightbox-content">
+      <button class="icon-button lightbox-close" type="button" data-close-lightbox aria-label="Fechar">×</button>
+      <button class="lightbox-nav prev" id="lightbox-prev" type="button" aria-label="Imagem anterior">‹</button>
+      <figure><img id="lightbox-image" alt=""><figcaption id="lightbox-caption"></figcaption></figure>
+      <button class="lightbox-nav next" id="lightbox-next" type="button" aria-label="Próxima imagem">›</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="data.js?v=2"></script>
+  <script src="app.js?v=2"></script>
+</body>
+</html>

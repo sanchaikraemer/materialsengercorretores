@@ -1,0 +1,8 @@
+AJUSTE — TÍTULO MENOR
+
+1. Extraia este ZIP.
+2. Na raiz do repositório tabelasenger, envie styles.css.
+3. Confirme a substituição e faça o commit.
+4. Aguarde 2 minutos e pressione Ctrl + F5 no site.
+
+Este ajuste reduz bastante o título, o subtítulo e a altura do topo.
