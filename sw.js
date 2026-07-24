@@ -1,5 +1,5 @@
-const CACHE = "senger-portfolio-v8-20260724-media-clean";
-const CORE = ["./", "./index.html", "./styles.css?v=8", "./data.js?v=8", "./app.js?v=8", "./manifest.json"];
+const CACHE = "senger-portfolio-v9-20260724-gallery-filter";
+const CORE = ["./", "./index.html", "./styles.css?v=9", "./data.js?v=9", "./app.js?v=9", "./manifest.json"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

@@ -46,7 +46,6 @@
     availableOnly: true,
     sort: "destaque",
     selected: new Set(JSON.parse(storage.get("senger-selection", "[]"))),
-    lightbox: { media: [], index: 0 },
   };
 
   const itemMap = new Map();
@@ -441,17 +440,50 @@
       </section>
     ` : "";
 
-    const gallery = media.length ? `
+    const isPlantMedia = (item) => /planta/i.test(`${item?.src || ""} ${item?.legenda || ""}`);
+    const photoMedia = media.filter((item) => !isPlantMedia(item)).slice(0, 9);
+    const humanizedPlants = media.filter((item) => isPlantMedia(item) && !/\.pdf(?:$|\?)/i.test(item.src || ""));
+    const technicalPlants = media.filter((item) => isPlantMedia(item) && /\.pdf(?:$|\?)/i.test(item.src || ""));
+
+    const gallery = photoMedia.length ? `
       <section class="content-section">
-        <div class="section-title-row"><h2>Imagens e plantas</h2><p>${media.length} ${media.length === 1 ? "arquivo" : "arquivos"}</p></div>
-        <div class="gallery-grid">
-          ${media.slice(0, 7).map((item, index) => `
-            <button class="gallery-button" type="button" data-gallery-index="${index}">
-              <img src="${escapeHtml(item.src)}" alt="${escapeHtml(item.legenda || emp.nome)}" loading="lazy">
-              <span class="gallery-caption">${escapeHtml(item.legenda || emp.nome)}</span>
-              ${index === 6 && media.length > 7 ? `<span class="gallery-more">+${media.length - 7} imagens</span>` : ""}
-            </button>
-          `).join("")}
+        <div class="section-title-row"><h2>Imagens</h2><p>Até 9 fotos do empreendimento</p></div>
+        <div class="gallery-showcase" data-gallery-showcase>
+          <div class="gallery-featured">
+            <img src="${escapeHtml(photoMedia[0].src)}" alt="${escapeHtml(photoMedia[0].legenda || emp.nome)}" data-gallery-featured>
+            <span data-gallery-featured-caption>${escapeHtml(photoMedia[0].legenda || emp.nome)}</span>
+          </div>
+          <div class="gallery-thumbnails">
+            ${photoMedia.slice(1, 9).map((item, index) => `
+              <button class="gallery-thumbnail" type="button" data-gallery-thumb="${index + 1}" aria-label="Exibir ${escapeHtml(item.legenda || emp.nome)} na imagem principal">
+                <img src="${escapeHtml(item.src)}" alt="${escapeHtml(item.legenda || emp.nome)}" loading="lazy">
+              </button>
+            `).join("")}
+          </div>
+        </div>
+      </section>
+    ` : "";
+
+    const plantSection = (technicalPlants.length || humanizedPlants.length) ? `
+      <section class="content-section plant-section">
+        <div class="section-title-row"><h2>Plantas do empreendimento</h2><p>Consulte as opções disponíveis</p></div>
+        <div class="plant-links">
+          ${technicalPlants.length ? `
+            <div class="plant-link-group">
+              <h3>Planta técnica</h3>
+              <div class="plant-link-list">
+                ${technicalPlants.map((item) => `<a class="plant-link" href="${escapeHtml(item.src)}" target="_blank" rel="noopener"><span class="plant-link-icon">▤</span><span>${escapeHtml(item.legenda || "Planta técnica")}</span><strong>↗</strong></a>`).join("")}
+              </div>
+            </div>
+          ` : ""}
+          ${humanizedPlants.length ? `
+            <div class="plant-link-group">
+              <h3>Planta humanizada</h3>
+              <div class="plant-link-list">
+                ${humanizedPlants.map((item) => `<a class="plant-link" href="${escapeHtml(item.src)}" target="_blank" rel="noopener"><span class="plant-link-icon">▧</span><span>${escapeHtml(item.legenda || "Planta humanizada")}</span><strong>↗</strong></a>`).join("")}
+              </div>
+            </div>
+          ` : ""}
         </div>
       </section>
     ` : "";
@@ -504,6 +536,7 @@
         </div>
         ${differentials}
         ${gallery}
+        ${plantSection}
         ${inventory}
       </div>
     `;
@@ -512,7 +545,19 @@
     document.getElementById("share-emp-prices").addEventListener("click", () => shareEnterprise(emp, true));
     document.getElementById("share-emp-no-prices").addEventListener("click", () => shareEnterprise(emp, false));
     document.getElementById("print-detail").addEventListener("click", () => window.print());
-    detail.querySelectorAll("[data-gallery-index]").forEach((button) => button.addEventListener("click", () => openLightbox(media, Number(button.dataset.galleryIndex))));
+    const featuredImage = detail.querySelector("[data-gallery-featured]");
+    const featuredCaption = detail.querySelector("[data-gallery-featured-caption]");
+    detail.querySelectorAll("[data-gallery-thumb]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const item = photoMedia[Number(button.dataset.galleryThumb)];
+        if (!item || !featuredImage) return;
+        featuredImage.src = item.src;
+        featuredImage.alt = item.legenda || emp.nome;
+        if (featuredCaption) featuredCaption.textContent = item.legenda || emp.nome;
+        detail.querySelectorAll("[data-gallery-thumb]").forEach((thumb) => thumb.classList.remove("active"));
+        button.classList.add("active");
+      });
+    });
     bindInventoryEvents(detail);
     window.scrollTo({ top: 0, behavior: "auto" });
   }
@@ -753,40 +798,6 @@
     document.body.classList.remove("no-scroll");
   }
 
-  function openLightbox(media, index) {
-    state.lightbox.media = media;
-    state.lightbox.index = index;
-    updateLightbox();
-    const box = document.getElementById("lightbox");
-    box.classList.add("open");
-    box.setAttribute("aria-hidden", "false");
-    document.body.classList.add("no-scroll");
-  }
-
-  function closeLightbox() {
-    const box = document.getElementById("lightbox");
-    box.classList.remove("open");
-    box.setAttribute("aria-hidden", "true");
-    document.body.classList.remove("no-scroll");
-  }
-
-  function updateLightbox() {
-    const item = state.lightbox.media[state.lightbox.index];
-    if (!item) return;
-    document.getElementById("lightbox-image").src = item.src;
-    document.getElementById("lightbox-image").alt = item.legenda || "Imagem do empreendimento";
-    setText("lightbox-caption", `${item.legenda || ""} · ${state.lightbox.index + 1}/${state.lightbox.media.length}`);
-    document.getElementById("lightbox-prev").hidden = state.lightbox.media.length < 2;
-    document.getElementById("lightbox-next").hidden = state.lightbox.media.length < 2;
-  }
-
-  function moveLightbox(direction) {
-    const total = state.lightbox.media.length;
-    if (!total) return;
-    state.lightbox.index = (state.lightbox.index + direction + total) % total;
-    updateLightbox();
-  }
-
   let toastTimer;
   function showToast(message) {
     const toast = document.getElementById("toast");
@@ -822,22 +833,17 @@
     document.getElementById("share-selected-prices").addEventListener("click", () => state.selected.size && sendShare(selectedMessage(true), "Seleção de imóveis"));
     document.getElementById("share-selected-no-prices").addEventListener("click", () => state.selected.size && sendShare(selectedMessage(false), "Seleção de imóveis"));
 
-    document.querySelectorAll("[data-close-lightbox]").forEach((button) => button.addEventListener("click", closeLightbox));
-    document.getElementById("lightbox-prev").addEventListener("click", () => moveLightbox(-1));
-    document.getElementById("lightbox-next").addEventListener("click", () => moveLightbox(1));
 
     window.addEventListener("hashchange", renderRoute);
     window.addEventListener("popstate", renderRoute);
     document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") { closeDrawer(); closeLightbox(); }
-      if (document.getElementById("lightbox").classList.contains("open") && event.key === "ArrowLeft") moveLightbox(-1);
-      if (document.getElementById("lightbox").classList.contains("open") && event.key === "ArrowRight") moveLightbox(1);
+      if (event.key === "Escape") closeDrawer();
     });
   }
 
   function registerServiceWorker() {
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-      navigator.serviceWorker.register("sw.js?v=6").catch(() => {});
+      navigator.serviceWorker.register("sw.js?v=9").catch(() => {});
     }
   }
 
