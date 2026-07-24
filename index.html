@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="styles.css?v=13">
+  <link rel="stylesheet" href="styles.css?v=14">
 </head>
 <body>
   <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
@@ -171,9 +171,25 @@
     </div>
   </aside>
 
+  <div class="share-modal" id="share-modal" aria-hidden="true">
+    <div class="share-modal-backdrop" data-close-share></div>
+    <div class="share-modal-panel">
+      <div class="drawer-header">
+        <div><span class="eyebrow dark">Compartilhar</span><h2>Mensagem pronta</h2></div>
+        <button class="icon-button" type="button" data-close-share aria-label="Fechar">×</button>
+      </div>
+      <p class="share-modal-hint">Toque em "Copiar mensagem", abra o WhatsApp e cole na conversa do cliente.</p>
+      <textarea class="share-modal-text" id="share-modal-text" readonly></textarea>
+      <div class="share-modal-actions">
+        <button class="button button-primary" type="button" id="share-modal-copy">Copiar mensagem</button>
+        <button class="button button-outline" type="button" id="share-modal-open">Abrir WhatsApp</button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="data.js?v=13"></script>
-  <script src="app.js?v=13"></script>
+  <script src="data.js?v=14"></script>
+  <script src="app.js?v=14"></script>
 </body>
 </html>

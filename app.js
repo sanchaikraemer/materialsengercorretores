@@ -712,17 +712,46 @@
     return lines.join("\n");
   }
 
-  async function copyShareText(text) {
-    if (!navigator.clipboard?.writeText) {
-      showToast("Copie a mensagem e cole no WhatsApp para enviar.");
+  function openShareModal(text) {
+    const modal = document.getElementById("share-modal");
+    const textarea = document.getElementById("share-modal-text");
+    textarea.value = text;
+    document.getElementById("share-modal-copy").textContent = "Copiar mensagem";
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("no-scroll");
+    textarea.focus();
+    textarea.select();
+  }
+
+  function closeShareModal() {
+    const modal = document.getElementById("share-modal");
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("no-scroll");
+  }
+
+  function copyShareModalText() {
+    const textarea = document.getElementById("share-modal-text");
+    const copyButton = document.getElementById("share-modal-copy");
+    textarea.focus();
+    textarea.select();
+    textarea.setSelectionRange(0, textarea.value.length);
+    let copied = false;
+    try { copied = document.execCommand("copy"); } catch (_) { copied = false; }
+    if (copied) {
+      copyButton.textContent = "Copiado!";
+      showToast("Mensagem copiada.");
       return;
     }
-    try {
-      await navigator.clipboard.writeText(text);
-      showToast("Mensagem copiada — cole na conversa do cliente no WhatsApp.");
-    } catch (_) {
-      showToast("Copie a mensagem e cole no WhatsApp para enviar.");
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(textarea.value).then(() => {
+        copyButton.textContent = "Copiado!";
+        showToast("Mensagem copiada.");
+      }).catch(() => showToast("Selecione o texto acima e copie manualmente."));
+      return;
     }
+    showToast("Selecione o texto acima e copie manualmente.");
   }
 
   async function sendShare(text, title = "Construtora Senger") {
@@ -734,8 +763,7 @@
         if (error?.name === "AbortError") return;
       }
     }
-    await copyShareText(text);
-    window.open("https://web.whatsapp.com/", "_blank", "noopener");
+    openShareModal(text);
   }
 
   function shareEnterprise(emp, includePrices) {
@@ -853,17 +881,20 @@
     document.getElementById("share-selected-prices").addEventListener("click", () => state.selected.size && sendShare(selectedMessage(true), "Seleção de imóveis"));
     document.getElementById("share-selected-no-prices").addEventListener("click", () => state.selected.size && sendShare(selectedMessage(false), "Seleção de imóveis"));
 
+    document.querySelectorAll("[data-close-share]").forEach((button) => button.addEventListener("click", closeShareModal));
+    document.getElementById("share-modal-copy").addEventListener("click", copyShareModalText);
+    document.getElementById("share-modal-open").addEventListener("click", () => window.open("https://web.whatsapp.com/", "_blank", "noopener"));
 
     window.addEventListener("hashchange", renderRoute);
     window.addEventListener("popstate", renderRoute);
     document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") closeDrawer();
+      if (event.key === "Escape") { closeDrawer(); closeShareModal(); }
     });
   }
 
   function registerServiceWorker() {
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-      navigator.serviceWorker.register("sw.js?v=13").catch(() => {});
+      navigator.serviceWorker.register("sw.js?v=14").catch(() => {});
     }
   }
 
