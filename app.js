@@ -438,8 +438,10 @@
           ${(emp.diferenciais || []).map((item, index) => `
             <article class="differential-card">
               <div class="differential-icon">${String(index + 1).padStart(2, "0")}</div>
-              <h3>${escapeHtml(item.titulo)}</h3>
-              <p>${escapeHtml(item.desc)}</p>
+              <div class="differential-body">
+                <h3>${escapeHtml(item.titulo)}</h3>
+                <p>${escapeHtml(item.desc)}</p>
+              </div>
             </article>
           `).join("")}
         </div>
@@ -540,10 +542,10 @@
             </div>
           </article>
         </div>
+        ${inventory}
         ${differentials}
         ${gallery}
         ${plantSection}
-        ${inventory}
       </div>
     `;
 
@@ -920,7 +922,7 @@
 
   function registerServiceWorker() {
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-      navigator.serviceWorker.register("sw.js?v=18").catch(() => {});
+      navigator.serviceWorker.register("sw.js?v=19").catch(() => {});
     }
   }
 
