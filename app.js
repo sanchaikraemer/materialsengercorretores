@@ -712,19 +712,6 @@
     return lines.join("\n");
   }
 
-  async function loadShareFiles(imageUrls) {
-    if (!imageUrls.length || !navigator.canShare) return [];
-    try {
-      const files = await Promise.all(imageUrls.map(async (url, index) => {
-        const blob = await (await fetch(url)).blob();
-        return new File([blob], `senger-${index + 1}.jpg`, { type: blob.type || "image/jpeg" });
-      }));
-      return navigator.canShare({ files }) ? files : [];
-    } catch (_) {
-      return [];
-    }
-  }
-
   function copyShareText(text) {
     if (!navigator.clipboard?.writeText) {
       showToast("Copie a mensagem e cole no WhatsApp para enviar.");
@@ -735,11 +722,10 @@
       .catch(() => showToast("Copie a mensagem e cole no WhatsApp para enviar."));
   }
 
-  async function sendShare(text, title = "Construtora Senger", imageUrls = []) {
+  async function sendShare(text, title = "Construtora Senger") {
     if (navigator.share && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
-      const files = await loadShareFiles(imageUrls);
       try {
-        await navigator.share(files.length ? { title, text, files } : { title, text });
+        await navigator.share({ title, text });
         return;
       } catch (error) {
         if (error?.name === "AbortError") return;
@@ -751,12 +737,12 @@
 
   function shareEnterprise(emp, includePrices) {
     if (!emp) return;
-    sendShare(enterpriseMessage(emp, includePrices), emp.nome, [cardImage(emp)]);
+    sendShare(enterpriseMessage(emp, includePrices), emp.nome);
   }
 
   function shareItem(item, includePrice) {
     if (!item) return;
-    sendShare(itemMessage(item, includePrice), `${item.emp.nome} — ${itemLabel(item)}`, [cardImage(item.emp)]);
+    sendShare(itemMessage(item, includePrice), `${item.emp.nome} — ${itemLabel(item)}`);
   }
 
   function toggleSelection(key) {
@@ -815,11 +801,6 @@
     return lines.join("\n");
   }
 
-  function selectedImages() {
-    const items = [...state.selected].map((key) => itemMap.get(key)).filter(Boolean);
-    return unique(items.map((item) => cardImage(item.emp)));
-  }
-
   function openDrawer() {
     const drawer = document.getElementById("selection-drawer");
     drawer.classList.add("open");
@@ -866,8 +847,8 @@
       renderRoute();
       showToast("Seleção limpa.");
     });
-    document.getElementById("share-selected-prices").addEventListener("click", () => state.selected.size && sendShare(selectedMessage(true), "Seleção de imóveis", selectedImages()));
-    document.getElementById("share-selected-no-prices").addEventListener("click", () => state.selected.size && sendShare(selectedMessage(false), "Seleção de imóveis", selectedImages()));
+    document.getElementById("share-selected-prices").addEventListener("click", () => state.selected.size && sendShare(selectedMessage(true), "Seleção de imóveis"));
+    document.getElementById("share-selected-no-prices").addEventListener("click", () => state.selected.size && sendShare(selectedMessage(false), "Seleção de imóveis"));
 
 
     window.addEventListener("hashchange", renderRoute);
@@ -879,7 +860,7 @@
 
   function registerServiceWorker() {
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-      navigator.serviceWorker.register("sw.js?v=10").catch(() => {});
+      navigator.serviceWorker.register("sw.js?v=11").catch(() => {});
     }
   }
 

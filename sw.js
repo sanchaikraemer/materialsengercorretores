@@ -1,5 +1,5 @@
-const CACHE = "senger-portfolio-v10-20260724-whatsapp-fix";
-const CORE = ["./", "./index.html", "./styles.css?v=10", "./data.js?v=10", "./app.js?v=10", "./manifest.json"];
+const CACHE = "senger-portfolio-v11-20260724-share-revert";
+const CORE = ["./", "./index.html", "./styles.css?v=11", "./data.js?v=11", "./app.js?v=11", "./manifest.json"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
