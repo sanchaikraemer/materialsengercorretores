@@ -712,11 +712,18 @@
     return lines.join("\n");
   }
 
-  function openShareModal(text) {
+  function openShareModal(text, imageUrl = "") {
     const modal = document.getElementById("share-modal");
     const textarea = document.getElementById("share-modal-text");
+    const photoLink = document.getElementById("share-modal-photo");
     textarea.value = text;
     document.getElementById("share-modal-copy").textContent = "Copiar mensagem";
+    if (imageUrl) {
+      photoLink.href = imageUrl;
+      photoLink.hidden = false;
+    } else {
+      photoLink.hidden = true;
+    }
     modal.classList.add("open");
     modal.setAttribute("aria-hidden", "false");
     document.body.classList.add("no-scroll");
@@ -754,7 +761,7 @@
     showToast("Selecione o texto acima e copie manualmente.");
   }
 
-  async function sendShare(text, title = "Construtora Senger") {
+  async function sendShare(text, title = "Construtora Senger", imageUrl = "") {
     if (navigator.share && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
       try {
         await navigator.share({ title, text });
@@ -763,17 +770,17 @@
         if (error?.name === "AbortError") return;
       }
     }
-    openShareModal(text);
+    openShareModal(text, imageUrl);
   }
 
   function shareEnterprise(emp, includePrices) {
     if (!emp) return;
-    sendShare(enterpriseMessage(emp, includePrices), emp.nome);
+    sendShare(enterpriseMessage(emp, includePrices), emp.nome, cardImage(emp));
   }
 
   function shareItem(item, includePrice) {
     if (!item) return;
-    sendShare(itemMessage(item, includePrice), `${item.emp.nome} — ${itemLabel(item)}`);
+    sendShare(itemMessage(item, includePrice), `${item.emp.nome} — ${itemLabel(item)}`, cardImage(item.emp));
   }
 
   function toggleSelection(key) {
@@ -894,7 +901,7 @@
 
   function registerServiceWorker() {
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-      navigator.serviceWorker.register("sw.js?v=14").catch(() => {});
+      navigator.serviceWorker.register("sw.js?v=15").catch(() => {});
     }
   }
 
