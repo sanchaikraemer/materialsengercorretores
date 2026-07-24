@@ -82,7 +82,6 @@
   const isAvailable = (status) => (status || "disponivel") === "disponivel";
   const isMarketable = (status) => !["vendido", "reservado"].includes(status || "disponivel");
   const safeUrl = (url) => /^https?:\/\//i.test(url || "") ? url : `https://${url}`;
-  const whatsappUrl = (text, phone = "") => `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
 
   function enterpriseUrl(emp) {
     if (location.protocol === "file:") return `#emp-${emp.id}`;
@@ -726,6 +725,16 @@
     }
   }
 
+  function copyShareText(text) {
+    if (!navigator.clipboard?.writeText) {
+      showToast("Copie a mensagem e cole no WhatsApp para enviar.");
+      return;
+    }
+    navigator.clipboard.writeText(text)
+      .then(() => showToast("Mensagem copiada — cole na conversa do cliente no WhatsApp."))
+      .catch(() => showToast("Copie a mensagem e cole no WhatsApp para enviar."));
+  }
+
   async function sendShare(text, title = "Construtora Senger", imageUrls = []) {
     if (navigator.share && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
       const files = await loadShareFiles(imageUrls);
@@ -736,7 +745,8 @@
         if (error?.name === "AbortError") return;
       }
     }
-    window.open(whatsappUrl(text), "_blank", "noopener");
+    window.open("https://web.whatsapp.com/", "_blank", "noopener");
+    copyShareText(text);
   }
 
   function shareEnterprise(emp, includePrices) {
