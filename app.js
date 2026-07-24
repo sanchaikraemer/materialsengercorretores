@@ -1,4 +1,4 @@
-/* Construtora Senger — Portfólio Comercial v1.1 */
+/* Construtora Senger — Portfólio Comercial v1.1.1 */
 (() => {
   "use strict";
 
@@ -376,7 +376,6 @@
 
     grid.querySelectorAll("[data-open-emp]").forEach((button) => button.addEventListener("click", () => navigateToEnterprise(button.dataset.openEmp)));
     grid.querySelectorAll("[data-share-emp]").forEach((button) => button.addEventListener("click", () => shareEnterprise(findEnterprise(button.dataset.shareEmp), false)));
-    applyPriceVisibility();
   }
 
   function findEnterprise(id) {
@@ -728,7 +727,6 @@
       }).join("");
       list.querySelectorAll("[data-remove-selection]").forEach((button) => button.addEventListener("click", () => toggleSelection(button.dataset.removeSelection)));
     }
-    applyPriceVisibility();
   }
 
   function selectedMessage(includePrices) {
@@ -845,7 +843,7 @@
 
   function registerServiceWorker() {
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-      navigator.serviceWorker.register("sw.js?v=3").catch(() => {});
+      navigator.serviceWorker.register("sw.js?v=4").catch(() => {});
     }
   }
 
