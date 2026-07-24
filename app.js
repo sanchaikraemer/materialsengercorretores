@@ -761,8 +761,27 @@
     showToast("Selecione o texto acima e copie manualmente.");
   }
 
+  async function loadShareFile(imageUrl) {
+    if (!imageUrl || !navigator.canShare) return null;
+    try {
+      const blob = await (await fetch(imageUrl)).blob();
+      return new File([blob], "foto.jpg", { type: blob.type || "image/jpeg" });
+    } catch (_) {
+      return null;
+    }
+  }
+
   async function sendShare(text, title = "Construtora Senger", imageUrl = "") {
     if (navigator.share) {
+      const file = await loadShareFile(imageUrl);
+      if (file && navigator.canShare({ title, text, files: [file] })) {
+        try {
+          await navigator.share({ title, text, files: [file] });
+          return;
+        } catch (error) {
+          if (error?.name === "AbortError") return;
+        }
+      }
       try {
         await navigator.share({ title, text });
         return;
@@ -901,7 +920,7 @@
 
   function registerServiceWorker() {
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-      navigator.serviceWorker.register("sw.js?v=16").catch(() => {});
+      navigator.serviceWorker.register("sw.js?v=17").catch(() => {});
     }
   }
 

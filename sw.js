@@ -1,5 +1,5 @@
-const CACHE = "senger-portfolio-v16-20260724-desktop-native-share";
-const CORE = ["./", "./index.html", "./styles.css?v=16", "./data.js?v=16", "./app.js?v=16", "./manifest.json"];
+const CACHE = "senger-portfolio-v17-20260724-share-with-photo-retry";
+const CORE = ["./", "./index.html", "./styles.css?v=17", "./data.js?v=17", "./app.js?v=17", "./manifest.json"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
