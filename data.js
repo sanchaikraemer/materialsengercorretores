@@ -88,8 +88,8 @@ const EMPREENDIMENTOS = [
       },
       {
         tipo: "3 dormitórios — já alugados",
-        area: "Box de garagem",
-        garagem: "",
+        area: "87 m² global · 66 m² privativo",
+        garagem: "Box de garagem",
         planta: "qual-planta-3d",
         obs: "Aluguel R$ 1.600,00 · Condomínio e IPTU por conta do inquilino.",
         unidades: [
