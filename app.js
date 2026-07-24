@@ -22,6 +22,12 @@
   const EMPREENDIMENTOS = (source.EMPREENDIMENTOS || []).filter((emp) => emp.confirmado !== false);
   const LOCAIS = source.LOCAIS || {};
 
+  const APP_VERSION = (() => {
+    const src = document.currentScript?.src || "";
+    const match = src.match(/[?&]v=([^&]+)/);
+    return match ? `v${match[1]}` : "—";
+  })();
+
   const CATEGORY_LABELS = {
     todos: "Todos",
     residencial: "Residencial",
@@ -218,6 +224,7 @@
 
     setText("header-date", META.dataTabela || "Não informada");
     setText("header-available", available.length.toLocaleString("pt-BR"));
+    setText("header-version", APP_VERSION);
     setText("meta-month", META.mesTabela || "—");
     setText("meta-incc", META.incc ? `${META.incc.valor} (${META.incc.variacao})` : "—");
     setText("meta-cities", cities.map((city) => city.replace("/RS", "")).join(" · "));
@@ -706,10 +713,24 @@
     return lines.join("\n");
   }
 
-  async function sendShare(text, title = "Construtora Senger") {
+  async function loadShareFiles(imageUrls) {
+    if (!imageUrls.length || !navigator.canShare) return [];
+    try {
+      const files = await Promise.all(imageUrls.map(async (url, index) => {
+        const blob = await (await fetch(url)).blob();
+        return new File([blob], `senger-${index + 1}.jpg`, { type: blob.type || "image/jpeg" });
+      }));
+      return navigator.canShare({ files }) ? files : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  async function sendShare(text, title = "Construtora Senger", imageUrls = []) {
     if (navigator.share && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
+      const files = await loadShareFiles(imageUrls);
       try {
-        await navigator.share({ title, text });
+        await navigator.share(files.length ? { title, text, files } : { title, text });
         return;
       } catch (error) {
         if (error?.name === "AbortError") return;
@@ -720,12 +741,12 @@
 
   function shareEnterprise(emp, includePrices) {
     if (!emp) return;
-    sendShare(enterpriseMessage(emp, includePrices), emp.nome);
+    sendShare(enterpriseMessage(emp, includePrices), emp.nome, [cardImage(emp)]);
   }
 
   function shareItem(item, includePrice) {
     if (!item) return;
-    sendShare(itemMessage(item, includePrice), `${item.emp.nome} — ${itemLabel(item)}`);
+    sendShare(itemMessage(item, includePrice), `${item.emp.nome} — ${itemLabel(item)}`, [cardImage(item.emp)]);
   }
 
   function toggleSelection(key) {
@@ -784,6 +805,11 @@
     return lines.join("\n");
   }
 
+  function selectedImages() {
+    const items = [...state.selected].map((key) => itemMap.get(key)).filter(Boolean);
+    return unique(items.map((item) => cardImage(item.emp)));
+  }
+
   function openDrawer() {
     const drawer = document.getElementById("selection-drawer");
     drawer.classList.add("open");
@@ -830,8 +856,8 @@
       renderRoute();
       showToast("Seleção limpa.");
     });
-    document.getElementById("share-selected-prices").addEventListener("click", () => state.selected.size && sendShare(selectedMessage(true), "Seleção de imóveis"));
-    document.getElementById("share-selected-no-prices").addEventListener("click", () => state.selected.size && sendShare(selectedMessage(false), "Seleção de imóveis"));
+    document.getElementById("share-selected-prices").addEventListener("click", () => state.selected.size && sendShare(selectedMessage(true), "Seleção de imóveis", selectedImages()));
+    document.getElementById("share-selected-no-prices").addEventListener("click", () => state.selected.size && sendShare(selectedMessage(false), "Seleção de imóveis", selectedImages()));
 
 
     window.addEventListener("hashchange", renderRoute);
