@@ -10,7 +10,6 @@ const META = {
   incc: { valor: "R$ 3.357,09", variacao: "+0,85%" },
   contato: {
     telefones: ["(54) 3331-2756", "(54) 99901-3331", "(54) 98434-6602"],
-    whatsapp: "5554999013331",
     instagram: "@construtorasenger",
     site: "construtorasenger.com.br",
     endereco: "Rua Barão de Antonina, 79 — Centro, Carazinho/RS",
