@@ -1,4 +1,4 @@
-/* Construtora Senger — Portfólio Comercial v1.0 */
+/* Construtora Senger — Portfólio Comercial v1.1 */
 (() => {
   "use strict";
 
@@ -45,7 +45,6 @@
     price: "todos",
     availableOnly: true,
     sort: "destaque",
-    hidePrices: storage.get("senger-hide-prices", "false") === "true",
     selected: new Set(JSON.parse(storage.get("senger-selection", "[]"))),
     lightbox: { media: [], index: 0 },
   };
@@ -241,9 +240,6 @@
       <div class="hero-stat"><strong>${Number(value).toLocaleString("pt-BR")}</strong><span>${escapeHtml(label)}</span></div>
     `).join("");
 
-    const generalMessage = `Olá! Gostaria de informações sobre os imóveis da Construtora Senger. Tabela: ${META.mesTabela || "atual"}.`;
-    document.getElementById("header-whatsapp").href = whatsappUrl(generalMessage, META.contato?.whatsapp || "");
-
     const footer = document.getElementById("footer-contacts");
     footer.innerHTML = [
       ...(META.contato?.telefones || []).map((phone) => `<a href="tel:${phone.replace(/\D/g, "")}">${escapeHtml(phone)}</a>`),
@@ -251,7 +247,6 @@
       META.contato?.site ? `<a href="${safeUrl(META.contato.site)}" target="_blank" rel="noopener">${escapeHtml(META.contato.site)}</a>` : "",
     ].join("");
     setText("footer-address", META.contato?.endereco || "");
-    setText("footer-version", `Tabela ${META.mesTabela || ""} · atualizada em ${META.dataTabela || "—"}`);
   }
 
   function renderFilters() {
@@ -412,7 +407,6 @@
     document.getElementById("detail-view").hidden = true;
     document.getElementById("detail-view").innerHTML = "";
     document.title = "Construtora Senger — Portfólio Comercial";
-    applyPriceVisibility();
     window.scrollTo({ top: 0, behavior: "auto" });
   }
 
@@ -527,7 +521,6 @@
     document.getElementById("print-detail").addEventListener("click", () => window.print());
     detail.querySelectorAll("[data-gallery-index]").forEach((button) => button.addEventListener("click", () => openLightbox(media, Number(button.dataset.galleryIndex))));
     bindInventoryEvents(detail);
-    applyPriceVisibility();
     window.scrollTo({ top: 0, behavior: "auto" });
   }
 
@@ -543,7 +536,7 @@
     return `
       <section class="content-section" id="unidades">
         <div class="section-title-row"><h2>Unidades e valores</h2><p>Selecione opções para encaminhar ao cliente</p></div>
-        <div class="inventory-toolbar"><p>${marketableItems(emp).length} opções comercializáveis nesta tabela.</p><button class="button button-outline button-small" type="button" data-toggle-prices>${state.hidePrices ? "Exibir preços" : "Ocultar preços"}</button></div>
+        <div class="inventory-toolbar"><p>${marketableItems(emp).length} opções comercializáveis nesta tabela.</p></div>
         ${groups.map((group, groupIndex) => {
           const units = (group.unidades || []).map((unit, unitIndex) => itemMap.get(`${emp.id}:unit:${groupIndex}:${unitIndex}`));
           const active = units.filter((item) => isMarketable(item.status)).length;
@@ -600,7 +593,7 @@
     return `
       <section class="content-section" id="unidades">
         <div class="section-title-row"><h2>Lotes e valores</h2><p>Disponibilidade por quadra e lote</p></div>
-        <div class="inventory-toolbar"><p>${marketableItems(emp).length} opções comercializáveis nesta tabela.</p><button class="button button-outline button-small" type="button" data-toggle-prices>${state.hidePrices ? "Exibir preços" : "Ocultar preços"}</button></div>
+        <div class="inventory-toolbar"><p>${marketableItems(emp).length} opções comercializáveis nesta tabela.</p></div>
         <div class="land-grid">${items.map((item) => renderOpportunity(item, `${item.lote || emp.nome}`, [itemLabel(item), item.rua, item.area])).join("")}</div>
       </section>
     `;
@@ -635,7 +628,6 @@
   function bindInventoryEvents(root) {
     root.querySelectorAll("[data-share-item]").forEach((button) => button.addEventListener("click", () => shareItem(itemMap.get(button.dataset.shareItem), true)));
     root.querySelectorAll("[data-select-item]").forEach((button) => button.addEventListener("click", () => toggleSelection(button.dataset.selectItem)));
-    root.querySelectorAll("[data-toggle-prices]").forEach((button) => button.addEventListener("click", togglePrices));
   }
 
   function enterpriseMessage(emp, includePrices) {
@@ -696,21 +688,6 @@
   function shareItem(item, includePrice) {
     if (!item) return;
     sendShare(itemMessage(item, includePrice), `${item.emp.nome} — ${itemLabel(item)}`);
-  }
-
-  function togglePrices() {
-    state.hidePrices = !state.hidePrices;
-    storage.set("senger-hide-prices", String(state.hidePrices));
-    applyPriceVisibility();
-    showToast(state.hidePrices ? "Preços ocultados na tela." : "Preços exibidos na tela.");
-  }
-
-  function applyPriceVisibility() {
-    document.body.classList.toggle("price-hidden", state.hidePrices);
-    const mainToggle = document.getElementById("toggle-prices");
-    mainToggle.textContent = state.hidePrices ? "Exibir preços" : "Ocultar preços";
-    mainToggle.setAttribute("aria-pressed", String(state.hidePrices));
-    document.querySelectorAll("[data-toggle-prices]").forEach((button) => { button.textContent = state.hidePrices ? "Exibir preços" : "Ocultar preços"; });
   }
 
   function toggleSelection(key) {
@@ -839,7 +816,6 @@
 
   function bindGlobalEvents() {
     document.getElementById("brand-home").addEventListener("click", navigateHome);
-    document.getElementById("toggle-prices").addEventListener("click", togglePrices);
     document.getElementById("print-catalog").addEventListener("click", () => window.print());
     document.getElementById("selection-fab").addEventListener("click", openDrawer);
     document.querySelectorAll("[data-close-drawer]").forEach((button) => button.addEventListener("click", closeDrawer));
@@ -869,7 +845,7 @@
 
   function registerServiceWorker() {
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-      navigator.serviceWorker.register("sw.js?v=2").catch(() => {});
+      navigator.serviceWorker.register("sw.js?v=3").catch(() => {});
     }
   }
 

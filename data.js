@@ -1,13 +1,13 @@
 // ============================================================
 //  Construtora Senger — Tabela de Preços e Disponibilidade
 //  Dados extraídos do PDF "lista senger 01.06.26.pdf"
-//  Status da tabela: Junho / 2026
+//  Status da tabela: Julho / 2026
 // ============================================================
 
 const META = {
-  mesTabela: "Junho / 2026",
+  mesTabela: "Julho / 2026",
   dataTabela: "01/06/2026",
-  incc: { valor: "R$ 3.328,80", variacao: "+0,77%" },
+  incc: { valor: "R$ 3.357,09", variacao: "+0,85%" },
   contato: {
     telefones: ["(54) 3331-2756", "(54) 99901-3331", "(54) 98434-6602"],
     whatsapp: "5554999013331",

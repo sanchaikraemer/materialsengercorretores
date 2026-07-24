@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="styles.css?v=2">
+  <link rel="stylesheet" href="styles.css?v=3">
 </head>
 <body>
   <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
@@ -24,10 +24,6 @@
         <div><span>Atualização</span><strong id="header-date">—</strong></div>
         <div><span>Disponíveis</span><strong id="header-available">—</strong></div>
       </div>
-      <div class="header-actions">
-        <button class="button button-ghost button-small" id="toggle-prices" type="button" aria-pressed="false">Ocultar preços</button>
-        <a class="button button-primary button-small" id="header-whatsapp" href="#" target="_blank" rel="noopener">Falar com a Senger</a>
-      </div>
     </div>
   </header>
 
@@ -40,7 +36,6 @@
         <h1>Encontre o imóvel certo.<br><span>Apresente com segurança.</span></h1>
         <p class="hero-copy">Empreendimentos, unidades, plantas, preços e disponibilidade em um único lugar para apoiar o atendimento dos corretores.</p>
         <div class="hero-actions">
-          <a class="button button-primary" href="#catalogo">Ver empreendimentos</a>
           <button class="button button-glass" id="print-catalog" type="button">Gerar PDF / imprimir</button>
         </div>
         <div class="hero-stats" id="hero-stats"></div>
@@ -52,7 +47,6 @@
         <div><span class="trust-label">Tabela comercial</span><strong id="meta-month">—</strong></div>
         <div><span class="trust-label">INCC informado</span><strong id="meta-incc">—</strong></div>
         <div><span class="trust-label">Abrangência</span><strong id="meta-cities">—</strong></div>
-        <div><span class="trust-label">Consulta rápida</span><strong>WhatsApp e PDF</strong></div>
       </div>
     </section>
 
@@ -63,7 +57,6 @@
             <p class="eyebrow dark">Portfólio</p>
             <h2>Empreendimentos e oportunidades</h2>
           </div>
-          <p>Use os filtros para encontrar rapidamente opções compatíveis com o cliente.</p>
         </div>
 
         <div class="filter-panel" id="filters-panel">
@@ -147,9 +140,8 @@
         <div id="footer-contacts"></div>
       </div>
       <div>
-        <h3>Informações</h3>
+        <h3>Endereço</h3>
         <p id="footer-address"></p>
-        <p id="footer-version"></p>
       </div>
     </div>
     <div class="shell footer-note">Valores e disponibilidade sujeitos a alteração sem aviso prévio. Imagens meramente ilustrativas. Consulte sempre as condições vigentes com a Construtora Senger.</div>
@@ -188,7 +180,7 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="data.js?v=2"></script>
-  <script src="app.js?v=2"></script>
+  <script src="data.js?v=3"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>
