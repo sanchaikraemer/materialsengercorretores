@@ -456,13 +456,6 @@
       </section>
     ` : "";
 
-    const video = local.video ? `
-      <section class="content-section">
-        <div class="section-title-row"><h2>Vídeo do empreendimento</h2><p>Apresentação em vídeo</p></div>
-        <div class="video-frame"><iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(local.video)}" title="Vídeo ${escapeHtml(emp.nome)}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
-      </section>
-    ` : "";
-
     detail.innerHTML = `
       <section class="detail-hero">
         <img class="detail-hero-image" src="${escapeHtml(cardImage(emp))}" alt="${escapeHtml(emp.nome)}">
@@ -511,7 +504,6 @@
         </div>
         ${differentials}
         ${gallery}
-        ${video}
         ${inventory}
       </div>
     `;

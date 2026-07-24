@@ -798,12 +798,12 @@ const EMPREENDIMENTOS = [
   },
 ];
 
-// Localização (link Google Maps) e vídeo (YouTube) por empreendimento
+// Localização (link Google Maps) por empreendimento
 const LOCAIS = {
-  quality: { mapsUrl: "https://www.google.com/maps?q=-28.287054,-52.797171", video: "N4nzezO8RtQ" },
+  quality: { mapsUrl: "https://www.google.com/maps?q=-28.287054,-52.797171" },
   prime: { mapsUrl: "https://www.google.com/maps?q=R.%20Ven%C3%A2ncio%20Aires%2C%20121%2C%20Centro%2C%20Carazinho%20-%20RS" },
   renaissance: { mapsUrl: "https://www.google.com/maps?q=R.%20Ven%C3%A2ncio%20Aires%2C%20Centro%2C%20Carazinho%20-%20RS" },
-  personalite: { mapsUrl: "https://www.google.com/maps?q=-28.284667,-52.791722", video: "HgjxXkWG_xA" },
+  personalite: { mapsUrl: "https://www.google.com/maps?q=-28.284667,-52.791722" },
   evolutti: { mapsUrl: "https://www.google.com/maps?q=-28.282806,-52.784389" },
   boulevard: { mapsUrl: "https://www.google.com/maps?q=Pra%C3%A7a%20General%20Os%C3%B3rio%2C%20Ibirub%C3%A1%20-%20RS" },
   "premium-office": { mapsUrl: "https://www.google.com/maps?q=-28.283750,-52.796917" },
