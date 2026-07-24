@@ -1,5 +1,5 @@
-const CACHE = "senger-portfolio-v12-20260724-version-tag-visible";
-const CORE = ["./", "./index.html", "./styles.css?v=12", "./data.js?v=12", "./app.js?v=12", "./manifest.json"];
+const CACHE = "senger-portfolio-v13-20260724-clipboard-focus-fix";
+const CORE = ["./", "./index.html", "./styles.css?v=13", "./data.js?v=13", "./app.js?v=13", "./manifest.json"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

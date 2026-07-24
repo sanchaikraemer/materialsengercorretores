@@ -712,14 +712,17 @@
     return lines.join("\n");
   }
 
-  function copyShareText(text) {
+  async function copyShareText(text) {
     if (!navigator.clipboard?.writeText) {
       showToast("Copie a mensagem e cole no WhatsApp para enviar.");
       return;
     }
-    navigator.clipboard.writeText(text)
-      .then(() => showToast("Mensagem copiada — cole na conversa do cliente no WhatsApp."))
-      .catch(() => showToast("Copie a mensagem e cole no WhatsApp para enviar."));
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast("Mensagem copiada — cole na conversa do cliente no WhatsApp.");
+    } catch (_) {
+      showToast("Copie a mensagem e cole no WhatsApp para enviar.");
+    }
   }
 
   async function sendShare(text, title = "Construtora Senger") {
@@ -731,8 +734,8 @@
         if (error?.name === "AbortError") return;
       }
     }
+    await copyShareText(text);
     window.open("https://web.whatsapp.com/", "_blank", "noopener");
-    copyShareText(text);
   }
 
   function shareEnterprise(emp, includePrices) {
@@ -860,7 +863,7 @@
 
   function registerServiceWorker() {
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-      navigator.serviceWorker.register("sw.js?v=12").catch(() => {});
+      navigator.serviceWorker.register("sw.js?v=13").catch(() => {});
     }
   }
 
