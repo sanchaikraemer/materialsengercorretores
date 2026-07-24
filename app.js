@@ -1,4 +1,4 @@
-/* Construtora Senger — Portfólio Comercial v1.1.1 */
+/* Construtora Senger — Portfólio Comercial v1.2.0 */
 (() => {
   "use strict";
 
@@ -59,13 +59,6 @@
       currency: "BRL",
       maximumFractionDigits: 0,
     });
-  };
-
-  const compactMoney = (value) => {
-    const n = Number(value);
-    if (!Number.isFinite(n) || n <= 0) return "Sob consulta";
-    if (n >= 1_000_000) return `R$ ${(n / 1_000_000).toLocaleString("pt-BR", { maximumFractionDigits: 2 })} mi`;
-    return `R$ ${Math.round(n / 1_000).toLocaleString("pt-BR")} mil`;
   };
 
   const escapeHtml = (text = "") => String(text)
@@ -363,19 +356,28 @@
             <p class="card-tagline">${escapeHtml(emp.tagline || emp.entrega || "Consulte informações e disponibilidade.")}</p>
             <div class="card-metrics">
               <div class="card-metric"><span>Opções ativas</span><strong>${active.length}</strong></div>
-              <div class="card-metric"><span>A partir de</span><strong class="price-value">${minimum ? compactMoney(minimum) : "Sob consulta"}</strong></div>
+              <div class="card-metric card-price-panel">
+                <span class="card-price-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" focusable="false"><path d="M4 21V8.5L12 4l8 4.5V21M8 21v-8h8v8M9 9h.01M12 9h.01M15 9h.01"/></svg>
+                </span>
+                <span class="card-price-copy"><span>A partir de</span><strong class="price-value">${minimum ? money(minimum) : "Sob consulta"}</strong></span>
+              </div>
             </div>
           </div>
           <div class="card-footer">
-            <button class="button button-dark" type="button" data-open-emp="${emp.id}">Ver empreendimento</button>
+            <span class="button button-dark card-open-label" aria-hidden="true">Ver empreendimento</span>
             <button class="card-share" type="button" data-share-emp="${emp.id}" aria-label="Compartilhar ${escapeHtml(emp.nome)}">↗</button>
           </div>
+          <a class="card-open-overlay" href="#emp-${emp.id}" aria-label="Abrir detalhes do empreendimento ${escapeHtml(emp.nome)}"></a>
         </article>
       `;
     }).join("");
 
-    grid.querySelectorAll("[data-open-emp]").forEach((button) => button.addEventListener("click", () => navigateToEnterprise(button.dataset.openEmp)));
-    grid.querySelectorAll("[data-share-emp]").forEach((button) => button.addEventListener("click", () => shareEnterprise(findEnterprise(button.dataset.shareEmp), false)));
+    grid.querySelectorAll("[data-share-emp]").forEach((button) => button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      shareEnterprise(findEnterprise(button.dataset.shareEmp), false);
+    }));
   }
 
   function findEnterprise(id) {
@@ -843,7 +845,7 @@
 
   function registerServiceWorker() {
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-      navigator.serviceWorker.register("sw.js?v=4").catch(() => {});
+      navigator.serviceWorker.register("sw.js?v=6").catch(() => {});
     }
   }
 

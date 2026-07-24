@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="styles.css?v=3">
+  <link rel="stylesheet" href="styles.css?v=6">
 </head>
 <body>
   <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
@@ -95,26 +95,28 @@
                 <option value="1000000-inf">Acima de R$ 1 milhão</option>
               </select>
             </label>
-            <label class="switch-field">
-              <input id="available-only" type="checkbox" checked>
-              <span class="switch-ui" aria-hidden="true"></span>
-              <span>Somente com disponibilidade</span>
-            </label>
-            <button class="text-button" id="clear-filters" type="button">Limpar filtros</button>
+            <div class="filter-actions">
+              <label class="sort-control">Ordenar
+                <select id="sort-filter">
+                  <option value="destaque">Destaques</option>
+                  <option value="menor-preco">Menor preço</option>
+                  <option value="maior-preco">Maior preço</option>
+                  <option value="mais-opcoes">Mais opções</option>
+                  <option value="nome">Nome</option>
+                </select>
+              </label>
+              <label class="switch-field">
+                <input id="available-only" type="checkbox" checked>
+                <span class="switch-ui" aria-hidden="true"></span>
+                <span>Somente com disponibilidade</span>
+              </label>
+              <button class="text-button" id="clear-filters" type="button">Limpar filtros</button>
+            </div>
           </div>
         </div>
 
         <div class="results-bar">
           <p id="results-count">—</p>
-          <label class="sort-control">Ordenar
-            <select id="sort-filter">
-              <option value="destaque">Destaques</option>
-              <option value="menor-preco">Menor preço</option>
-              <option value="maior-preco">Maior preço</option>
-              <option value="mais-opcoes">Mais opções</option>
-              <option value="nome">Nome</option>
-            </select>
-          </label>
         </div>
 
         <div class="portfolio-grid" id="portfolio-grid"></div>
@@ -181,6 +183,6 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="data.js?v=3"></script>
-  <script src="app.js?v=4"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>

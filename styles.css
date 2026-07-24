@@ -249,7 +249,7 @@ img { max-width: 100%; display: block; }
 .button-filter-toggle { display: none; }
 .filters-body {
   display: grid;
-  grid-template-columns: 1.75fr repeat(3, 1fr) auto auto;
+  grid-template-columns: minmax(410px, 2fr) repeat(3, minmax(165px, 1fr)) minmax(295px, auto);
   align-items: end;
   gap: 13px;
   margin-top: 15px;
@@ -268,7 +268,19 @@ img { max-width: 100%; display: block; }
   font-size: 12.5px;
 }
 .filter-group select:focus, .sort-control select:focus, .search-field:focus-within { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(23,143,160,.11); }
-.segmented { display: flex; gap: 5px; flex-wrap: wrap; }
+.filter-actions {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: end;
+  justify-content: end;
+  column-gap: 14px;
+  row-gap: 6px;
+}
+.filter-actions .sort-control { grid-column: 1 / -1; justify-self: end; }
+.filter-actions .switch-field { grid-column: 1; }
+.filter-actions .text-button { grid-column: 2; align-self: center; }
+.segmented { display: flex; gap: 5px; flex-wrap: nowrap; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.segmented::-webkit-scrollbar { display: none; }
 .segmented button {
   min-height: 43px;
   padding: 9px 13px;
@@ -278,6 +290,8 @@ img { max-width: 100%; display: block; }
   color: var(--muted);
   font-size: 12px;
   font-weight: 700;
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
 .segmented button.active { border-color: var(--dark); background: var(--dark); color: #fff; }
 .switch-field { min-height: 43px; display: flex; align-items: center; gap: 9px; white-space: nowrap; color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; }
@@ -287,7 +301,7 @@ img { max-width: 100%; display: block; }
 .switch-field input:checked + .switch-ui { background: var(--brand); }
 .switch-field input:checked + .switch-ui::after { transform: translateX(17px); }
 
-.results-bar { min-height: 58px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.results-bar { min-height: 42px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
 .results-bar p { margin: 0; color: var(--muted); font-size: 13px; }
 .results-bar p strong { color: var(--ink); }
 .sort-control { display: flex; align-items: center; gap: 9px; color: var(--muted); font-size: 12px; font-weight: 600; }
@@ -295,8 +309,10 @@ img { max-width: 100%; display: block; }
 
 .portfolio-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
 .portfolio-card {
+  position: relative;
   min-width: 0;
   overflow: hidden;
+  cursor: pointer;
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   background: var(--surface);
@@ -330,14 +346,43 @@ img { max-width: 100%; display: block; }
 .card-kicker { color: var(--brand); font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
 .card-title { margin: 7px 0 7px; font-family: var(--font-display); font-size: 23px; line-height: 1.13; letter-spacing: -.025em; font-weight: 600; }
 .card-tagline { min-height: 43px; margin: 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
-.card-metrics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 18px; }
+.card-metrics { display: grid; grid-template-columns: .72fr 1.28fr; gap: 10px; margin-top: 18px; }
 .card-metric { padding: 11px 12px; border-radius: 11px; background: var(--bg); }
 .card-metric span { display: block; color: var(--muted); font-size: 9.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
 .card-metric strong { display: block; margin-top: 4px; font-size: 13px; }
+.card-price-panel {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: linear-gradient(135deg, rgba(23,143,160,.12), rgba(23,143,160,.035));
+  border: 1px solid rgba(23,143,160,.16);
+}
+.card-price-icon {
+  width: 38px;
+  height: 38px;
+  display: grid !important;
+  place-items: center;
+  padding-right: 10px;
+  border-right: 1px solid rgba(23,143,160,.32);
+  color: var(--brand);
+}
+.card-price-icon svg { width: 25px; height: 25px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.card-price-copy { min-width: 0; }
+.card-price-copy > span { color: var(--brand-dark); }
+.card-price-copy strong { white-space: nowrap; font-size: 14px; letter-spacing: -.015em; }
 .price-value { font-family: var(--font-display); font-variant-numeric: tabular-nums; }
-.card-footer { padding: 16px 20px 20px; display: flex; align-items: center; gap: 9px; border-top: 1px solid var(--line); }
+.card-footer { position: relative; z-index: 5; padding: 16px 20px 20px; display: flex; align-items: center; gap: 9px; border-top: 1px solid var(--line); pointer-events: none; }
 .card-footer .button { flex: 1; }
+.card-open-label { pointer-events: none; }
+.card-open-overlay { position: absolute; inset: 0; z-index: 4; border-radius: inherit; }
+.card-open-overlay:focus-visible { outline: 3px solid rgba(23,143,160,.5); outline-offset: -3px; }
 .card-share {
+  position: relative;
+  z-index: 6;
+  pointer-events: auto;
   width: 43px;
   height: 43px;
   flex: 0 0 auto;
@@ -509,6 +554,7 @@ img { max-width: 100%; display: block; }
   .header-summary { display: none; }
   .filters-body { grid-template-columns: repeat(3, 1fr); }
   .filter-group-wide { grid-column: span 3; }
+  .filter-actions { grid-column: span 3; width: 100%; }
   .portfolio-grid { grid-template-columns: repeat(2, 1fr); }
   .detail-summary-grid { grid-template-columns: 1fr; }
   .differentials-grid { grid-template-columns: repeat(2, 1fr); }
@@ -537,8 +583,12 @@ img { max-width: 100%; display: block; }
   .filters-body { display: none; grid-template-columns: 1fr; }
   .filters-body.open { display: grid; }
   .filter-group-wide { grid-column: auto; }
-  .segmented { display: grid; grid-template-columns: repeat(2, 1fr); }
-  .segmented button { padding-inline: 8px; }
+  .filter-actions { grid-column: auto; grid-template-columns: 1fr; justify-content: stretch; }
+  .filter-actions .sort-control, .filter-actions .switch-field, .filter-actions .text-button { grid-column: auto; }
+  .filter-actions .sort-control { justify-self: stretch; }
+  .filter-actions .text-button { justify-self: start; }
+  .segmented { display: flex; flex-wrap: nowrap; overflow-x: auto; }
+  .segmented button { padding-inline: 11px; }
   .results-bar { align-items: flex-start; flex-direction: column; padding: 16px 0; }
   .sort-control { width: 100%; justify-content: space-between; }
   .sort-control select { width: 190px; }
