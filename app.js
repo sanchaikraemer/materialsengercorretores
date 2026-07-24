@@ -762,7 +762,7 @@
   }
 
   async function sendShare(text, title = "Construtora Senger", imageUrl = "") {
-    if (navigator.share && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
+    if (navigator.share) {
       try {
         await navigator.share({ title, text });
         return;
@@ -901,7 +901,7 @@
 
   function registerServiceWorker() {
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-      navigator.serviceWorker.register("sw.js?v=15").catch(() => {});
+      navigator.serviceWorker.register("sw.js?v=16").catch(() => {});
     }
   }
 
