@@ -592,7 +592,7 @@ img { max-width: 100%; display: block; }
   .trust-grid { grid-template-columns: repeat(2, 1fr); }
   .trust-grid > div { min-height: 78px; padding: 16px; }
   .trust-grid > div:last-child { grid-column: 1 / -1; }
-  .catalog-section { padding: 65px 0 80px; }
+  .catalog-section { padding: 48px 0 60px; }
   .filter-panel { padding: 12px; }
   .button-filter-toggle { display: inline-flex; }
   .filters-body { display: none; grid-template-columns: 1fr; }
@@ -602,7 +602,7 @@ img { max-width: 100%; display: block; }
   .filter-actions .sort-control, .filter-actions .switch-field, .filter-actions .text-button { grid-column: auto; }
   .filter-actions .sort-control { justify-self: stretch; }
   .filter-actions .text-button { justify-self: start; }
-  .segmented { display: flex; flex-wrap: nowrap; overflow-x: auto; }
+  .segmented { flex-wrap: wrap; overflow-x: visible; }
   .segmented button { padding-inline: 11px; }
   .results-bar { align-items: flex-start; flex-direction: column; padding: 16px 0; }
   .sort-control { width: 100%; justify-content: space-between; }
@@ -610,12 +610,14 @@ img { max-width: 100%; display: block; }
   .portfolio-grid { grid-template-columns: 1fr; }
   .card-media { height: 230px; }
   .detail-hero { min-height: 550px; }
+  .detail-hero-content { padding: 30px 0 26px; }
   .detail-title-row { display: block; }
   .detail-brand-logo { margin-top: 24px; max-height: 64px; }
-  .detail-back { margin-bottom: 90px; }
+  .detail-back { margin-bottom: 28px; }
   .detail-actions { display: grid; grid-template-columns: 1fr 1fr; }
   .detail-actions .button { min-width: 0; padding-inline: 11px; font-size: 11.5px; }
   .detail-content { padding-top: 28px; }
+  .content-section { margin-top: 30px; }
   .fact-grid { grid-template-columns: 1fr 1fr; }
   .differentials-grid { grid-template-columns: 1fr; gap: 8px; }
   .differential-card { display: flex; align-items: flex-start; gap: 12px; min-height: 0; padding: 12px 14px; }
@@ -641,7 +643,8 @@ img { max-width: 100%; display: block; }
   .hero-actions .button { width: 100%; }
   .hero-stats { gap: 0 8px; }
   .card-metrics { grid-template-columns: 1fr; }
-  .detail-actions { grid-template-columns: 1fr; }
+  .detail-actions { gap: 8px; }
+  .detail-actions .button { padding-inline: 6px; font-size: 10.5px; }
   .fact-grid { grid-template-columns: 1fr; }
   .gallery-featured { height: 260px; }
   .gallery-thumbnails { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(4, 95px); }

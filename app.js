@@ -922,7 +922,7 @@
 
   function registerServiceWorker() {
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-      navigator.serviceWorker.register("sw.js?v=19").catch(() => {});
+      navigator.serviceWorker.register("sw.js?v=20").catch(() => {});
     }
   }
 
