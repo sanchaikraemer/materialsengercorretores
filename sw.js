@@ -1,5 +1,5 @@
-const CACHE = "senger-portfolio-v21-20260726-fact-grid-fix";
-const CORE = ["./", "./index.html", "./styles.css?v=21", "./data.js?v=21", "./app.js?v=21", "./manifest.json"];
+const CACHE = "senger-portfolio-v22-20260726-layout-fix";
+const CORE = ["./", "./index.html", "./styles.css?v=22", "./data.js?v=22", "./app.js?v=22", "./manifest.json"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

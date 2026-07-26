@@ -1,4 +1,4 @@
-/* Construtora Senger — Portfólio Comercial v1.2.0 */
+/* Construtora Senger — Portfólio Comercial v22 */
 (() => {
   "use strict";
 
@@ -292,11 +292,13 @@
     state.stage = "todos";
     state.price = "todos";
     state.availableOnly = true;
+    state.sort = "destaque";
     document.getElementById("search-input").value = "";
     document.getElementById("city-filter").value = "todos";
     document.getElementById("stage-filter").value = "todos";
     document.getElementById("price-filter").value = "todos";
     document.getElementById("available-only").checked = true;
+    document.getElementById("sort-filter").value = "destaque";
     document.querySelectorAll("[data-category]").forEach((button) => button.classList.toggle("active", button.dataset.category === "todos"));
     renderPortfolio();
   }
@@ -453,34 +455,43 @@
     const humanizedPlants = media.filter((item) => isPlantMedia(item) && !/\.pdf(?:$|\?)/i.test(item.src || ""));
     const technicalPlants = media.filter((item) => isPlantMedia(item) && /\.pdf(?:$|\?)/i.test(item.src || ""));
 
+    const thumbnailMedia = photoMedia.slice(1, 9);
+    const thumbnailCount = thumbnailMedia.length;
+    const galleryClass = thumbnailCount ? "gallery-showcase has-thumbnails" : "gallery-showcase gallery-single";
+    const galleryStyle = thumbnailCount
+      ? `--thumb-cols:${Math.min(thumbnailCount, 2)};--thumb-rows:${Math.ceil(thumbnailCount / 2)};--mobile-cols:${Math.min(thumbnailCount, 4)};--compact-cols:${Math.min(thumbnailCount, 2)}`
+      : "";
+
     const gallery = photoMedia.length ? `
       <section class="content-section">
-        <div class="section-title-row"><h2>Imagens</h2><p>Até 9 fotos do empreendimento</p></div>
-        <div class="gallery-showcase" data-gallery-showcase>
+        <div class="section-title-row"><h2>Imagens</h2><p>${photoMedia.length} ${photoMedia.length === 1 ? "imagem disponível" : "imagens disponíveis"}</p></div>
+        <div class="${galleryClass}" data-gallery-showcase${galleryStyle ? ` style="${galleryStyle}"` : ""}>
           <div class="gallery-featured">
             <img src="${escapeHtml(photoMedia[0].src)}" alt="${escapeHtml(photoMedia[0].legenda || emp.nome)}" data-gallery-featured>
             <span data-gallery-featured-caption>${escapeHtml(photoMedia[0].legenda || emp.nome)}</span>
           </div>
-          <div class="gallery-thumbnails">
-            ${photoMedia.slice(1, 9).map((item, index) => `
-              <button class="gallery-thumbnail" type="button" data-gallery-thumb="${index + 1}" aria-label="Exibir ${escapeHtml(item.legenda || emp.nome)} na imagem principal">
-                <img src="${escapeHtml(item.src)}" alt="${escapeHtml(item.legenda || emp.nome)}" loading="lazy">
-              </button>
-            `).join("")}
-          </div>
+          ${thumbnailCount ? `
+            <div class="gallery-thumbnails">
+              ${thumbnailMedia.map((item, index) => `
+                <button class="gallery-thumbnail" type="button" data-gallery-thumb="${index + 1}" aria-label="Exibir ${escapeHtml(item.legenda || emp.nome)} na imagem principal">
+                  <img src="${escapeHtml(item.src)}" alt="${escapeHtml(item.legenda || emp.nome)}" loading="lazy">
+                </button>
+              `).join("")}
+            </div>
+          ` : ""}
         </div>
       </section>
     ` : "";
 
     const plantSection = (technicalPlants.length || humanizedPlants.length) ? `
       <section class="content-section plant-section">
-        <div class="section-title-row"><h2>Plantas do empreendimento</h2><p>Consulte as opções disponíveis</p></div>
+        <div class="section-title-row"><h2>Plantas</h2></div>
         <div class="plant-links">
           ${technicalPlants.length ? `
             <div class="plant-link-group">
               <h3>Planta técnica</h3>
               <div class="plant-link-list">
-                ${technicalPlants.map((item) => `<a class="plant-link" href="${escapeHtml(item.src)}" target="_blank" rel="noopener"><span class="plant-link-icon">▤</span><span>${escapeHtml(item.legenda || "Planta técnica")}</span><strong>↗</strong></a>`).join("")}
+                ${technicalPlants.map((item) => `<a class="plant-link" href="${escapeHtml(item.src)}" target="_blank" rel="noopener">${escapeHtml(item.legenda || "Planta técnica")}</a>`).join("")}
               </div>
             </div>
           ` : ""}
@@ -488,7 +499,7 @@
             <div class="plant-link-group">
               <h3>Planta humanizada</h3>
               <div class="plant-link-list">
-                ${humanizedPlants.map((item) => `<a class="plant-link" href="${escapeHtml(item.src)}" target="_blank" rel="noopener"><span class="plant-link-icon">▧</span><span>${escapeHtml(item.legenda || "Planta humanizada")}</span><strong>↗</strong></a>`).join("")}
+                ${humanizedPlants.map((item) => `<a class="plant-link" href="${escapeHtml(item.src)}" target="_blank" rel="noopener">${escapeHtml(item.legenda || "Planta humanizada")}</a>`).join("")}
               </div>
             </div>
           ` : ""}
@@ -922,7 +933,7 @@
 
   function registerServiceWorker() {
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-      navigator.serviceWorker.register("sw.js?v=21").catch(() => {});
+      navigator.serviceWorker.register("sw.js?v=22").catch(() => {});
     }
   }
 

@@ -1,8 +1,23 @@
-AJUSTE — TÍTULO MENOR
+ATUALIZAÇÃO COMPLETA — MATERIAL SENGER CORRETORES — v22
 
-1. Extraia este ZIP.
-2. Na raiz do repositório tabelasenger, envie styles.css.
-3. Confirme a substituição e faça o commit.
-4. Aguarde 2 minutos e pressione Ctrl + F5 no site.
+Este ZIP contém o projeto completo e deve substituir a versão anterior.
 
-Este ajuste reduz bastante o título, o subtítulo e a altura do topo.
+COMO PUBLICAR NO GITHUB
+1. Extraia o ZIP.
+2. Abra o repositório do site.
+3. Substitua os arquivos e pastas da raiz pelos conteúdos deste ZIP.
+4. Confirme o commit e aguarde a publicação do GitHub Pages.
+5. Abra o site e atualize a página. O cache foi alterado para a versão 22.
+
+PRINCIPAIS CORREÇÕES
+- filtros alinhados e sem conteúdo ultrapassando o contêiner;
+- opção “Outros” sempre visível;
+- “Limpar filtros” também restaura a ordenação para “Destaques”;
+- galeria adaptada à quantidade real de imagens, sem áreas vazias;
+- plantas exibidas em formato mais simples;
+- data da tabela alinhada com Julho/2026: 10/07/2026;
+- logo do rodapé corrigida;
+- cache e arquivos atualizados para v22.
+
+IMPORTANTE
+Não envie apenas o styles.css. Esta atualização altera também index.html, app.js, data.js, sw.js e assets.
