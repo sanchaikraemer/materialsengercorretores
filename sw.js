@@ -1,5 +1,5 @@
-const CACHE = "senger-portfolio-v31-20260727-fotos-nvr-sem-filtro-tipo";
-const CORE = ["./", "./index.html", "./styles.css?v=31", "./data.js?v=31", "./app.js?v=31", "./manifest.json"];
+const CACHE = "senger-portfolio-v32-20260727-terrenos-tabela";
+const CORE = ["./", "./index.html", "./styles.css?v=32", "./data.js?v=32", "./app.js?v=32", "./manifest.json"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

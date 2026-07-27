@@ -395,7 +395,7 @@ img { max-width: 100%; display: block; }
 .card-price-copy { min-width: 0; }
 .card-price-copy > span { color: var(--brand-dark); }
 .card-price-copy strong { white-space: nowrap; font-size: 14px; letter-spacing: -.015em; }
-.price-value { font-family: var(--font-display); font-variant-numeric: tabular-nums; }
+.price-value { font-family: var(--font-display); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .card-footer { position: relative; z-index: 5; padding: 16px 20px 20px; display: flex; align-items: center; gap: 9px; border-top: 1px solid var(--line); pointer-events: none; }
 .card-footer .button { flex: 1; }
 .card-open-label { pointer-events: none; }
@@ -505,22 +505,13 @@ img { max-width: 100%; display: block; }
 .mobile-unit-card:first-child { border-top: 0; }
 .mobile-unit-head { display: flex; justify-content: space-between; gap: 10px; }
 .mobile-unit-head strong { font-size: 15px; }
+.mobile-unit-note { margin: 6px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
 .mobile-unit-meta { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 13px 0; }
 .mobile-unit-meta div { padding: 10px; border-radius: 9px; background: var(--bg); }
 .mobile-unit-meta span { display: block; color: var(--muted); font-size: 9px; text-transform: uppercase; }
 .mobile-unit-meta strong { display: block; margin-top: 4px; font-size: 12px; }
 .mobile-unit-actions { display: flex; gap: 8px; }
 .mobile-unit-actions button { flex: 1; }
-
-.other-grid, .land-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-.opportunity-card { padding: 20px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); }
-.opportunity-card h3 { margin: 0 0 6px; font-size: 16px; }
-.opportunity-card p { color: var(--muted); font-size: 12.5px; line-height: 1.55; }
-.opportunity-data { display: flex; flex-wrap: wrap; gap: 7px; margin: 12px 0; }
-.opportunity-data span { padding: 5px 8px; border-radius: 7px; background: var(--bg); color: var(--muted); font-size: 10.5px; }
-.opportunity-price { margin: 13px 0; font-family: var(--font-display); font-size: 20px; font-weight: 700; }
-.opportunity-actions { display: flex; gap: 8px; }
-.opportunity-actions .unit-action, .opportunity-actions .selection-control { flex: 1; }
 
 .selection-fab {
   position: fixed;
@@ -586,7 +577,6 @@ img { max-width: 100%; display: block; }
   .filter-actions { grid-column: 1 / -1; width: 100%; grid-template-columns: minmax(0, 1fr) auto; }
   .portfolio-grid { grid-template-columns: repeat(2, 1fr); }
   .detail-summary-grid { grid-template-columns: 1fr; }
-  .other-grid, .land-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 760px) {
@@ -639,7 +629,6 @@ img { max-width: 100%; display: block; }
   .plant-viewer-preview { position: static; height: 280px; order: -1; }
   .units-table { display: none; }
   .mobile-units { display: block; }
-  .other-grid, .land-grid { grid-template-columns: 1fr; }
   .inventory-toolbar { align-items: flex-start; flex-direction: column; }
   .footer-grid { grid-template-columns: 1fr; gap: 30px; }
   .selection-fab { right: 15px; bottom: 15px; }
@@ -681,7 +670,7 @@ img { max-width: 100%; display: block; }
   .card-footer { display: none; }
   .detail-hero { min-height: 85mm; break-after: avoid; }
   .detail-content { padding: 8mm 0 0; }
-  .detail-summary-grid, .gallery-showcase, .plant-viewer, .other-grid, .land-grid { break-inside: avoid; }
+  .detail-summary-grid, .gallery-showcase, .plant-viewer { break-inside: avoid; }
   .content-section { break-inside: avoid; }
   .units-table { display: table; }
   .mobile-units { display: none; }
