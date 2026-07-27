@@ -643,8 +643,6 @@ img { max-width: 100%; display: block; }
   .detail-actions .button { padding-inline: 6px; font-size: 10.5px; }
   .gallery-featured, .gallery-single .gallery-featured { height: 260px; }
   .gallery-thumbnails { grid-template-columns: repeat(var(--compact-cols, 2), minmax(0, 1fr)); grid-template-rows: none; grid-auto-rows: 95px; }
-  .mobile-unit-meta { grid-template-columns: 1fr; }
-  .mobile-unit-actions { display: grid; }
 }
 
 @media print {
