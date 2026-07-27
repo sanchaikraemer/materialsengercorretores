@@ -1,4 +1,4 @@
-/* Construtora Senger — Portfólio Comercial v31 */
+/* Construtora Senger — Portfólio Comercial v32 */
 (() => {
   "use strict";
 
@@ -654,7 +654,11 @@
       <section class="content-section" id="unidades">
         <div class="section-title-row"><h2>Lotes e valores</h2><p>Disponibilidade por quadra e lote</p></div>
         <div class="inventory-toolbar"><p>${marketableItems(emp).length} opções comercializáveis nesta tabela.</p></div>
-        <div class="land-grid">${items.map((item) => renderOpportunity(item, `${item.lote || emp.nome}`, [itemLabel(item), item.rua, item.area])).join("")}</div>
+        <table class="units-table">
+          <thead><tr><th>Lote</th><th>Área</th><th>Rua</th><th>Status</th><th>Valor</th><th></th></tr></thead>
+          <tbody>${items.map((item) => renderOpportunityRow(item, item.rua)).join("")}</tbody>
+        </table>
+        <div class="mobile-units">${items.map((item) => renderMobileOpportunity(item, item.rua)).join("")}</div>
       </section>
     `;
   }
@@ -664,23 +668,43 @@
     return `
       <section class="content-section" id="unidades">
         <div class="section-title-row"><h2>Imóveis disponíveis</h2><p>Oportunidades complementares</p></div>
-        <div class="other-grid">${items.map((item) => renderOpportunity(item, item.nome, [item.local, item.area], item.description)).join("")}</div>
+        <div class="inventory-toolbar"><p>${marketableItems(emp).length} opções comercializáveis nesta tabela.</p></div>
+        <table class="units-table">
+          <thead><tr><th>Imóvel</th><th>Área</th><th>Local</th><th>Status</th><th>Valor</th><th></th></tr></thead>
+          <tbody>${items.map((item) => renderOpportunityRow(item, item.local, item.description)).join("")}</tbody>
+        </table>
+        <div class="mobile-units">${items.map((item) => renderMobileOpportunity(item, item.local, item.description)).join("")}</div>
       </section>
     `;
   }
 
-  function renderOpportunity(item, title, chips, description = "") {
+  function renderOpportunityRow(item, secondary, description = "") {
     const selectable = isMarketable(item.status);
     const selected = state.selected.has(item.key);
     return `
-      <article class="opportunity-card">
-        <span class="status-pill status-${item.status}">${escapeHtml(STATUS_LABELS[item.status] || item.status)}</span>
-        <h3>${escapeHtml(title)}</h3>
-        ${description ? `<p>${escapeHtml(description)}</p>` : ""}
-        <div class="opportunity-data">${chips.filter(Boolean).map((chip) => `<span>${escapeHtml(chip)}</span>`).join("")}</div>
-        <div class="opportunity-price price-value">${item.pricePrefix ? `${escapeHtml(item.pricePrefix)} ` : ""}${money(item.price)}</div>
-        ${item.notes ? `<p>${escapeHtml(item.notes)}</p>` : ""}
-        <div class="opportunity-actions"><button class="unit-action" type="button" data-share-item="${item.key}">Compartilhar</button><button class="selection-control ${selected ? "selected" : ""}" type="button" data-select-item="${item.key}" ${selectable ? "" : "disabled"}>${selected ? "Selecionado" : "Selecionar"}</button></div>
+      <tr>
+        <td><strong>${escapeHtml(itemLabel(item))}</strong>${description ? `<br><small>${escapeHtml(description)}</small>` : ""}</td>
+        <td>${escapeHtml(item.area || "—")}</td>
+        <td>${escapeHtml(secondary || "—")}</td>
+        <td><span class="status-pill status-${item.status}">${escapeHtml(STATUS_LABELS[item.status] || item.status)}</span></td>
+        <td><strong class="price-value">${item.pricePrefix ? `${escapeHtml(item.pricePrefix)} ` : ""}${money(item.price)}</strong></td>
+        <td><div class="unit-actions"><button class="unit-action" type="button" data-share-item="${item.key}">Compartilhar</button><button class="selection-control ${selected ? "selected" : ""}" type="button" data-select-item="${item.key}" ${selectable ? "" : "disabled"}>${selected ? "Selecionado" : "Selecionar"}</button></div></td>
+      </tr>
+    `;
+  }
+
+  function renderMobileOpportunity(item, secondary, description = "") {
+    const selectable = isMarketable(item.status);
+    const selected = state.selected.has(item.key);
+    return `
+      <article class="mobile-unit-card">
+        <div class="mobile-unit-head"><strong>${escapeHtml(itemLabel(item))}</strong><span class="status-pill status-${item.status}">${escapeHtml(STATUS_LABELS[item.status] || item.status)}</span></div>
+        ${description ? `<p class="mobile-unit-note">${escapeHtml(description)}</p>` : ""}
+        <div class="mobile-unit-meta">
+          <div><span>Área</span><strong>${escapeHtml(item.area || "—")}</strong></div>
+          <div><span>Valor</span><strong class="price-value">${item.pricePrefix ? `${escapeHtml(item.pricePrefix)} ` : ""}${money(item.price)}</strong></div>
+        </div>
+        <div class="mobile-unit-actions"><button class="unit-action" type="button" data-share-item="${item.key}">Compartilhar</button><button class="selection-control ${selected ? "selected" : ""}" type="button" data-select-item="${item.key}" ${selectable ? "" : "disabled"}>${selected ? "Selecionado" : "Selecionar"}</button></div>
       </article>
     `;
   }
@@ -936,7 +960,7 @@
 
   function registerServiceWorker() {
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-      navigator.serviceWorker.register("sw.js?v=31").catch(() => {});
+      navigator.serviceWorker.register("sw.js?v=32").catch(() => {});
     }
   }
 
