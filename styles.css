@@ -289,7 +289,6 @@ img { max-width: 100%; display: block; }
   margin-top: 15px;
 }
 .filter-group { display: grid; gap: 7px; min-width: 0; }
-.filter-group-wide { grid-column: 1 / -1; }
 .filter-label { color: var(--muted); font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 .filter-group select, .sort-control select {
   width: 100%;
@@ -317,20 +316,6 @@ img { max-width: 100%; display: block; }
 .filter-actions .switch-field { grid-column: 1; min-width: 0; }
 .filter-actions .switch-field > span:last-child { white-space: nowrap; }
 .filter-actions .text-button { grid-column: 2; align-self: center; white-space: nowrap; }
-.segmented { display: flex; gap: 5px; flex-wrap: wrap; min-width: 0; overflow: visible; }
-.segmented button {
-  min-height: 43px;
-  padding: 9px 13px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: #fff;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 700;
-  white-space: nowrap;
-  flex: 0 0 auto;
-}
-.segmented button.active { border-color: var(--dark); background: var(--dark); color: #fff; }
 .switch-field { min-height: 43px; display: flex; align-items: center; gap: 9px; white-space: nowrap; color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; }
 .switch-field input { position: absolute; opacity: 0; pointer-events: none; }
 .switch-ui { position: relative; width: 39px; height: 22px; border-radius: 99px; background: #c8d0d4; transition: background .2s; }
@@ -598,7 +583,6 @@ img { max-width: 100%; display: block; }
 @media (max-width: 1080px) {
   .header-summary { display: none; }
   .filters-body { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .filter-group-wide { grid-column: 1 / -1; }
   .filter-actions { grid-column: 1 / -1; width: 100%; grid-template-columns: minmax(0, 1fr) auto; }
   .portfolio-grid { grid-template-columns: repeat(2, 1fr); }
   .detail-summary-grid { grid-template-columns: 1fr; }
@@ -626,13 +610,10 @@ img { max-width: 100%; display: block; }
   .button-filter-toggle { display: inline-flex; }
   .filters-body { display: none; grid-template-columns: 1fr; }
   .filters-body.open { display: grid; }
-  .filter-group-wide { grid-column: auto; }
   .filter-actions { grid-column: auto; grid-template-columns: 1fr; justify-content: stretch; }
   .filter-actions .sort-control, .filter-actions .switch-field, .filter-actions .text-button { grid-column: auto; }
   .filter-actions .sort-control { justify-self: stretch; }
   .filter-actions .text-button { justify-self: start; }
-  .segmented { flex-wrap: wrap; overflow-x: visible; }
-  .segmented button { padding-inline: 11px; }
   .results-bar { align-items: flex-start; flex-direction: column; padding: 16px 0; }
   .sort-control { width: 100%; justify-content: space-between; }
   .sort-control select { width: 190px; }

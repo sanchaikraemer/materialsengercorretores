@@ -1,4 +1,4 @@
-/* Construtora Senger — Portfólio Comercial v30 */
+/* Construtora Senger — Portfólio Comercial v31 */
 (() => {
   "use strict";
 
@@ -45,7 +45,6 @@
 
   const state = {
     query: "",
-    category: "todos",
     city: "todos",
     stage: "todos",
     price: "todos",
@@ -257,19 +256,6 @@
   }
 
   function renderFilters() {
-    const categoryContainer = document.getElementById("category-filter");
-    categoryContainer.innerHTML = Object.entries(CATEGORY_LABELS).map(([value, label]) => `
-      <button type="button" data-category="${value}" class="${state.category === value ? "active" : ""}">${label}</button>
-    `).join("");
-
-    categoryContainer.addEventListener("click", (event) => {
-      const button = event.target.closest("[data-category]");
-      if (!button) return;
-      state.category = button.dataset.category;
-      categoryContainer.querySelectorAll("button").forEach((item) => item.classList.toggle("active", item === button));
-      renderPortfolio();
-    });
-
     const citySelect = document.getElementById("city-filter");
     const cities = unique(EMPREENDIMENTOS.flatMap((emp) => emp.cidade.split(" · "))).sort((a, b) => a.localeCompare(b, "pt-BR"));
     citySelect.innerHTML = `<option value="todos">Todas as cidades</option>${cities.map((city) => `<option value="${escapeHtml(city)}">${escapeHtml(city)}</option>`).join("")}`;
@@ -296,7 +282,6 @@
 
   function clearFilters() {
     state.query = "";
-    state.category = "todos";
     state.city = "todos";
     state.stage = "todos";
     state.price = "todos";
@@ -308,7 +293,6 @@
     document.getElementById("price-filter").value = "todos";
     document.getElementById("available-only").checked = true;
     document.getElementById("sort-filter").value = "destaque";
-    document.querySelectorAll("[data-category]").forEach((button) => button.classList.toggle("active", button.dataset.category === "todos"));
     renderPortfolio();
   }
 
@@ -323,7 +307,6 @@
   function filteredEnterprises() {
     const query = normalizeText(state.query);
     const result = EMPREENDIMENTOS.filter((emp) => {
-      if (state.category !== "todos" && emp.categoria !== state.category) return false;
       if (state.city !== "todos" && !emp.cidade.split(" · ").includes(state.city)) return false;
       if (state.stage !== "todos" && emp.status !== state.stage) return false;
       if (state.availableOnly && marketableItems(emp).length === 0) return false;
@@ -953,7 +936,7 @@
 
   function registerServiceWorker() {
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-      navigator.serviceWorker.register("sw.js?v=30").catch(() => {});
+      navigator.serviceWorker.register("sw.js?v=31").catch(() => {});
     }
   }
 
