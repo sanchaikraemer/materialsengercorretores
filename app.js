@@ -1,4 +1,4 @@
-/* Construtora Senger — Portfólio Comercial v26 */
+/* Construtora Senger — Portfólio Comercial v27 */
 (() => {
   "use strict";
 
@@ -82,6 +82,12 @@
   const isAvailable = (status) => (status || "disponivel") === "disponivel";
   const isMarketable = (status) => !["vendido", "reservado"].includes(status || "disponivel");
   const safeUrl = (url) => /^https?:\/\//i.test(url || "") ? url : `https://${url}`;
+
+  const assetUrl = (path) => {
+    if (!path) return path;
+    const sep = path.includes("?") ? "&" : "?";
+    return `${path}${sep}v=${APP_VERSION.replace(/^v/, "")}`;
+  };
 
   function enterpriseUrl(emp) {
     if (location.protocol === "file:") return `#emp-${emp.id}`;
@@ -353,8 +359,8 @@
       return `
         <article class="portfolio-card">
           <div class="card-media">
-            <img src="${escapeHtml(cardImage(emp))}" alt="${escapeHtml(emp.nome)}" loading="lazy">
-            ${emp.logo ? `<img class="card-logo" src="${escapeHtml(emp.logo)}" alt="">` : ""}
+            <img src="${escapeHtml(assetUrl(cardImage(emp)))}" alt="${escapeHtml(emp.nome)}" loading="lazy">
+            ${emp.logo ? `<img class="card-logo" src="${escapeHtml(assetUrl(emp.logo))}" alt="">` : ""}
           </div>
           <div class="card-body">
             <div class="card-badges">
@@ -470,14 +476,14 @@
         <div class="section-title-row"><h2>Imagens</h2><p>${photoMedia.length} ${photoMedia.length === 1 ? "imagem disponível" : "imagens disponíveis"}</p></div>
         <div class="${galleryClass}" data-gallery-showcase${galleryStyle ? ` style="${galleryStyle}"` : ""}>
           <div class="gallery-featured">
-            <img src="${escapeHtml(photoMedia[0].src)}" alt="${escapeHtml(photoMedia[0].legenda || emp.nome)}" data-gallery-featured>
+            <img src="${escapeHtml(assetUrl(photoMedia[0].src))}" alt="${escapeHtml(photoMedia[0].legenda || emp.nome)}" data-gallery-featured>
             <span data-gallery-featured-caption>${escapeHtml(photoMedia[0].legenda || emp.nome)}</span>
           </div>
           ${thumbnailCount ? `
             <div class="gallery-thumbnails">
               ${thumbnailMedia.map((item, index) => `
                 <button class="gallery-thumbnail" type="button" data-gallery-thumb="${index + 1}" aria-label="Exibir ${escapeHtml(item.legenda || emp.nome)} na imagem principal">
-                  <img src="${escapeHtml(item.src)}" alt="${escapeHtml(item.legenda || emp.nome)}" loading="lazy">
+                  <img src="${escapeHtml(assetUrl(item.src))}" alt="${escapeHtml(item.legenda || emp.nome)}" loading="lazy">
                 </button>
               `).join("")}
             </div>
@@ -494,7 +500,7 @@
             <div class="plant-link-group">
               <h3>Planta técnica</h3>
               <div class="plant-link-list">
-                ${technicalPlants.map((item) => `<a class="plant-link" href="${escapeHtml(item.src)}" target="_blank" rel="noopener">${escapeHtml(item.legenda || "Planta técnica")}</a>`).join("")}
+                ${technicalPlants.map((item) => `<a class="plant-link" href="${escapeHtml(assetUrl(item.src))}" target="_blank" rel="noopener">${escapeHtml(item.legenda || "Planta técnica")}</a>`).join("")}
               </div>
             </div>
           ` : ""}
@@ -502,7 +508,7 @@
             <div class="plant-link-group">
               <h3>Planta humanizada</h3>
               <div class="plant-link-list">
-                ${humanizedPlants.map((item) => `<a class="plant-link" href="${escapeHtml(item.src)}" target="_blank" rel="noopener">${escapeHtml(item.legenda || "Planta humanizada")}</a>`).join("")}
+                ${humanizedPlants.map((item) => `<a class="plant-link" href="${escapeHtml(assetUrl(item.src))}" target="_blank" rel="noopener">${escapeHtml(item.legenda || "Planta humanizada")}</a>`).join("")}
               </div>
             </div>
           ` : ""}
@@ -512,7 +518,7 @@
 
     detail.innerHTML = `
       <section class="detail-hero">
-        <img class="detail-hero-image" src="${escapeHtml(cardImage(emp))}" alt="${escapeHtml(emp.nome)}">
+        <img class="detail-hero-image" src="${escapeHtml(assetUrl(cardImage(emp)))}" alt="${escapeHtml(emp.nome)}">
         <div class="shell detail-hero-content">
           <button class="button detail-back" type="button" id="detail-back">← Voltar ao portfólio</button>
           <div class="detail-title-row">
@@ -528,11 +534,11 @@
                 <button class="button button-primary" type="button" id="share-emp-prices">Compartilhar com preços</button>
                 <button class="button button-outline" type="button" id="share-emp-no-prices">Compartilhar sem preços</button>
                 ${local.mapsUrl ? `<a class="button button-outline" href="${escapeHtml(local.mapsUrl)}" target="_blank" rel="noopener">Ver localização</a>` : ""}
-                ${emp.folder ? `<a class="button button-outline" href="${escapeHtml(emp.folder)}" target="_blank" rel="noopener">Baixar folder</a>` : ""}
+                ${emp.folder ? `<a class="button button-outline" href="${escapeHtml(assetUrl(emp.folder))}" target="_blank" rel="noopener">Baixar folder</a>` : ""}
                 <button class="button button-outline" type="button" id="print-detail">Gerar PDF</button>
               </div>
             </div>
-            ${emp.logo ? `<img class="detail-brand-logo" src="${escapeHtml(emp.logo)}" alt="Logo ${escapeHtml(emp.nome)}">` : ""}
+            ${emp.logo ? `<img class="detail-brand-logo" src="${escapeHtml(assetUrl(emp.logo))}" alt="Logo ${escapeHtml(emp.nome)}">` : ""}
           </div>
         </div>
       </section>
@@ -573,7 +579,7 @@
       button.addEventListener("click", () => {
         const item = photoMedia[Number(button.dataset.galleryThumb)];
         if (!item || !featuredImage) return;
-        featuredImage.src = item.src;
+        featuredImage.src = assetUrl(item.src);
         featuredImage.alt = item.legenda || emp.nome;
         if (featuredCaption) featuredCaption.textContent = item.legenda || emp.nome;
         detail.querySelectorAll("[data-gallery-thumb]").forEach((thumb) => thumb.classList.remove("active"));
@@ -810,12 +816,12 @@
 
   function shareEnterprise(emp, includePrices) {
     if (!emp) return;
-    sendShare(enterpriseMessage(emp, includePrices), emp.nome, cardImage(emp));
+    sendShare(enterpriseMessage(emp, includePrices), emp.nome, assetUrl(cardImage(emp)));
   }
 
   function shareItem(item, includePrice) {
     if (!item) return;
-    sendShare(itemMessage(item, includePrice), `${item.emp.nome} — ${itemLabel(item)}`, cardImage(item.emp));
+    sendShare(itemMessage(item, includePrice), `${item.emp.nome} — ${itemLabel(item)}`, assetUrl(cardImage(item.emp)));
   }
 
   function toggleSelection(key) {
@@ -936,7 +942,7 @@
 
   function registerServiceWorker() {
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-      navigator.serviceWorker.register("sw.js?v=26").catch(() => {});
+      navigator.serviceWorker.register("sw.js?v=27").catch(() => {});
     }
   }
 
