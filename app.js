@@ -1,4 +1,4 @@
-/* Construtora Senger — Portfólio Comercial v29 */
+/* Construtora Senger — Portfólio Comercial v30 */
 (() => {
   "use strict";
 
@@ -442,22 +442,6 @@
     const minimum = minPrice(emp);
     const statusClass = emp.status === "pronto" ? "pronto" : "obra";
     const inventory = renderInventory(emp);
-    const differentials = (emp.diferenciais || []).length ? `
-      <section class="content-section">
-        <div class="section-title-row"><h2>Diferenciais</h2><p>Características do empreendimento</p></div>
-        <div class="differentials-grid">
-          ${(emp.diferenciais || []).map((item, index) => `
-            <article class="differential-card">
-              <div class="differential-icon">${String(index + 1).padStart(2, "0")}</div>
-              <div class="differential-body">
-                <h3>${escapeHtml(item.titulo)}</h3>
-                <p>${escapeHtml(item.desc)}</p>
-              </div>
-            </article>
-          `).join("")}
-        </div>
-      </section>
-    ` : "";
 
     const isPlantMedia = (item) => /planta/i.test(`${item?.src || ""} ${item?.legenda || ""}`);
     const photoMedia = media.filter((item) => !isPlantMedia(item)).slice(0, 9);
@@ -495,21 +479,29 @@
     const plantSection = (technicalPlants.length || humanizedPlants.length) ? `
       <section class="content-section plant-section">
         <div class="section-title-row"><h2>Plantas</h2></div>
-        <div class="plant-links">
-          ${technicalPlants.length ? `
-            <div class="plant-link-group">
-              <h3>Planta técnica</h3>
-              <div class="plant-link-list">
-                ${technicalPlants.map((item) => `<a class="plant-link" href="${escapeHtml(assetUrl(item.src))}" target="_blank" rel="noopener">${escapeHtml(item.legenda || "Planta técnica")}</a>`).join("")}
+        <div class="plant-viewer">
+          <div class="plant-viewer-list">
+            ${technicalPlants.length ? `
+              <div class="plant-link-group">
+                <h3>Planta técnica</h3>
+                <div class="plant-link-list">
+                  ${technicalPlants.map((item) => `<a class="plant-link" href="${escapeHtml(assetUrl(item.src))}" target="_blank" rel="noopener">${escapeHtml(item.legenda || "Planta técnica")}</a>`).join("")}
+                </div>
               </div>
-            </div>
-          ` : ""}
+            ` : ""}
+            ${humanizedPlants.length ? `
+              <div class="plant-link-group">
+                <h3>Planta humanizada</h3>
+                <div class="plant-link-list">
+                  ${humanizedPlants.map((item, index) => `<button class="plant-link ${index === 0 ? "active" : ""}" type="button" data-plant-preview="${index}">${escapeHtml(item.legenda || "Planta humanizada")}</button>`).join("")}
+                </div>
+              </div>
+            ` : ""}
+          </div>
           ${humanizedPlants.length ? `
-            <div class="plant-link-group">
-              <h3>Planta humanizada</h3>
-              <div class="plant-link-list">
-                ${humanizedPlants.map((item) => `<a class="plant-link" href="${escapeHtml(assetUrl(item.src))}" target="_blank" rel="noopener">${escapeHtml(item.legenda || "Planta humanizada")}</a>`).join("")}
-              </div>
+            <div class="plant-viewer-preview">
+              <img src="${escapeHtml(assetUrl(humanizedPlants[0].src))}" alt="${escapeHtml(humanizedPlants[0].legenda || emp.nome)}" data-plant-preview-image>
+              <span data-plant-preview-caption>${escapeHtml(humanizedPlants[0].legenda || "Planta humanizada")}</span>
             </div>
           ` : ""}
         </div>
@@ -570,7 +562,6 @@
           </article>
         </div>
         ${inventory}
-        ${differentials}
         ${gallery}
         ${plantSection}
       </div>
@@ -590,6 +581,19 @@
         featuredImage.alt = item.legenda || emp.nome;
         if (featuredCaption) featuredCaption.textContent = item.legenda || emp.nome;
         detail.querySelectorAll("[data-gallery-thumb]").forEach((thumb) => thumb.classList.remove("active"));
+        button.classList.add("active");
+      });
+    });
+    const plantPreviewImage = detail.querySelector("[data-plant-preview-image]");
+    const plantPreviewCaption = detail.querySelector("[data-plant-preview-caption]");
+    detail.querySelectorAll("[data-plant-preview]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const item = humanizedPlants[Number(button.dataset.plantPreview)];
+        if (!item || !plantPreviewImage) return;
+        plantPreviewImage.src = assetUrl(item.src);
+        plantPreviewImage.alt = item.legenda || emp.nome;
+        if (plantPreviewCaption) plantPreviewCaption.textContent = item.legenda || "Planta humanizada";
+        detail.querySelectorAll("[data-plant-preview]").forEach((thumb) => thumb.classList.remove("active"));
         button.classList.add("active");
       });
     });
@@ -949,7 +953,7 @@
 
   function registerServiceWorker() {
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-      navigator.serviceWorker.register("sw.js?v=29").catch(() => {});
+      navigator.serviceWorker.register("sw.js?v=30").catch(() => {});
     }
   }
 
