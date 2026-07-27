@@ -1,4 +1,4 @@
-/* Construtora Senger — Portfólio Comercial v33 */
+/* Construtora Senger — Portfólio Comercial v34 */
 (() => {
   "use strict";
 
@@ -960,7 +960,7 @@
 
   function registerServiceWorker() {
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-      navigator.serviceWorker.register("sw.js?v=33").catch(() => {});
+      navigator.serviceWorker.register("sw.js?v=34").catch(() => {});
     }
   }
 
