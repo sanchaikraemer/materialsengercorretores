@@ -1,4 +1,4 @@
-/* Construtora Senger — Portfólio Comercial v25 */
+/* Construtora Senger — Portfólio Comercial v26 */
 (() => {
   "use strict";
 
@@ -354,13 +354,13 @@
         <article class="portfolio-card">
           <div class="card-media">
             <img src="${escapeHtml(cardImage(emp))}" alt="${escapeHtml(emp.nome)}" loading="lazy">
+            ${emp.logo ? `<img class="card-logo" src="${escapeHtml(emp.logo)}" alt="">` : ""}
+          </div>
+          <div class="card-body">
             <div class="card-badges">
               <span class="badge badge-stage ${statusClass}">${escapeHtml(emp.statusLabel || emp.entrega || "")}</span>
               <span class="badge">${escapeHtml(typeLabel)}</span>
             </div>
-            ${emp.logo ? `<img class="card-logo" src="${escapeHtml(emp.logo)}" alt="">` : ""}
-          </div>
-          <div class="card-body">
             <span class="card-kicker">${escapeHtml(emp.cidade)}</span>
             <h3 class="card-title">${escapeHtml(emp.nome)}</h3>
             <p class="card-tagline">${escapeHtml(emp.tagline || emp.entrega || "Consulte informações e disponibilidade.")}</p>
@@ -936,7 +936,7 @@
 
   function registerServiceWorker() {
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-      navigator.serviceWorker.register("sw.js?v=25").catch(() => {});
+      navigator.serviceWorker.register("sw.js?v=26").catch(() => {});
     }
   }
 
