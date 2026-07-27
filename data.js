@@ -625,7 +625,7 @@ const EMPREENDIMENTOS = [
     statusLabel: "Prontos para construir",
     entrega: "Prontos para construir · Financiáveis MCMV I & II",
     ri: [],
-    hero: "",
+    hero: "assets/aerial-vilarica-i-ii.jpg",
     galeria: [],
     terrenos: [
       { lote: "Nova Vila Rica I", quadra: "144", numero: "01", rua: "Alberto Graeff", area: 325, preco: 125000 },
