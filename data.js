@@ -476,7 +476,6 @@ const EMPREENDIMENTOS = [
         garagem: "Box duplo",
         obs: "Terraço: 246 m² global · 177 m² privativo.",
         unidades: [
-          { apto: "302", preco: 1440000, status: "vendido", tags: ["Terraço"] },
           { apto: "602", preco: 1440000, status: "disponivel" },
           { apto: "702", preco: 1460000, status: "disponivel" },
           { apto: "902", preco: 1480000, status: "disponivel" },
@@ -569,11 +568,7 @@ const EMPREENDIMENTOS = [
         tipo: "Sala comercial",
         area: "76 m² global · 43 m² privativo",
         garagem: "01 vaga de garagem",
-        unidades: [
-          { apto: "405", preco: 560000, status: "vendido" },
-          { apto: "505", preco: 570000, status: "vendido" },
-          { apto: "705", preco: 600000, status: "disponivel" },
-        ],
+        unidades: [{ apto: "705", preco: 600000, status: "disponivel" }],
       },
       {
         tipo: "Sala comercial",
