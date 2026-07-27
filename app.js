@@ -1,4 +1,4 @@
-/* Construtora Senger — Portfólio Comercial v23 */
+/* Construtora Senger — Portfólio Comercial v24 */
 (() => {
   "use strict";
 
@@ -221,8 +221,6 @@
     const cities = unique(EMPREENDIMENTOS.flatMap((emp) => emp.cidade.split(" · ")));
     const categories = unique(EMPREENDIMENTOS.map((emp) => emp.categoria));
 
-    setText("header-date", META.dataTabela || "Não informada");
-    setText("header-available", available.length.toLocaleString("pt-BR"));
     setText("header-version", APP_VERSION);
     setText("meta-month", META.mesTabela || "—");
     setText("meta-incc", META.incc ? `${META.incc.valor} (${META.incc.variacao})` : "—");
@@ -938,7 +936,7 @@
 
   function registerServiceWorker() {
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-      navigator.serviceWorker.register("sw.js?v=23").catch(() => {});
+      navigator.serviceWorker.register("sw.js?v=24").catch(() => {});
     }
   }
 
