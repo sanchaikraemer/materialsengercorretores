@@ -1,4 +1,4 @@
-/* Construtora Senger — Portfólio Comercial v28 */
+/* Construtora Senger — Portfólio Comercial v29 */
 (() => {
   "use strict";
 
@@ -550,6 +550,13 @@
             <h2>Sobre o empreendimento</h2>
             <p>${escapeHtml(emp.localizacao || emp.tagline || "Consulte a equipe comercial para mais informações.")}</p>
             ${emp.condicoes ? `<div class="condition-note"><strong>Condições:</strong> ${escapeHtml(emp.condicoes)}</div>` : ""}
+            ${(emp.diferenciais || []).length ? `
+              <div class="info-differentials">
+                ${emp.diferenciais.map((item) => `
+                  <div class="info-differential"><h4>${escapeHtml(item.titulo)}</h4><p>${escapeHtml(item.desc)}</p></div>
+                `).join("")}
+              </div>
+            ` : ""}
           </article>
           <article class="info-card">
             <p class="eyebrow dark">Resumo comercial</p>
@@ -942,7 +949,7 @@
 
   function registerServiceWorker() {
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-      navigator.serviceWorker.register("sw.js?v=28").catch(() => {});
+      navigator.serviceWorker.register("sw.js?v=29").catch(() => {});
     }
   }
 
