@@ -473,7 +473,6 @@ img { max-width: 100%; display: block; }
 .unit-group-header { padding: 17px 19px; display: flex; align-items: start; justify-content: space-between; gap: 20px; background: #f8fafb; border-bottom: 1px solid var(--line); }
 .unit-group-header h3 { margin: 0; font-size: 14px; }
 .unit-group-header p { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
-.unit-group-header .group-availability { color: var(--success); font-size: 11px; font-weight: 800; white-space: nowrap; }
 .units-table { width: 100%; border-collapse: collapse; }
 .units-table th { padding: 11px 14px; color: var(--muted); background: #fbfcfc; border-bottom: 1px solid var(--line); font-size: 9.5px; text-align: left; letter-spacing: .08em; text-transform: uppercase; }
 .units-table td { padding: 13px 14px; border-bottom: 1px solid var(--line); font-size: 12.5px; vertical-align: middle; }
