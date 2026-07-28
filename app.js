@@ -1,4 +1,4 @@
-/* Construtora Senger — Portfólio Comercial v40 */
+/* Construtora Senger — Portfólio Comercial v41 */
 (() => {
   "use strict";
 
@@ -440,7 +440,6 @@
         <div class="${galleryClass}" data-gallery-showcase${galleryStyle ? ` style="${galleryStyle}"` : ""}>
           <div class="gallery-featured">
             <img src="${escapeHtml(assetUrl(photoMedia[0].src))}" alt="${escapeHtml(photoMedia[0].legenda || emp.nome)}" data-gallery-featured>
-            <span data-gallery-featured-caption>${escapeHtml(photoMedia[0].legenda || emp.nome)}</span>
           </div>
           ${thumbnailCount ? `
             <div class="gallery-thumbnails">
@@ -480,7 +479,6 @@
           ${humanizedPlants.length ? `
             <div class="plant-viewer-preview">
               <img src="${escapeHtml(assetUrl(humanizedPlants[0].src))}" alt="${escapeHtml(humanizedPlants[0].legenda || emp.nome)}" data-plant-preview-image>
-              <span data-plant-preview-caption>${escapeHtml(humanizedPlants[0].legenda || "Planta humanizada")}</span>
             </div>
           ` : ""}
         </div>
@@ -551,27 +549,23 @@
     document.getElementById("share-emp-no-prices").addEventListener("click", () => shareEnterprise(emp, false));
     document.getElementById("print-detail").addEventListener("click", () => window.print());
     const featuredImage = detail.querySelector("[data-gallery-featured]");
-    const featuredCaption = detail.querySelector("[data-gallery-featured-caption]");
     detail.querySelectorAll("[data-gallery-thumb]").forEach((button) => {
       button.addEventListener("click", () => {
         const item = photoMedia[Number(button.dataset.galleryThumb)];
         if (!item || !featuredImage) return;
         featuredImage.src = assetUrl(item.src);
         featuredImage.alt = item.legenda || emp.nome;
-        if (featuredCaption) featuredCaption.textContent = item.legenda || emp.nome;
         detail.querySelectorAll("[data-gallery-thumb]").forEach((thumb) => thumb.classList.remove("active"));
         button.classList.add("active");
       });
     });
     const plantPreviewImage = detail.querySelector("[data-plant-preview-image]");
-    const plantPreviewCaption = detail.querySelector("[data-plant-preview-caption]");
     detail.querySelectorAll("[data-plant-preview]").forEach((button) => {
       button.addEventListener("click", () => {
         const item = humanizedPlants[Number(button.dataset.plantPreview)];
         if (!item || !plantPreviewImage) return;
         plantPreviewImage.src = assetUrl(item.src);
         plantPreviewImage.alt = item.legenda || emp.nome;
-        if (plantPreviewCaption) plantPreviewCaption.textContent = item.legenda || "Planta humanizada";
         detail.querySelectorAll("[data-plant-preview]").forEach((thumb) => thumb.classList.remove("active"));
         button.classList.add("active");
       });
@@ -954,7 +948,7 @@
 
   function registerServiceWorker() {
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-      navigator.serviceWorker.register("sw.js?v=40").catch(() => {});
+      navigator.serviceWorker.register("sw.js?v=41").catch(() => {});
     }
   }
 

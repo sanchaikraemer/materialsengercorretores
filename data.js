@@ -57,14 +57,6 @@ const EMPREENDIMENTOS = [
       { src: "assets/qual-planta-3d.jpg", legenda: "Planta — 3 dormitórios (1 suíte)" },
       { src: "assets/int-cozinha-1.jpg", legenda: "Cozinha com móveis planejados" },
       { src: "assets/qual-map.jpg", legenda: "Localização" },
-      { src: "assets/qual-fachada.jpg", legenda: "Fachada do prédio" },
-      { src: "assets/qual-entrada.jpg", legenda: "Entrada — Bloco A" },
-      { src: "assets/qual-garagem.jpg", legenda: "Garagem coberta" },
-      { src: "assets/qual-vista.jpg", legenda: "Vista do apartamento" },
-      { src: "assets/qual-fitness-2.jpg", legenda: "Área fitness" },
-      { src: "assets/qual-piscina-2.jpg", legenda: "Piscina integrada ao salão de festas" },
-      { src: "assets/qual-living-2.jpg", legenda: "Living integrado" },
-      { src: "assets/qual-cozinha-2.jpg", legenda: "Cozinha" },
     ],
     grupos: [
       {
