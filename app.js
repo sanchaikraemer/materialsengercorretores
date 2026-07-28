@@ -1,4 +1,4 @@
-/* Construtora Senger — Portfólio Comercial v44 */
+/* Construtora Senger — Portfólio Comercial v45 */
 (() => {
   "use strict";
 
@@ -427,10 +427,14 @@
     const humanizedPlants = media.filter((item) => isPlantMedia(item) && !/\.pdf(?:$|\?)/i.test(item.src || ""));
     const technicalPlants = media.filter((item) => isPlantMedia(item) && /\.pdf(?:$|\?)/i.test(item.src || ""));
 
+    const THUMB_W = 84;
+    const THUMB_GAP = 10;
+    const stripWidth = photoMedia.length > 1 ? photoMedia.length * THUMB_W + (photoMedia.length - 1) * THUMB_GAP : 0;
+
     const gallery = photoMedia.length ? `
       <section class="content-section">
         <div class="section-title-row"><h2>Imagens</h2><p>${photoMedia.length} ${photoMedia.length === 1 ? "imagem disponível" : "imagens disponíveis"}</p></div>
-        <div class="gallery-showcase" data-gallery-showcase>
+        <div class="gallery-showcase" data-gallery-showcase${stripWidth ? ` style="max-width:${stripWidth}px"` : ""}>
           <div class="gallery-featured">
             <img src="${escapeHtml(assetUrl(photoMedia[0].src))}" alt="${escapeHtml(photoMedia[0].legenda || emp.nome)}" data-gallery-featured>
             ${photoMedia.length > 1 ? `<span class="gallery-counter" data-gallery-counter>1 / ${photoMedia.length}</span>` : ""}
@@ -945,7 +949,7 @@
 
   function registerServiceWorker() {
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-      navigator.serviceWorker.register("sw.js?v=44").catch(() => {});
+      navigator.serviceWorker.register("sw.js?v=45").catch(() => {});
     }
   }
 
