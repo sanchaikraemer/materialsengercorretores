@@ -1,4 +1,4 @@
-/* Construtora Senger — Portfólio Comercial v39 */
+/* Construtora Senger — Portfólio Comercial v40 */
 (() => {
   "use strict";
 
@@ -423,15 +423,15 @@
     const inventory = renderInventory(emp);
 
     const isPlantMedia = (item) => /planta/i.test(`${item?.src || ""} ${item?.legenda || ""}`);
-    const photoMedia = media.filter((item) => !isPlantMedia(item)).slice(0, 9);
+    const photoMedia = media.filter((item) => !isPlantMedia(item)).slice(0, 30);
     const humanizedPlants = media.filter((item) => isPlantMedia(item) && !/\.pdf(?:$|\?)/i.test(item.src || ""));
     const technicalPlants = media.filter((item) => isPlantMedia(item) && /\.pdf(?:$|\?)/i.test(item.src || ""));
 
-    const thumbnailMedia = photoMedia.slice(1, 9);
+    const thumbnailMedia = photoMedia.slice(1, 30);
     const thumbnailCount = thumbnailMedia.length;
     const galleryClass = thumbnailCount ? "gallery-showcase has-thumbnails" : "gallery-showcase gallery-single";
     const galleryStyle = thumbnailCount
-      ? `--thumb-cols:${Math.min(thumbnailCount, 2)};--thumb-rows:${Math.ceil(thumbnailCount / 2)};--mobile-cols:${Math.min(thumbnailCount, 4)};--compact-cols:${Math.min(thumbnailCount, 2)}`
+      ? `--thumb-cols:${Math.min(thumbnailCount, 2)};--mobile-cols:${Math.min(thumbnailCount, 4)};--compact-cols:${Math.min(thumbnailCount, 2)}`
       : "";
 
     const gallery = photoMedia.length ? `
@@ -954,7 +954,7 @@
 
   function registerServiceWorker() {
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-      navigator.serviceWorker.register("sw.js?v=39").catch(() => {});
+      navigator.serviceWorker.register("sw.js?v=40").catch(() => {});
     }
   }
 
