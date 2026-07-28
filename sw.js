@@ -1,5 +1,5 @@
-const CACHE = "senger-portfolio-v40-20260728-galeria-quality-scroll";
-const CORE = ["./", "./index.html", "./styles.css?v=40", "./data.js?v=40", "./app.js?v=40", "./manifest.json"];
+const CACHE = "senger-portfolio-v41-20260728-remove-legendas-e-fotos-video";
+const CORE = ["./", "./index.html", "./styles.css?v=41", "./data.js?v=41", "./app.js?v=41", "./manifest.json"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
