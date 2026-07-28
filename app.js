@@ -1,4 +1,4 @@
-/* Construtora Senger — Portfólio Comercial v41 */
+/* Construtora Senger — Portfólio Comercial v42 */
 (() => {
   "use strict";
 
@@ -423,29 +423,23 @@
     const inventory = renderInventory(emp);
 
     const isPlantMedia = (item) => /planta/i.test(`${item?.src || ""} ${item?.legenda || ""}`);
-    const photoMedia = media.filter((item) => !isPlantMedia(item)).slice(0, 30);
+    const photoMedia = media.filter((item) => !isPlantMedia(item)).slice(0, 8);
     const humanizedPlants = media.filter((item) => isPlantMedia(item) && !/\.pdf(?:$|\?)/i.test(item.src || ""));
     const technicalPlants = media.filter((item) => isPlantMedia(item) && /\.pdf(?:$|\?)/i.test(item.src || ""));
-
-    const thumbnailMedia = photoMedia.slice(1, 30);
-    const thumbnailCount = thumbnailMedia.length;
-    const galleryClass = thumbnailCount ? "gallery-showcase has-thumbnails" : "gallery-showcase gallery-single";
-    const galleryStyle = thumbnailCount
-      ? `--thumb-cols:${Math.min(thumbnailCount, 2)};--mobile-cols:${Math.min(thumbnailCount, 4)};--compact-cols:${Math.min(thumbnailCount, 2)}`
-      : "";
 
     const gallery = photoMedia.length ? `
       <section class="content-section">
         <div class="section-title-row"><h2>Imagens</h2><p>${photoMedia.length} ${photoMedia.length === 1 ? "imagem disponível" : "imagens disponíveis"}</p></div>
-        <div class="${galleryClass}" data-gallery-showcase${galleryStyle ? ` style="${galleryStyle}"` : ""}>
+        <div class="gallery-showcase" data-gallery-showcase>
           <div class="gallery-featured">
             <img src="${escapeHtml(assetUrl(photoMedia[0].src))}" alt="${escapeHtml(photoMedia[0].legenda || emp.nome)}" data-gallery-featured>
+            ${photoMedia.length > 1 ? `<span class="gallery-counter" data-gallery-counter>1 / ${photoMedia.length}</span>` : ""}
           </div>
-          ${thumbnailCount ? `
-            <div class="gallery-thumbnails">
-              ${thumbnailMedia.map((item, index) => `
-                <button class="gallery-thumbnail" type="button" data-gallery-thumb="${index + 1}" aria-label="Exibir ${escapeHtml(item.legenda || emp.nome)} na imagem principal">
-                  <img src="${escapeHtml(assetUrl(item.src))}" alt="${escapeHtml(item.legenda || emp.nome)}" loading="lazy">
+          ${photoMedia.length > 1 ? `
+            <div class="gallery-strip">
+              ${photoMedia.map((item, index) => `
+                <button class="gallery-thumb ${index === 0 ? "active" : ""}" type="button" data-gallery-thumb="${index}" aria-label="Exibir ${escapeHtml(item.legenda || emp.nome)} na imagem principal">
+                  <img src="${escapeHtml(assetUrl(item.src))}" alt="" loading="lazy">
                 </button>
               `).join("")}
             </div>
@@ -549,12 +543,15 @@
     document.getElementById("share-emp-no-prices").addEventListener("click", () => shareEnterprise(emp, false));
     document.getElementById("print-detail").addEventListener("click", () => window.print());
     const featuredImage = detail.querySelector("[data-gallery-featured]");
+    const featuredCounter = detail.querySelector("[data-gallery-counter]");
     detail.querySelectorAll("[data-gallery-thumb]").forEach((button) => {
       button.addEventListener("click", () => {
-        const item = photoMedia[Number(button.dataset.galleryThumb)];
+        const index = Number(button.dataset.galleryThumb);
+        const item = photoMedia[index];
         if (!item || !featuredImage) return;
         featuredImage.src = assetUrl(item.src);
         featuredImage.alt = item.legenda || emp.nome;
+        if (featuredCounter) featuredCounter.textContent = `${index + 1} / ${photoMedia.length}`;
         detail.querySelectorAll("[data-gallery-thumb]").forEach((thumb) => thumb.classList.remove("active"));
         button.classList.add("active");
       });
@@ -948,7 +945,7 @@
 
   function registerServiceWorker() {
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-      navigator.serviceWorker.register("sw.js?v=41").catch(() => {});
+      navigator.serviceWorker.register("sw.js?v=42").catch(() => {});
     }
   }
 
