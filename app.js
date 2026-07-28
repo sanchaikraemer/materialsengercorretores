@@ -1,4 +1,4 @@
-/* Construtora Senger — Portfólio Comercial v36 */
+/* Construtora Senger — Portfólio Comercial v37 */
 (() => {
   "use strict";
 
@@ -48,7 +48,6 @@
     city: "todos",
     stage: "todos",
     price: "todos",
-    availableOnly: true,
     sort: "destaque",
     selected: new Set(JSON.parse(storage.get("senger-selection", "[]"))),
   };
@@ -267,7 +266,6 @@
     citySelect.addEventListener("change", (event) => { state.city = event.target.value; renderPortfolio(); });
     document.getElementById("stage-filter").addEventListener("change", (event) => { state.stage = event.target.value; renderPortfolio(); });
     document.getElementById("price-filter").addEventListener("change", (event) => { state.price = event.target.value; renderPortfolio(); });
-    document.getElementById("available-only").addEventListener("change", (event) => { state.availableOnly = event.target.checked; renderPortfolio(); });
     document.getElementById("sort-filter").addEventListener("change", (event) => { state.sort = event.target.value; renderPortfolio(); });
     document.getElementById("clear-filters").addEventListener("click", clearFilters);
     document.getElementById("empty-clear").addEventListener("click", clearFilters);
@@ -285,13 +283,11 @@
     state.city = "todos";
     state.stage = "todos";
     state.price = "todos";
-    state.availableOnly = true;
     state.sort = "destaque";
     document.getElementById("search-input").value = "";
     document.getElementById("city-filter").value = "todos";
     document.getElementById("stage-filter").value = "todos";
     document.getElementById("price-filter").value = "todos";
-    document.getElementById("available-only").checked = true;
     document.getElementById("sort-filter").value = "destaque";
     renderPortfolio();
   }
@@ -309,7 +305,7 @@
     const result = EMPREENDIMENTOS.filter((emp) => {
       if (state.city !== "todos" && !emp.cidade.split(" · ").includes(state.city)) return false;
       if (state.stage !== "todos" && emp.status !== state.stage) return false;
-      if (state.availableOnly && marketableItems(emp).length === 0) return false;
+      if (marketableItems(emp).length === 0) return false;
       if (!priceRangeMatches(emp)) return false;
       if (query && !portfolioSearchText(emp).includes(query)) return false;
       return true;
@@ -960,7 +956,7 @@
 
   function registerServiceWorker() {
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-      navigator.serviceWorker.register("sw.js?v=36").catch(() => {});
+      navigator.serviceWorker.register("sw.js?v=37").catch(() => {});
     }
   }
 
