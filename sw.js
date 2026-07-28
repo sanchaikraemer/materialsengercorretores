@@ -1,5 +1,5 @@
-const CACHE = "senger-portfolio-v39-20260728-remove-opcoes-ativas";
-const CORE = ["./", "./index.html", "./styles.css?v=39", "./data.js?v=39", "./app.js?v=39", "./manifest.json"];
+const CACHE = "senger-portfolio-v40-20260728-galeria-quality-scroll";
+const CORE = ["./", "./index.html", "./styles.css?v=40", "./data.js?v=40", "./app.js?v=40", "./manifest.json"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
