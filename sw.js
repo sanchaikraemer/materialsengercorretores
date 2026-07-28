@@ -1,5 +1,5 @@
-const CACHE = "senger-portfolio-v44-20260728-galeria-aspect-ratio-fix";
-const CORE = ["./", "./index.html", "./styles.css?v=44", "./data.js?v=44", "./app.js?v=44", "./manifest.json"];
+const CACHE = "senger-portfolio-v45-20260728-galeria-largura-alinhada";
+const CORE = ["./", "./index.html", "./styles.css?v=45", "./data.js?v=45", "./app.js?v=45", "./manifest.json"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
