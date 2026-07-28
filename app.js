@@ -1,4 +1,4 @@
-/* Construtora Senger — Portfólio Comercial v38 */
+/* Construtora Senger — Portfólio Comercial v39 */
 (() => {
   "use strict";
 
@@ -595,12 +595,10 @@
         <div class="inventory-toolbar"><p>${marketableItems(emp).length} opções comercializáveis nesta tabela.</p></div>
         ${groups.map((group, groupIndex) => {
           const units = (group.unidades || []).map((unit, unitIndex) => itemMap.get(`${emp.id}:unit:${groupIndex}:${unitIndex}`));
-          const active = units.filter((item) => isMarketable(item.status)).length;
           return `
             <article class="unit-group">
               <div class="unit-group-header">
                 <div><h3>${escapeHtml(group.tipo)}</h3><p>${escapeHtml([group.area, group.garagem, group.obs].filter(Boolean).join(" · "))}</p></div>
-                <span class="group-availability">${active} ${active === 1 ? "opção ativa" : "opções ativas"}</span>
               </div>
               <table class="units-table">
                 <thead><tr><th>Unidade</th><th>Área</th><th>Garagem</th><th>Status</th><th>Valor</th><th></th></tr></thead>
@@ -956,7 +954,7 @@
 
   function registerServiceWorker() {
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-      navigator.serviceWorker.register("sw.js?v=38").catch(() => {});
+      navigator.serviceWorker.register("sw.js?v=39").catch(() => {});
     }
   }
 
