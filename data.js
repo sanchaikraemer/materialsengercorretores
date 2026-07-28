@@ -5,7 +5,7 @@
 // ============================================================
 
 const META = {
-  mesTabela: "Julho / 2026",
+  mesTabela: "Agosto / 2026",
   dataTabela: "10/07/2026",
   incc: { valor: "R$ 3.377,91", variacao: "+0,62%" },
   contato: {
