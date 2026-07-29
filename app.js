@@ -1,4 +1,4 @@
-/* Construtora Senger — Portfólio Comercial v58 */
+/* Construtora Senger — Portfólio Comercial v59 */
 (() => {
   "use strict";
 
@@ -86,16 +86,6 @@
     const sep = path.includes("?") ? "&" : "?";
     return `${path}${sep}v=${APP_VERSION.replace(/^v/, "")}`;
   };
-
-  function enterpriseUrl(emp) {
-    if (location.protocol === "file:") return `#emp-${emp.id}`;
-    return `${location.origin}${location.pathname}#emp-${emp.id}`;
-  }
-
-  // Link enviado ao cliente: abre fotos, plantas e informações, sem a tabela de unidades.
-  function presentationUrl(emp) {
-    return `${enterpriseUrl(emp)}/apresentacao`;
-  }
 
   function itemLabel(item) {
     if (item.kind === "unit") {
@@ -395,9 +385,9 @@
   }
 
   function renderRoute() {
-    const match = location.hash.match(/^#emp-([\w-]+)(\/apresentacao)?/);
+    const match = location.hash.match(/^#emp-([\w-]+)/);
     const emp = match ? findEnterprise(match[1]) : null;
-    if (emp) renderDetail(emp, Boolean(match[2]));
+    if (emp) renderDetail(emp);
     else renderHome();
   }
 
@@ -411,7 +401,7 @@
     window.scrollTo({ top: 0, behavior: "auto" });
   }
 
-  function renderDetail(emp, presentation = false) {
+  function renderDetail(emp) {
     document.getElementById("home-hero").hidden = true;
     document.querySelector(".trust-strip").hidden = true;
     document.getElementById("catalogo").hidden = true;
@@ -425,7 +415,7 @@
     const active = marketableItems(emp);
     const minimum = minPrice(emp);
     const statusClass = emp.status === "pronto" ? "pronto" : "obra";
-    const inventory = presentation ? "" : renderInventory(emp);
+    const inventory = renderInventory(emp);
 
     const isPlantMedia = (item) => /planta/i.test(`${item?.src || ""} ${item?.legenda || ""}`);
     const photoMedia = media.filter((item) => !isPlantMedia(item)).slice(0, 8);
@@ -492,7 +482,7 @@
       <section class="detail-hero">
         <img class="detail-hero-image" src="${escapeHtml(assetUrl(cardImage(emp)))}" alt="${escapeHtml(emp.nome)}">
         <div class="shell detail-hero-content">
-          ${presentation ? "" : `<button class="button detail-back" type="button" id="detail-back">← Voltar ao portfólio</button>`}
+          <button class="button detail-back" type="button" id="detail-back">← Voltar ao portfólio</button>
           <div class="detail-title-row">
             <div>
               <div class="detail-badges">
@@ -503,9 +493,8 @@
               <h1>${escapeHtml(emp.nome)}</h1>
               <p>${escapeHtml(emp.tagline || emp.entrega || "Consulte informações e disponibilidade.")}</p>
               <div class="detail-actions">
-                ${presentation ? "" : `
                 <button class="button button-primary" type="button" id="share-emp-prices">Compartilhar com preços</button>
-                <button class="button button-outline" type="button" id="share-emp-no-prices">Compartilhar sem preços</button>`}
+                <button class="button button-outline" type="button" id="share-emp-no-prices">Compartilhar sem preços</button>
                 ${local.mapsUrl ? `<a class="button button-outline" href="${escapeHtml(local.mapsUrl)}" target="_blank" rel="noopener">Ver localização</a>` : ""}
                 ${emp.folder ? `<a class="button button-outline" href="${escapeHtml(assetUrl(emp.folder))}" target="_blank" rel="noopener">Baixar folder</a>` : ""}
                 <button class="button button-outline" type="button" id="print-detail">Gerar PDF</button>
@@ -536,10 +525,8 @@
             <h2>Informações principais</h2>
             <div class="fact-grid">
               <div class="fact-card"><span>Etapa</span><strong>${escapeHtml(emp.entrega || emp.statusLabel || "—")}</strong></div>
-              ${presentation
-                ? `<div class="fact-card"><span>Cidade</span><strong>${escapeHtml(emp.cidade)}</strong></div>`
-                : `<div class="fact-card"><span>Opções ativas</span><strong>${active.length}</strong></div>
-              <div class="fact-card"><span>Preço inicial</span><strong class="price-value">${minimum ? money(minimum) : "Sob consulta"}</strong></div>`}
+              <div class="fact-card"><span>Opções ativas</span><strong>${active.length}</strong></div>
+              <div class="fact-card"><span>Preço inicial</span><strong class="price-value">${minimum ? money(minimum) : "Sob consulta"}</strong></div>
               <div class="fact-card"><span>Registro</span><strong>${escapeHtml((emp.ri || []).join(" · ") || "Não informado")}</strong></div>
             </div>
           </article>
@@ -550,11 +537,9 @@
       </div>
     `;
 
-    if (!presentation) {
-      document.getElementById("detail-back").addEventListener("click", navigateHome);
-      document.getElementById("share-emp-prices").addEventListener("click", () => shareEnterprise(emp, true));
-      document.getElementById("share-emp-no-prices").addEventListener("click", () => shareEnterprise(emp, false));
-    }
+    document.getElementById("detail-back").addEventListener("click", navigateHome);
+    document.getElementById("share-emp-prices").addEventListener("click", () => shareEnterprise(emp, true));
+    document.getElementById("share-emp-no-prices").addEventListener("click", () => shareEnterprise(emp, false));
     document.getElementById("print-detail").addEventListener("click", () => window.print());
     const featuredImage = detail.querySelector("[data-gallery-featured]");
     const featuredCounter = detail.querySelector("[data-gallery-counter]");
@@ -728,7 +713,7 @@
       lines.push(`${items.length} ${items.length === 1 ? "opção comercializável" : "opções comercializáveis"}. Consulte valores e condições.`);
     }
     if (emp.entrega) lines.push(`Etapa: ${emp.entrega}`);
-    lines.push("", `Veja a apresentação completa: ${presentationUrl(emp)}`, "", `Tabela ${META.mesTabela || ""}, atualizada em ${META.dataTabela || "—"}. Valores e disponibilidade sujeitos a alteração.`);
+    lines.push("", `Tabela ${META.mesTabela || ""}, atualizada em ${META.dataTabela || "—"}. Valores e disponibilidade sujeitos a alteração.`);
     return lines.filter((line, index, array) => line !== "" || array[index - 1] !== "").join("\n");
   }
 
@@ -747,7 +732,7 @@
     else lines.push("Valor: consulte a equipe comercial");
     lines.push(`Status: ${STATUS_LABELS[item.status] || item.status}`);
     if (item.notes) lines.push(item.notes);
-    lines.push("", `Apresentação: ${presentationUrl(item.emp)}`, `Tabela ${META.mesTabela || ""}, atualizada em ${META.dataTabela || "—"}. Valores e disponibilidade sujeitos a alteração.`);
+    lines.push("", `Tabela ${META.mesTabela || ""}, atualizada em ${META.dataTabela || "—"}. Valores e disponibilidade sujeitos a alteração.`);
     return lines.join("\n");
   }
 
@@ -891,7 +876,7 @@
       if (item.garage) lines.push(`Garagem: ${item.garage}`);
       if (item.rua) lines.push(`Localização: ${item.rua}`);
       lines.push(includePrices ? `Valor: *${money(item.price)}*` : "Valor: consulte a equipe comercial");
-      lines.push(`Apresentação: ${presentationUrl(item.emp)}`, "");
+      lines.push("");
     });
     lines.push(`Tabela ${META.mesTabela || ""}, atualizada em ${META.dataTabela || "—"}. Valores e disponibilidade sujeitos a alteração.`);
     return lines.join("\n");
