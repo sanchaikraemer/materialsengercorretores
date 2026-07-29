@@ -57,7 +57,7 @@ const EMPREENDIMENTOS = [
     grupos: [
       {
         tipo: "Casa Suspensa (3 suítes)",
-        area: "Áreas variadas",
+        area: "306 a 385 m² global · 208 a 280 m² privativo",
         garagem: "Box opcional (consultar)",
         obs: "Plantas exclusivas — pavimentos 4 e 13. Valores sem box de garagem.",
         unidades: [

@@ -1,4 +1,4 @@
-const CACHE = "senger-portfolio-v48-20260729-terracos-renaissance";
+const CACHE = "senger-portfolio-v49-20260729-areas-casa-suspensa";
 const CORE = ["./", "./index.html", "./styles.css?v=45", "./data.js?v=45", "./app.js?v=45", "./manifest.json"];
 
 self.addEventListener("install", (event) => {
