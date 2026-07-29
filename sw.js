@@ -1,4 +1,4 @@
-const CACHE = "senger-portfolio-v49-20260729-areas-casa-suspensa";
+const CACHE = "senger-portfolio-v50-20260729-remove-vendidos";
 const CORE = ["./", "./index.html", "./styles.css?v=45", "./data.js?v=45", "./app.js?v=45", "./manifest.json"];
 
 self.addEventListener("install", (event) => {
