@@ -61,10 +61,10 @@ const EMPREENDIMENTOS = [
         garagem: "Box opcional (consultar)",
         obs: "Plantas exclusivas — pavimentos 4 e 13. Valores sem box de garagem.",
         unidades: [
-          { apto: "401", preco: 1490000, status: "disponivel", areaUnit: "358 m² global · 258 m² privativo" },
-          { apto: "402", preco: 1490000, status: "disponivel", areaUnit: "385 m² global · 280 m² privativo" },
-          { apto: "1301", preco: 1590000, status: "disponivel", areaUnit: "306 m² global · 208 m² privativo" },
-          { apto: "1302", preco: 1590000, status: "disponivel", areaUnit: "306 m² global · 208 m² privativo" },
+          { apto: "401", preco: 1490000, status: "disponivel", areaUnit: "358 m² global · 258 m² privativo", tags: ["Terraço"] },
+          { apto: "402", preco: 1490000, status: "disponivel", areaUnit: "385 m² global · 280 m² privativo", tags: ["Terraço"] },
+          { apto: "1301", preco: 1590000, status: "disponivel", areaUnit: "306 m² global · 208 m² privativo", tags: ["Terraço"] },
+          { apto: "1302", preco: 1590000, status: "disponivel", areaUnit: "306 m² global · 208 m² privativo", tags: ["Terraço"] },
         ],
       },
       {
@@ -140,7 +140,7 @@ const EMPREENDIMENTOS = [
         planta: "ren-planta-504",
         obs: "Unidade 504 — lateral direita. Valor sem box de garagem.",
         unidades: [
-          { apto: "504", preco: 880000, status: "disponivel" },
+          { apto: "504", preco: 880000, status: "disponivel", tags: ["Terraço"] },
         ],
       },
       {
