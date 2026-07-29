@@ -1,4 +1,4 @@
-/* Construtora Senger — Portfólio Comercial v46 */
+/* Construtora Senger — Portfólio Comercial v47 */
 (() => {
   "use strict";
 
