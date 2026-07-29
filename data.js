@@ -320,7 +320,7 @@ const EMPREENDIMENTOS = [
         unidades: [{ apto: "802", preco: 880000, status: "disponivel" }],
       },
       {
-        tipo: "Salas comerciais — pavimento térreo",
+        tipo: "Salas comerciais",
         area: "Áreas variadas",
         garagem: "01 vaga de garagem por sala",
         unidades: [
