@@ -538,7 +538,8 @@ img { max-width: 100%; display: block; }
 .share-modal.open { pointer-events: auto; visibility: visible; }
 .share-modal-backdrop { position: absolute; inset: 0; background: rgba(10,15,18,.56); opacity: 0; transition: opacity .2s; }
 .share-modal.open .share-modal-backdrop { opacity: 1; }
-.share-modal-panel { position: relative; width: min(100%, 460px); max-height: min(100%, 620px); display: grid; grid-template-rows: auto auto 1fr auto; background: var(--surface); border-radius: var(--radius-md); box-shadow: var(--shadow-lg); opacity: 0; transform: scale(.97); transition: opacity .18s, transform .18s; }
+.share-modal-panel { position: relative; width: min(100%, 460px); max-height: min(100%, 720px); display: grid; grid-template-rows: auto auto auto 1fr auto; background: var(--surface); border-radius: var(--radius-md); box-shadow: var(--shadow-lg); opacity: 0; transform: scale(.97); transition: opacity .18s, transform .18s; overflow-y: auto; }
+.share-modal-image { margin: 12px 24px 0; width: calc(100% - 48px); aspect-ratio: 16 / 10; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); }
 .share-modal.open .share-modal-panel { opacity: 1; transform: none; }
 .share-modal-hint { margin: 16px 24px 0; color: var(--muted); font-size: 12.5px; line-height: 1.5; }
 .share-modal-text { margin: 12px 24px 0; padding: 14px; min-height: 160px; border: 1px solid var(--line); border-radius: 10px; background: #fafbfb; color: var(--ink); font: 12.5px/1.6 var(--font-body); resize: none; }

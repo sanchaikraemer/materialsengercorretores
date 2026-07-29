@@ -1,4 +1,4 @@
-/* Construtora Senger — Portfólio Comercial v59 */
+/* Construtora Senger — Portfólio Comercial v60 */
 (() => {
   "use strict";
 
@@ -740,19 +740,53 @@
     const modal = document.getElementById("share-modal");
     const textarea = document.getElementById("share-modal-text");
     const photoLink = document.getElementById("share-modal-photo");
+    const preview = document.getElementById("share-modal-image");
+    const copyPhoto = document.getElementById("share-modal-copy-photo");
     textarea.value = text;
-    document.getElementById("share-modal-copy").textContent = "Copiar mensagem";
+    document.getElementById("share-modal-copy").textContent = "2. Copiar mensagem";
+    copyPhoto.textContent = "1. Copiar foto";
     if (imageUrl) {
       photoLink.href = imageUrl;
       photoLink.hidden = false;
+      preview.src = imageUrl;
+      preview.hidden = false;
+      copyPhoto.hidden = !canCopyImage();
     } else {
       photoLink.hidden = true;
+      preview.hidden = true;
+      preview.removeAttribute("src");
+      copyPhoto.hidden = true;
     }
     modal.classList.add("open");
     modal.setAttribute("aria-hidden", "false");
     document.body.classList.add("no-scroll");
-    textarea.focus();
-    textarea.select();
+  }
+
+  const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.write);
+
+  // WhatsApp Web aceita imagem colada; o PNG e o formato que a area de
+  // transferencia do navegador aceita de forma confiavel.
+  async function copyShareModalPhoto() {
+    const preview = document.getElementById("share-modal-image");
+    const button = document.getElementById("share-modal-copy-photo");
+    if (!preview.src || !canCopyImage()) return;
+    try {
+      const image = new Image();
+      image.crossOrigin = "anonymous";
+      image.src = preview.src;
+      await image.decode();
+      const canvas = document.createElement("canvas");
+      canvas.width = image.naturalWidth;
+      canvas.height = image.naturalHeight;
+      canvas.getContext("2d").drawImage(image, 0, 0);
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+      if (!blob) throw new Error("sem blob");
+      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+      button.textContent = "Foto copiada!";
+      showToast("Foto copiada. Cole no WhatsApp e depois copie a mensagem.");
+    } catch (_) {
+      showToast("Não foi possível copiar a foto. Use \"Baixar foto\".");
+    }
   }
 
   function closeShareModal() {
@@ -933,6 +967,7 @@
 
     document.querySelectorAll("[data-close-share]").forEach((button) => button.addEventListener("click", closeShareModal));
     document.getElementById("share-modal-copy").addEventListener("click", copyShareModalText);
+    document.getElementById("share-modal-copy-photo").addEventListener("click", copyShareModalPhoto);
     document.getElementById("share-modal-open").addEventListener("click", () => window.open("https://web.whatsapp.com/", "_blank", "noopener"));
 
     window.addEventListener("hashchange", renderRoute);
