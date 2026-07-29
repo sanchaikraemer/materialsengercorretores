@@ -292,13 +292,13 @@ const EMPREENDIMENTOS = [
       },
       {
         tipo: "Sala comercial",
-        area: "55 m² global · 31 m² privativo",
+        area: "54 m² global · 31 m² privativo",
         garagem: "01 vaga de garagem",
         unidades: [{ apto: "803", preco: 480000, status: "disponivel" }],
       },
       {
         tipo: "Sala comercial",
-        area: "116 m² global · 65 m² privativo",
+        area: "115 m² global · 65 m² privativo",
         garagem: "01 vaga de garagem",
         unidades: [
           { apto: "301", preco: 810000, status: "disponivel" },
@@ -307,7 +307,7 @@ const EMPREENDIMENTOS = [
       },
       {
         tipo: "Sala comercial",
-        area: "73 m² global · 40 m² privativo",
+        area: "72 m² global · 40 m² privativo",
         garagem: "01 vaga de garagem",
         unidades: [
           { apto: "304", preco: 560000, status: "disponivel" },
@@ -316,7 +316,7 @@ const EMPREENDIMENTOS = [
       },
       {
         tipo: "Sala comercial",
-        area: "123 m² global · 69 m² privativo",
+        area: "129 m² global · 73 m² privativo",
         garagem: "01 vaga de garagem",
         unidades: [{ apto: "802", preco: 880000, status: "disponivel" }],
       },
