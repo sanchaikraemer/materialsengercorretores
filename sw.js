@@ -1,4 +1,4 @@
-const CACHE = "senger-portfolio-v45-20260728-galeria-largura-alinhada";
+const CACHE = "senger-portfolio-v46-20260729-reordena-prioridade";
 const CORE = ["./", "./index.html", "./styles.css?v=45", "./data.js?v=45", "./app.js?v=45", "./manifest.json"];
 
 self.addEventListener("install", (event) => {
