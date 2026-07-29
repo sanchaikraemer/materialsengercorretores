@@ -196,9 +196,8 @@ const EMPREENDIMENTOS = [
         tipo: "2 dormitórios (1 suíte)",
         area: "99 m² global · 73 m² privativo",
         garagem: "01 box",
-        obs: "Terraço: 135 m² global · 104 m² privativo.",
         unidades: [
-          { apto: "404", preco: 730000, status: "disponivel", tags: ["Terraço"] },
+          { apto: "404", preco: 730000, status: "disponivel", tags: ["Terraço"], areaUnit: "135 m² global · 104 m² privativo" },
           { apto: "504", preco: 690000, status: "disponivel" },
           { apto: "604", preco: 700000, status: "disponivel" },
           { apto: "704", preco: 710000, status: "disponivel" },
@@ -219,9 +218,8 @@ const EMPREENDIMENTOS = [
         tipo: "2 dormitórios (2 suítes)",
         area: "118 m² global · 87 m² privativo",
         garagem: "01 box",
-        obs: "Terraço: 173 m² global · 133 m² privativo.",
         unidades: [
-          { apto: "402", preco: 850000, status: "disponivel", tags: ["Terraço"] },
+          { apto: "402", preco: 850000, status: "disponivel", tags: ["Terraço"], areaUnit: "173 m² global · 133 m² privativo" },
           { apto: "502", preco: 800000, status: "disponivel" },
         ],
       },
