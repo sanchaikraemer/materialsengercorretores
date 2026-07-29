@@ -197,11 +197,11 @@ const EMPREENDIMENTOS = [
         area: "99 m² global · 73 m² privativo",
         garagem: "01 box",
         unidades: [
-          { apto: "404", preco: 699955.35, status: "disponivel", tags: ["Terraço"], areaUnit: "135 m² global · 104 m² privativo" },
-          { apto: "504", preco: 653963.08, status: "disponivel" },
-          { apto: "604", preco: 653963.08, status: "disponivel" },
-          { apto: "704", preco: 653963.08, status: "disponivel" },
-          { apto: "804", preco: 651277.40, status: "disponivel" },
+          { apto: "404", preco: 730000, status: "disponivel", tags: ["Terraço"], areaUnit: "135 m² global · 104 m² privativo" },
+          { apto: "504", preco: 690000, status: "disponivel" },
+          { apto: "604", preco: 700000, status: "disponivel" },
+          { apto: "704", preco: 710000, status: "disponivel" },
+          { apto: "804", preco: 720000, status: "disponivel" },
         ],
       },
       {
@@ -209,9 +209,9 @@ const EMPREENDIMENTOS = [
         area: "99 m² global · 73 m² privativo",
         garagem: "01 box",
         unidades: [
-          { apto: "503", preco: 671420, status: "disponivel" },
-          { apto: "703", preco: 671420, status: "disponivel" },
-          { apto: "803", preco: 671420, status: "disponivel" },
+          { apto: "503", preco: 740000, status: "disponivel" },
+          { apto: "703", preco: 760000, status: "disponivel" },
+          { apto: "803", preco: 770000, status: "disponivel" },
         ],
       },
       {
@@ -219,8 +219,8 @@ const EMPREENDIMENTOS = [
         area: "118 m² global · 87 m² privativo",
         garagem: "01 box",
         unidades: [
-          { apto: "402", preco: 735204.90, status: "disponivel", tags: ["Terraço"], areaUnit: "173 m² global · 133 m² privativo" },
-          { apto: "502", preco: 717412.27, status: "disponivel" },
+          { apto: "402", preco: 850000, status: "disponivel", tags: ["Terraço"], areaUnit: "173 m² global · 133 m² privativo" },
+          { apto: "502", preco: 800000, status: "disponivel" },
         ],
       },
       {
@@ -228,10 +228,10 @@ const EMPREENDIMENTOS = [
         area: "179 m² global · 132 m² privativo",
         garagem: "01 box duplo",
         unidades: [
-          { apto: "1002", preco: 1074272, status: "disponivel" },
-          { apto: "1102", preco: 1074272, status: "disponivel" },
-          { apto: "1202", preco: 1085350.43, status: "disponivel" },
-          { apto: "1302", preco: 1107843, status: "disponivel" },
+          { apto: "1002", preco: 1120000, status: "disponivel" },
+          { apto: "1102", preco: 1130000, status: "disponivel" },
+          { apto: "1202", preco: 1140000, status: "disponivel" },
+          { apto: "1302", preco: 1150000, status: "disponivel" },
         ],
       },
     ],
