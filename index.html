@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="styles.css?v=60">
+  <link rel="stylesheet" href="styles.css?v=61">
 </head>
 <body>
   <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
@@ -170,13 +170,11 @@
         <div><span class="eyebrow dark">Compartilhar</span><h2>Mensagem pronta</h2></div>
         <button class="icon-button" type="button" data-close-share aria-label="Fechar">×</button>
       </div>
-      <p class="share-modal-hint">No WhatsApp: cole a foto primeiro, depois cole a mensagem na legenda.</p>
-      <img class="share-modal-image" id="share-modal-image" alt="Foto de capa do empreendimento" hidden>
+      <p class="share-modal-hint" id="share-modal-hint">No WhatsApp: cole a foto primeiro, depois cole a mensagem na legenda.</p>
+      <div class="share-modal-photos" id="share-modal-photos" hidden></div>
       <textarea class="share-modal-text" id="share-modal-text" readonly></textarea>
       <div class="share-modal-actions">
-        <button class="button button-primary" type="button" id="share-modal-copy-photo" hidden>1. Copiar foto</button>
-        <button class="button button-primary" type="button" id="share-modal-copy">2. Copiar mensagem</button>
-        <a class="button button-outline" id="share-modal-photo" href="#" download hidden>Baixar foto</a>
+        <button class="button button-primary" type="button" id="share-modal-copy">Copiar mensagem</button>
         <button class="button button-outline" type="button" id="share-modal-open">Abrir WhatsApp</button>
       </div>
     </div>
@@ -184,7 +182,7 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="data.js?v=60"></script>
-  <script src="app.js?v=60"></script>
+  <script src="data.js?v=61"></script>
+  <script src="app.js?v=61"></script>
 </body>
 </html>

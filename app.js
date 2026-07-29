@@ -1,4 +1,4 @@
-/* Construtora Senger — Portfólio Comercial v60 */
+/* Construtora Senger — Portfólio Comercial v61 */
 (() => {
   "use strict";
 
@@ -736,27 +736,35 @@
     return lines.join("\n");
   }
 
-  function openShareModal(text, imageUrl = "") {
+  // photos: [{ src, nome }] — uma por empreendimento presente na mensagem.
+  function openShareModal(text, photos = []) {
     const modal = document.getElementById("share-modal");
     const textarea = document.getElementById("share-modal-text");
-    const photoLink = document.getElementById("share-modal-photo");
-    const preview = document.getElementById("share-modal-image");
-    const copyPhoto = document.getElementById("share-modal-copy-photo");
+    const list = document.getElementById("share-modal-photos");
+    const hint = document.getElementById("share-modal-hint");
     textarea.value = text;
-    document.getElementById("share-modal-copy").textContent = "2. Copiar mensagem";
-    copyPhoto.textContent = "1. Copiar foto";
-    if (imageUrl) {
-      photoLink.href = imageUrl;
-      photoLink.hidden = false;
-      preview.src = imageUrl;
-      preview.hidden = false;
-      copyPhoto.hidden = !canCopyImage();
-    } else {
-      photoLink.hidden = true;
-      preview.hidden = true;
-      preview.removeAttribute("src");
-      copyPhoto.hidden = true;
-    }
+    document.getElementById("share-modal-copy").textContent = "Copiar mensagem";
+
+    list.innerHTML = photos.map((photo, index) => `
+      <div class="share-photo-row">
+        <img src="${escapeHtml(photo.src)}" alt="${escapeHtml(photo.nome)}" loading="lazy">
+        <div class="share-photo-info">
+          <span class="share-photo-name">${escapeHtml(photo.nome)}</span>
+          <div class="share-photo-buttons">
+            ${canCopyImage() ? `<button class="button button-primary" type="button" data-copy-photo="${index}">Copiar foto</button>` : ""}
+            <a class="button button-outline" href="${escapeHtml(photo.src)}" download>Baixar</a>
+          </div>
+        </div>
+      </div>
+    `).join("");
+    list.hidden = !photos.length;
+    list.querySelectorAll("[data-copy-photo]").forEach((button) => {
+      button.addEventListener("click", () => copySharePhoto(photos[Number(button.dataset.copyPhoto)].src, button));
+    });
+    hint.textContent = photos.length > 1
+      ? `São ${photos.length} empreendimentos: copie e cole cada foto no WhatsApp, depois cole a mensagem.`
+      : "No WhatsApp: cole a foto primeiro, depois cole a mensagem na legenda.";
+
     modal.classList.add("open");
     modal.setAttribute("aria-hidden", "false");
     document.body.classList.add("no-scroll");
@@ -766,14 +774,12 @@
 
   // WhatsApp Web aceita imagem colada; o PNG e o formato que a area de
   // transferencia do navegador aceita de forma confiavel.
-  async function copyShareModalPhoto() {
-    const preview = document.getElementById("share-modal-image");
-    const button = document.getElementById("share-modal-copy-photo");
-    if (!preview.src || !canCopyImage()) return;
+  async function copySharePhoto(src, button) {
+    if (!src || !canCopyImage()) return;
     try {
       const image = new Image();
       image.crossOrigin = "anonymous";
-      image.src = preview.src;
+      image.src = src;
       await image.decode();
       const canvas = document.createElement("canvas");
       canvas.width = image.naturalWidth;
@@ -782,10 +788,10 @@
       const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
       if (!blob) throw new Error("sem blob");
       await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
-      button.textContent = "Foto copiada!";
-      showToast("Foto copiada. Cole no WhatsApp e depois copie a mensagem.");
+      button.textContent = "Copiada!";
+      showToast("Foto copiada. Cole no WhatsApp.");
     } catch (_) {
-      showToast("Não foi possível copiar a foto. Use \"Baixar foto\".");
+      showToast("Não foi possível copiar a foto. Use \"Baixar\".");
     }
   }
 
@@ -829,7 +835,8 @@
     }
   }
 
-  async function sendShare(text, title = "Construtora Senger", imageUrl = "") {
+  async function sendShare(text, title = "Construtora Senger", photos = []) {
+    const imageUrl = photos[0]?.src || "";
     if (navigator.share) {
       const file = await loadShareFile(imageUrl);
       if (file && navigator.canShare({ title, text, files: [file] })) {
@@ -847,17 +854,28 @@
         if (error?.name === "AbortError") return;
       }
     }
-    openShareModal(text, imageUrl);
+    openShareModal(text, photos);
+  }
+
+  const coverPhoto = (emp) => ({ src: assetUrl(cardImage(emp)), nome: emp.nome });
+
+  // Uma foto por empreendimento, sem repetir quando ha varias unidades do mesmo.
+  function coverPhotosFor(items) {
+    const seen = new Set();
+    return items.reduce((photos, item) => {
+      if (!seen.has(item.emp.id)) { seen.add(item.emp.id); photos.push(coverPhoto(item.emp)); }
+      return photos;
+    }, []);
   }
 
   function shareEnterprise(emp, includePrices) {
     if (!emp) return;
-    sendShare(enterpriseMessage(emp, includePrices), emp.nome, assetUrl(cardImage(emp)));
+    sendShare(enterpriseMessage(emp, includePrices), emp.nome, [coverPhoto(emp)]);
   }
 
   function shareItem(item, includePrice) {
     if (!item) return;
-    sendShare(itemMessage(item, includePrice), `${item.emp.nome} — ${itemLabel(item)}`, assetUrl(cardImage(item.emp)));
+    sendShare(itemMessage(item, includePrice), `${item.emp.nome} — ${itemLabel(item)}`, [coverPhoto(item.emp)]);
   }
 
   function toggleSelection(key) {
@@ -900,8 +918,18 @@
     }
   }
 
+  function selectedItems() {
+    return [...state.selected].map((key) => itemMap.get(key)).filter(Boolean);
+  }
+
+  function shareSelection(includePrices) {
+    const items = selectedItems();
+    if (!items.length) return;
+    sendShare(selectedMessage(includePrices), "Seleção de imóveis", coverPhotosFor(items));
+  }
+
   function selectedMessage(includePrices) {
-    const items = [...state.selected].map((key) => itemMap.get(key)).filter(Boolean);
+    const items = selectedItems();
     const lines = ["*Seleção de imóveis — Construtora Senger*", ""];
     items.forEach((item, index) => {
       lines.push(`*${index + 1}. ${item.emp.nome} — ${itemLabel(item)}*`);
@@ -962,12 +990,11 @@
       renderRoute();
       showToast("Seleção limpa.");
     });
-    document.getElementById("share-selected-prices").addEventListener("click", () => state.selected.size && sendShare(selectedMessage(true), "Seleção de imóveis"));
-    document.getElementById("share-selected-no-prices").addEventListener("click", () => state.selected.size && sendShare(selectedMessage(false), "Seleção de imóveis"));
+    document.getElementById("share-selected-prices").addEventListener("click", () => shareSelection(true));
+    document.getElementById("share-selected-no-prices").addEventListener("click", () => shareSelection(false));
 
     document.querySelectorAll("[data-close-share]").forEach((button) => button.addEventListener("click", closeShareModal));
     document.getElementById("share-modal-copy").addEventListener("click", copyShareModalText);
-    document.getElementById("share-modal-copy-photo").addEventListener("click", copyShareModalPhoto);
     document.getElementById("share-modal-open").addEventListener("click", () => window.open("https://web.whatsapp.com/", "_blank", "noopener"));
 
     window.addEventListener("hashchange", renderRoute);
