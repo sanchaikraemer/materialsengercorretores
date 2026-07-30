@@ -460,7 +460,7 @@ const EMPREENDIMENTOS = [
         garagem: "Box duplo",
         unidades: [
           { apto: "602", preco: 1310000, status: "disponivel" },
-          { apto: "902", preco: 1450000, status: "disponivel", tags: ["Mobiliado"] },
+          { apto: "902", preco: 1450000, status: "disponivel", tags: ["Semimobiliado"] },
         ],
       },
     ],

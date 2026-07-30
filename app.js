@@ -1,4 +1,4 @@
-/* Construtora Senger — Portfólio Comercial v64 */
+/* Construtora Senger — Portfólio Comercial v65 */
 (() => {
   "use strict";
 
@@ -719,10 +719,14 @@
 
   const semPonto = (texto = "") => String(texto).trim().replace(/\.$/, "");
 
-  // "172 m² global · 132 m² privativo" -> "132 m²"
-  function areaPrivativa(area = "") {
-    const m = String(area).match(/([\d.,]+\s*m²)\s*privativ/i);
-    return m ? m[1].replace(/\s+/g, "") : String(area).trim();
+  // "172 m² global · 132 m² privativo" -> "172m² global e 132m² privativos"
+  function areaResumo(area = "") {
+    const g = String(area).match(/([\d.,]+)\s*m²\s*global/i);
+    const p = String(area).match(/([\d.,]+)\s*m²\s*privativ/i);
+    if (g && p) return `${g[1]}m² global e ${p[1]}m² privativos`;
+    if (g) return `${g[1]}m² global`;
+    if (p) return `${p[1]}m² privativos`;
+    return String(area).trim();
   }
 
   // 902 -> 9, 1302 -> 13, 802A -> 8. Sem andar para salas e terrenos.
@@ -750,8 +754,8 @@
     if (primeiro) bullets.push(primeiro.replace(/^./, (c) => c.toUpperCase()));
 
     const tipo = item.group?.tipo;
-    const privativa = item.area ? areaPrivativa(item.area) : "";
-    if (tipo && privativa) bullets.push(`${tipo}, ${privativa} privativos`);
+    const privativa = item.area ? areaResumo(item.area) : "";
+    if (tipo && privativa) bullets.push(`${tipo}, ${privativa}`);
     else if (tipo) bullets.push(tipo);
     else if (privativa) bullets.push(privativa);
 

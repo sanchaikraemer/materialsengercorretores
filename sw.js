@@ -1,5 +1,5 @@
-const CACHE = "senger-portfolio-v64-20260729-mensagem-sem-saudacao";
-const CORE = ["./", "./index.html", "./styles.css?v=64", "./data.js?v=64", "./app.js?v=64", "./manifest.json"];
+const CACHE = "senger-portfolio-v65-20260729-area-global-na-mensagem";
+const CORE = ["./", "./index.html", "./styles.css?v=65", "./data.js?v=65", "./app.js?v=65", "./manifest.json"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
