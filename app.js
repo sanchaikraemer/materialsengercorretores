@@ -1,4 +1,4 @@
-/* Construtora Senger — Portfólio Comercial v67 */
+/* Construtora Senger — Portfólio Comercial v68 */
 (() => {
   "use strict";
 
@@ -540,7 +540,7 @@
     document.getElementById("detail-back").addEventListener("click", navigateHome);
     document.getElementById("share-emp-prices").addEventListener("click", () => shareEnterprise(emp, true));
     document.getElementById("share-emp-no-prices").addEventListener("click", () => shareEnterprise(emp, false));
-    document.getElementById("print-detail").addEventListener("click", () => window.print());
+    document.getElementById("print-detail").addEventListener("click", printDocument);
     const featuredImage = detail.querySelector("[data-gallery-featured]");
     const featuredCounter = detail.querySelector("[data-gallery-counter]");
     detail.querySelectorAll("[data-gallery-thumb]").forEach((button) => {
@@ -1018,6 +1018,47 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
     toastTimer = setTimeout(() => toast.classList.remove("show"), 2400);
   }
 
+  function loadAllImages(timeout = 8000) {
+    const images = Array.from(document.querySelectorAll("img")).filter((img) => !img.complete || img.naturalWidth === 0);
+    images.forEach((img) => {
+      img.loading = "eager";
+      img.removeAttribute("loading");
+      if (!img.complete) img.src = img.src;
+    });
+    if (!images.length) return Promise.resolve();
+    const ready = Promise.all(images.map((img) => new Promise((resolve) => {
+      if (img.complete && img.naturalWidth) return resolve();
+      img.addEventListener("load", resolve, { once: true });
+      img.addEventListener("error", resolve, { once: true });
+    })));
+    return Promise.race([ready, new Promise((resolve) => setTimeout(resolve, timeout))]);
+  }
+
+  let printing = false;
+
+  async function printDocument(event) {
+    if (printing) return;
+    printing = true;
+    const button = event?.currentTarget;
+    const label = button ? button.textContent : "";
+    if (button) {
+      button.disabled = true;
+      button.textContent = "Preparando…";
+    }
+    try {
+      showToast("Carregando as imagens para o PDF…");
+      await loadAllImages();
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      window.print();
+    } finally {
+      if (button) {
+        button.disabled = false;
+        button.textContent = label;
+      }
+      printing = false;
+    }
+  }
+
   function setText(id, value) {
     const element = document.getElementById(id);
     if (element) element.textContent = value;
@@ -1030,7 +1071,7 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
 
   function bindGlobalEvents() {
     document.getElementById("brand-home").addEventListener("click", navigateHome);
-    document.getElementById("print-catalog").addEventListener("click", () => window.print());
+    document.getElementById("print-catalog").addEventListener("click", printDocument);
     document.getElementById("selection-fab").addEventListener("click", openDrawer);
     document.querySelectorAll("[data-close-drawer]").forEach((button) => button.addEventListener("click", closeDrawer));
     document.getElementById("clear-selection").addEventListener("click", () => {
