@@ -1,4 +1,4 @@
-/* Construtora Senger — Portfólio Comercial v63 */
+/* Construtora Senger — Portfólio Comercial v64 */
 (() => {
   "use strict";
 
@@ -717,11 +717,6 @@
     return lines.filter((line, index, array) => line !== "" || array[index - 1] !== "").join("\n");
   }
 
-  const saudacao = () => {
-    const h = new Date().getHours();
-    return h < 12 ? "Bom dia" : h < 18 ? "Boa tarde" : "Boa noite";
-  };
-
   const semPonto = (texto = "") => String(texto).trim().replace(/\.$/, "");
 
   // "172 m² global · 132 m² privativo" -> "132 m²"
@@ -736,33 +731,22 @@
     return m ? Number(m[1]) : null;
   }
 
-  function substantivo(item) {
-    if (item.kind === "land") return "Esse terreno";
-    if (item.kind === "other") return "Esse imóvel";
-    return item.emp.categoria === "comercial" ? "Essa sala" : "Esse apartamento";
-  }
-
   // "Outros Imóveis" e um agrupamento, nao um predio: a unidade fala por si.
-  function abertura(item) {
-    const emp = item.emp;
-    if (emp.id === "outros") {
-      return `${substantivo(item)}, o *${itemLabel(item)}*, fica ${item.local ? `no ${item.local}` : `em ${emp.cidade}`} ✨`;
-    }
-    const cidade = String(emp.cidade).split("/")[0];
-    return `${substantivo(item)} fica no *${emp.nome}*, em ${cidade} ✨`;
-  }
+  const titulo = (item) => (item.emp.id === "outros"
+    ? `*${itemLabel(item)}*`
+    : `*${item.emp.nome} — ${itemLabel(item)}*`);
+
+  // A localizacao ja traz a cidade; usa-la evita repetir "Carazinho" no titulo.
+  const ondeFica = (item) => (item.emp.id === "outros" ? item.local : item.emp.localizacao) || item.emp.cidade;
 
   function itemBullets(item) {
     const bullets = [];
     const etiquetas = (item.tags || []).map((t) => t.toLowerCase());
-    // Primeiro bullet identifica a unidade e a condicao: "Apto 902, novo e mobiliado".
-    const nome = item.emp.id === "outros" ? "" : itemLabel(item);
     const feminino = item.kind === "unit" && item.emp.categoria === "comercial";
     const cond = item.status !== "disponivel"
       ? (STATUS_LABELS[item.status] || item.status).toLowerCase()
       : (item.emp.id === "outros" || item.kind === "land" ? "" : (feminino ? "nova" : "novo"));
-    const partes = [cond, ...etiquetas].filter(Boolean).join(" e ");
-    const primeiro = [nome, partes].filter(Boolean).join(", ");
+    const primeiro = [cond, ...etiquetas].filter(Boolean).join(" e ");
     if (primeiro) bullets.push(primeiro.replace(/^./, (c) => c.toUpperCase()));
 
     const tipo = item.group?.tipo;
@@ -778,29 +762,24 @@
     if (item.local && item.emp.id !== "outros") bullets.push(item.local);
     if (item.description) bullets.push(semPonto(item.description));
 
-    (item.emp.diferenciais || []).slice(0, 2).forEach((d) => bullets.push(semPonto(d.desc)));
+    (item.emp.diferenciais || []).forEach((d) => bullets.push(semPonto(d.desc)));
     return bullets;
   }
 
   function itemMessage(item, includePrice) {
     const emp = item.emp;
-    const lines = [`${saudacao()}, tudo bem?`, ""];
-    lines.push("Obrigado pelo interesse em nossos empreendimentos! 😁", "");
-    lines.push(abertura(item));
-    if (emp.localizacao) lines.push(semPonto(emp.localizacao) + ".");
-    lines.push("");
+    const lines = [titulo(item), semPonto(ondeFica(item)) + ".", ""];
 
     itemBullets(item).forEach((b) => lines.push(`✅ ${b}`));
     lines.push("");
 
     if (includePrice) lines.push(`💰 *${money(item.price)}*`, "");
-    else lines.push("💰 Valor sob consulta — me chame que passo os detalhes.", "");
+    else lines.push("💰 Valor sob consulta.", "");
 
     if (emp.entrega && emp.id !== "outros") lines.push(`${semPonto(emp.entrega)} 🏦`);
     if (emp.condicoes) lines.push(semPonto(emp.condicoes) + ".");
     if (item.notes) lines.push(semPonto(item.notes) + ".");
-    lines.push("", "É o perfil que você busca?", "");
-    lines.push(`Tabela ${META.mesTabela || ""}. Valores e disponibilidade sujeitos a alteração.`);
+    lines.push("", `Tabela ${META.mesTabela || ""}. Valores e disponibilidade sujeitos a alteração.`);
     return lines.join("\n");
   }
 
