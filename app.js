@@ -1,4 +1,4 @@
-/* Construtora Senger — Portfólio Comercial v62 */
+/* Construtora Senger — Portfólio Comercial v63 */
 (() => {
   "use strict";
 
@@ -717,23 +717,90 @@
     return lines.filter((line, index, array) => line !== "" || array[index - 1] !== "").join("\n");
   }
 
+  const saudacao = () => {
+    const h = new Date().getHours();
+    return h < 12 ? "Bom dia" : h < 18 ? "Boa tarde" : "Boa noite";
+  };
+
+  const semPonto = (texto = "") => String(texto).trim().replace(/\.$/, "");
+
+  // "172 m² global · 132 m² privativo" -> "132 m²"
+  function areaPrivativa(area = "") {
+    const m = String(area).match(/([\d.,]+\s*m²)\s*privativ/i);
+    return m ? m[1].replace(/\s+/g, "") : String(area).trim();
+  }
+
+  // 902 -> 9, 1302 -> 13, 802A -> 8. Sem andar para salas e terrenos.
+  function andarDe(codigo) {
+    const m = String(codigo).match(/^(\d+)\d{2}[A-Za-z]?$/);
+    return m ? Number(m[1]) : null;
+  }
+
+  function substantivo(item) {
+    if (item.kind === "land") return "Esse terreno";
+    if (item.kind === "other") return "Esse imóvel";
+    return item.emp.categoria === "comercial" ? "Essa sala" : "Esse apartamento";
+  }
+
+  // "Outros Imóveis" e um agrupamento, nao um predio: a unidade fala por si.
+  function abertura(item) {
+    const emp = item.emp;
+    if (emp.id === "outros") {
+      return `${substantivo(item)}, o *${itemLabel(item)}*, fica ${item.local ? `no ${item.local}` : `em ${emp.cidade}`} ✨`;
+    }
+    const cidade = String(emp.cidade).split("/")[0];
+    return `${substantivo(item)} fica no *${emp.nome}*, em ${cidade} ✨`;
+  }
+
+  function itemBullets(item) {
+    const bullets = [];
+    const etiquetas = (item.tags || []).map((t) => t.toLowerCase());
+    // Primeiro bullet identifica a unidade e a condicao: "Apto 902, novo e mobiliado".
+    const nome = item.emp.id === "outros" ? "" : itemLabel(item);
+    const feminino = item.kind === "unit" && item.emp.categoria === "comercial";
+    const cond = item.status !== "disponivel"
+      ? (STATUS_LABELS[item.status] || item.status).toLowerCase()
+      : (item.emp.id === "outros" || item.kind === "land" ? "" : (feminino ? "nova" : "novo"));
+    const partes = [cond, ...etiquetas].filter(Boolean).join(" e ");
+    const primeiro = [nome, partes].filter(Boolean).join(", ");
+    if (primeiro) bullets.push(primeiro.replace(/^./, (c) => c.toUpperCase()));
+
+    const tipo = item.group?.tipo;
+    const privativa = item.area ? areaPrivativa(item.area) : "";
+    if (tipo && privativa) bullets.push(`${tipo}, ${privativa} privativos`);
+    else if (tipo) bullets.push(tipo);
+    else if (privativa) bullets.push(privativa);
+
+    if (item.garage) bullets.push(item.garage);
+    const andar = andarDe(item.code);
+    if (andar) bullets.push(`${andar}º andar`);
+    if (item.rua) bullets.push(`Rua ${item.rua}`);
+    if (item.local && item.emp.id !== "outros") bullets.push(item.local);
+    if (item.description) bullets.push(semPonto(item.description));
+
+    (item.emp.diferenciais || []).slice(0, 2).forEach((d) => bullets.push(semPonto(d.desc)));
+    return bullets;
+  }
+
   function itemMessage(item, includePrice) {
-    const lines = [
-      `*${item.emp.nome} — ${itemLabel(item)}*`,
-      item.emp.cidade,
-    ];
-    if (item.group?.tipo) lines.push(item.group.tipo);
-    if (item.description) lines.push(item.description);
-    if (item.area) lines.push(`Área: ${item.area}`);
-    if (item.garage) lines.push(`Garagem: ${item.garage}`);
-    if (item.rua) lines.push(`Localização: ${item.rua}`);
-    if (item.tags?.length) lines.push(`Diferencial: ${item.tags.join(" · ")}`);
-    if (includePrice) lines.push(`Valor: *${money(item.price)}*`);
-    else lines.push("Valor: consulte a equipe comercial");
-    const status = shareStatusLabel(item);
-    if (status) lines.push(`Status: ${status}`);
-    if (item.notes) lines.push(item.notes);
-    lines.push("", `Tabela ${META.mesTabela || ""}. Valores e disponibilidade sujeitos a alteração.`);
+    const emp = item.emp;
+    const lines = [`${saudacao()}, tudo bem?`, ""];
+    lines.push("Obrigado pelo interesse em nossos empreendimentos! 😁", "");
+    lines.push(abertura(item));
+    if (emp.localizacao) lines.push(semPonto(emp.localizacao) + ".");
+    lines.push("");
+
+    itemBullets(item).forEach((b) => lines.push(`✅ ${b}`));
+    lines.push("");
+
+    if (includePrice) lines.push(`💰 *${money(item.price)}*`, "");
+    else lines.push("💰 Valor sob consulta — me chame que passo os detalhes.", "");
+
+    if (emp.entrega && emp.id !== "outros") lines.push(`${semPonto(emp.entrega)} 🏦`);
+    if (emp.condicoes) lines.push(semPonto(emp.condicoes) + ".");
+    if (item.notes) lines.push(semPonto(item.notes) + ".");
+    lines.push("", "É o perfil que você busca?", "");
+    lines.push(`Tabela ${META.mesTabela || ""}. Valores e disponibilidade sujeitos a alteração.`);
     return lines.join("\n");
   }
 
@@ -771,15 +838,7 @@
     document.body.classList.add("no-scroll");
   }
 
-  // Na mensagem ao cliente, "Disponível" vira "Imóvel novo" — menos em
-  // "Outros Imóveis", que sao usados/de terceiros e nao levam esse rotulo.
-  function shareStatusLabel(item) {
-    if (item.emp.id === "outros") return item.status === "disponivel" ? "" : (STATUS_LABELS[item.status] || item.status);
-    if (item.status === "disponivel") return "Imóvel novo";
-    return STATUS_LABELS[item.status] || item.status;
-  }
-
-  const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.write);
+const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.write);
 
   // WhatsApp Web aceita imagem colada; o PNG e o formato que a area de
   // transferencia do navegador aceita de forma confiavel.
