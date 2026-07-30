@@ -440,7 +440,7 @@ const EMPREENDIMENTOS = [
     diferenciais: [
       { titulo: "Lazer", desc: "Piscina aquecida e 2 salões de festas completos, com terraço e acesso à piscina." },
       { titulo: "Conforto", desc: "Acabamento refinado, aquecimento a gás, 2 elevadores e sacada com churrasqueira a carvão." },
-      { titulo: "Alto padrão", desc: "Amplos apartamentos, hall de entrada refinado, porcelanato e gesso em todo o apartamento." },
+      { titulo: "Alto padrão", desc: "Amplos apartamentos, hall de entrada com pé direito duplo, porcelanato e gesso em todo o apartamento." },
       { titulo: "Estrutura", desc: "Medição individual de água, luz e gás; detalhes em vidro laminado; esquadrias de alumínio anodizado." },
     ],
     galeria: [
