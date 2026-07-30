@@ -1,4 +1,4 @@
-/* Construtora Senger — Portfólio Comercial v61 */
+/* Construtora Senger — Portfólio Comercial v62 */
 (() => {
   "use strict";
 
@@ -713,7 +713,7 @@
       lines.push(`${items.length} ${items.length === 1 ? "opção comercializável" : "opções comercializáveis"}. Consulte valores e condições.`);
     }
     if (emp.entrega) lines.push(`Etapa: ${emp.entrega}`);
-    lines.push("", `Tabela ${META.mesTabela || ""}, atualizada em ${META.dataTabela || "—"}. Valores e disponibilidade sujeitos a alteração.`);
+    lines.push("", `Tabela ${META.mesTabela || ""}. Valores e disponibilidade sujeitos a alteração.`);
     return lines.filter((line, index, array) => line !== "" || array[index - 1] !== "").join("\n");
   }
 
@@ -730,9 +730,10 @@
     if (item.tags?.length) lines.push(`Diferencial: ${item.tags.join(" · ")}`);
     if (includePrice) lines.push(`Valor: *${money(item.price)}*`);
     else lines.push("Valor: consulte a equipe comercial");
-    lines.push(`Status: ${STATUS_LABELS[item.status] || item.status}`);
+    const status = shareStatusLabel(item);
+    if (status) lines.push(`Status: ${status}`);
     if (item.notes) lines.push(item.notes);
-    lines.push("", `Tabela ${META.mesTabela || ""}, atualizada em ${META.dataTabela || "—"}. Valores e disponibilidade sujeitos a alteração.`);
+    lines.push("", `Tabela ${META.mesTabela || ""}. Valores e disponibilidade sujeitos a alteração.`);
     return lines.join("\n");
   }
 
@@ -768,6 +769,14 @@
     modal.classList.add("open");
     modal.setAttribute("aria-hidden", "false");
     document.body.classList.add("no-scroll");
+  }
+
+  // Na mensagem ao cliente, "Disponível" vira "Imóvel novo" — menos em
+  // "Outros Imóveis", que sao usados/de terceiros e nao levam esse rotulo.
+  function shareStatusLabel(item) {
+    if (item.emp.id === "outros") return item.status === "disponivel" ? "" : (STATUS_LABELS[item.status] || item.status);
+    if (item.status === "disponivel") return "Imóvel novo";
+    return STATUS_LABELS[item.status] || item.status;
   }
 
   const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.write);
@@ -940,7 +949,7 @@
       lines.push(includePrices ? `Valor: *${money(item.price)}*` : "Valor: consulte a equipe comercial");
       lines.push("");
     });
-    lines.push(`Tabela ${META.mesTabela || ""}, atualizada em ${META.dataTabela || "—"}. Valores e disponibilidade sujeitos a alteração.`);
+    lines.push(`Tabela ${META.mesTabela || ""}. Valores e disponibilidade sujeitos a alteração.`);
     return lines.join("\n");
   }
 
