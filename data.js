@@ -590,7 +590,7 @@ const EMPREENDIMENTOS = [
         planta: "qual-planta-3d",
         unidades: [
           { apto: "201A", preco: 550000, status: "disponivel" },
-          { apto: "401A", preco: 580000, status: "disponivel", tags: ["Mobiliado"] },
+          { apto: "401A", preco: 580000, status: "disponivel", tags: ["Semimobiliado"] },
           { apto: "701A", preco: 590000, status: "disponivel" },
         ],
       },
