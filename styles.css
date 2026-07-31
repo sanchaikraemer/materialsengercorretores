@@ -667,6 +667,102 @@ img { max-width: 100%; display: block; }
   .unit-group { break-inside: auto; }
   .mobile-units { display: none; }
 }
+/* ---------- Catálogo de impressão (lista de preços) ---------- */
+#print-sheet { display: none; }
+
+@media print {
+  body.printing-catalog > *:not(#print-sheet) { display: none !important; }
+  body.printing-catalog #print-sheet { display: block; }
+  @page { size: A4; margin: 11mm; }
+
+  .ps-body { font-family: var(--font-body); color: #1d262d; font-size: 9pt; line-height: 1.4; }
+  .ps-body h1, .ps-body h2 { font-family: var(--font-display); letter-spacing: -.02em; margin: 0; }
+
+  .ps-legal {
+    margin: 6mm 0 0;
+    padding-top: 2.5mm;
+    border-top: .5pt solid #c9d2d6;
+    color: #6b7780;
+    font-size: 7pt;
+    line-height: 1.4;
+    break-inside: avoid;
+  }
+
+  .ps-head { display: flex; align-items: center; gap: 6mm; padding-bottom: 3.5mm; margin-bottom: 5mm; border-bottom: 1.6pt solid var(--brand); }
+  .ps-head-logo { width: 26mm; }
+  .ps-head-text { flex: 1; }
+  .ps-head-text h1 { font-size: 17pt; }
+  .ps-head-text p { margin: 1mm 0 0; color: #5d686f; font-size: 8pt; }
+  .ps-head-meta { display: flex; gap: 5mm; text-align: right; }
+  .ps-head-meta span { display: block; color: #6b7780; font-size: 6.4pt; letter-spacing: .1em; text-transform: uppercase; }
+  .ps-head-meta strong { font-size: 9pt; }
+
+  .ps-section-title { font-size: 13pt; margin-bottom: 3mm; }
+  .ps-emp { margin-bottom: 7mm; }
+  .ps-break { break-before: page; }
+  .ps-emp-head { display: grid; gap: 4mm; align-items: center; margin-bottom: 3mm; break-after: avoid; break-inside: avoid; }
+  .ps-emp-photo { width: 100%; object-fit: cover; border-radius: 2mm; }
+  .ps-emp-info h2 { font-size: 14pt; margin-top: .8mm; }
+  .ps-emp-city { color: var(--brand-dark); font-size: 7pt; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+  .ps-emp-tag { margin: 1.2mm 0 0; color: #5d686f; font-size: 8pt; }
+  .ps-emp-note { margin: 1.5mm 0 0; padding: 1.5mm 2mm; background: #eef4f5; border-left: 1.2pt solid var(--brand); font-size: 7.4pt; }
+  .ps-emp-numbers { display: grid; gap: 2mm; text-align: right; }
+  .ps-emp-numbers span { display: block; color: #6b7780; font-size: 6.2pt; letter-spacing: .09em; text-transform: uppercase; }
+  .ps-emp-numbers strong { font-size: 9.5pt; }
+
+  .ps-emp-head-compacta { grid-template-columns: 34mm 1fr 30mm; }
+  .ps-emp-head-compacta .ps-emp-photo { height: 24mm; }
+  .ps-emp-head-compacta h2 { font-size: 12.5pt; }
+  .ps-emp-head-media { grid-template-columns: 58mm 1fr 30mm; }
+  .ps-emp-head-media .ps-emp-photo { height: 40mm; }
+  .ps-emp-head-grande { grid-template-columns: 1fr; text-align: left; }
+  .ps-emp-head-grande .ps-emp-photo { height: 58mm; }
+  .ps-emp-head-grande .ps-emp-numbers { grid-template-columns: repeat(3, 1fr); text-align: left; padding-top: 1mm; border-top: .5pt solid #d5dce0; }
+
+  .ps-table { width: 100%; border-collapse: collapse; break-inside: auto; }
+  .ps-table thead { display: table-header-group; }
+  .ps-table th {
+    padding: 1.6mm 2mm;
+    background: var(--dark);
+    color: #fff;
+    font-size: 6.4pt;
+    font-weight: 700;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    text-align: left;
+  }
+  .ps-table td { padding: 1.5mm 2mm; border-bottom: .3pt solid #dde3e6; font-size: 8pt; vertical-align: middle; }
+  .ps-table tr { break-inside: avoid; }
+  .ps-table tbody tr:nth-child(even) td { background: #f6f8f9; }
+  .ps-table .ps-group td { background: #e9f1f2 !important; color: #10525c; font-size: 7.6pt; border-bottom: .5pt solid #b9cdd1; }
+  .ps-unit strong { display: block; font-size: 8.4pt; }
+  .ps-unit span { display: block; color: #6b7780; font-size: 6.8pt; }
+  .ps-price { text-align: right; font-weight: 700; white-space: nowrap; }
+  .ps-status { font-size: 6.8pt; font-weight: 700; }
+  .ps-status-disponivel { color: var(--success); }
+  .ps-status-alugado { color: var(--warning); }
+  .ps-index { margin-bottom: 6mm; }
+  .ps-index td { font-size: 8.4pt; }
+
+  .ps-sheet-table td { padding: 1.2mm 2mm; font-size: 7.8pt; }
+  .ps-sheet-name { display: none; }
+  .ps-sheet-emp td { background: #eef4f5 !important; padding: 2mm; border-bottom: .8pt solid var(--brand); break-after: avoid; }
+  .ps-sheet-emp img { display: inline-block; width: 18mm; height: 12mm; object-fit: cover; border-radius: 1mm; vertical-align: middle; margin-right: 3mm; }
+  .ps-sheet-emp strong { font-size: 10pt; vertical-align: middle; }
+  .ps-sheet-emp span { color: #5d686f; font-size: 7.4pt; vertical-align: middle; margin-left: 3mm; }
+
+  .ps-cover { position: relative; height: 268mm; break-after: page; color: #fff; }
+  .ps-cover-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .ps-cover-text { position: absolute; inset: 0; padding: 22mm 16mm; background: linear-gradient(180deg, rgba(15,22,28,.62) 0%, rgba(15,22,28,.88) 62%); display: flex; flex-direction: column; justify-content: flex-end; }
+  .ps-cover-logo { width: 40mm; margin-bottom: auto; }
+  .ps-cover-eyebrow { margin: 0 0 3mm; font-size: 7.5pt; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: #9fd7df; }
+  .ps-cover h1 { font-size: 30pt; line-height: 1.05; max-width: 120mm; }
+  .ps-cover-sub { margin: 4mm 0 8mm; font-size: 9.5pt; color: #dfe7ea; }
+  .ps-cover-meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5mm; padding-top: 5mm; border-top: .6pt solid rgba(255,255,255,.35); }
+  .ps-cover-meta span { display: block; color: #9fd7df; font-size: 6.6pt; letter-spacing: .12em; text-transform: uppercase; }
+  .ps-cover-meta strong { font-size: 10.5pt; }
+}
+
 /* Ajuste final da marca no cabeçalho */
 .brand-button img { height: 43px; max-width: 190px; object-fit: contain; }
 @media (max-width: 760px) { .brand-button img { height: 31px; max-width: 132px; } }

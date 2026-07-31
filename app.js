@@ -1,4 +1,4 @@
-/* Construtora Senger — Portfólio Comercial v68 */
+/* Construtora Senger — Portfólio Comercial v69 */
 (() => {
   "use strict";
 
@@ -1034,7 +1034,286 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
     return Promise.race([ready, new Promise((resolve) => setTimeout(resolve, timeout))]);
   }
 
+  /* ---------- Catálogo para impressão (lista de preços dos corretores) ---------- */
+
+  const PRINT_MODELS = ["compacto", "ficha", "planilha", "apresentacao"];
+
+  function currentPrintModel() {
+    const param = new URLSearchParams(location.search).get("modelo");
+    return PRINT_MODELS[Number(param) - 1] || PRINT_MODELS[0];
+  }
+
+  function printEnterprises() {
+    return EMPREENDIMENTOS.filter((emp) => marketableItems(emp).length > 0);
+  }
+
+  function printTableMeta() {
+    const cities = unique(EMPREENDIMENTOS.flatMap((emp) => emp.cidade.split(" · ")));
+    return {
+      month: META.mesTabela || "—",
+      incc: META.incc ? `${META.incc.valor} (${META.incc.variacao})` : "—",
+      cities: cities.map((city) => city.replace("/RS", "")).join(" · "),
+      total: EMPREENDIMENTOS.flatMap(marketableItems).length,
+    };
+  }
+
+  function printGroupsFor(emp) {
+    const groups = [];
+    (emp.grupos || []).forEach((group, groupIndex) => {
+      const units = (group.unidades || [])
+        .map((_, unitIndex) => itemMap.get(`${emp.id}:unit:${groupIndex}:${unitIndex}`))
+        .filter((item) => item && isMarketable(item.status));
+      if (units.length) {
+        groups.push({
+          titulo: group.tipo || "",
+          nota: [group.area, group.garagem, group.obs].filter(Boolean).join(" · "),
+          items: units,
+        });
+      }
+    });
+    if (!groups.length) {
+      const items = marketableItems(emp);
+      if (items.length) groups.push({ titulo: "", nota: "", items });
+    }
+    return groups;
+  }
+
+  function printColumnsFor(emp) {
+    if ((emp.terrenos || []).length) return ["Lote", "Área", "Rua", "Situação", "Valor"];
+    if ((emp.outros || []).length) return ["Imóvel", "Área", "Local", "Situação", "Valor"];
+    return ["Unidade", "Área", "Garagem", "Situação", "Valor"];
+  }
+
+  function printCells(item) {
+    if (item.kind === "land") return { extra: item.rua || "—", note: item.tags?.join(" · ") || "" };
+    if (item.kind === "other") return { extra: item.local || "—", note: item.description || "" };
+    return { extra: item.garage || "—", note: item.tags?.length ? item.tags.join(" · ") : "" };
+  }
+
+  function printRowHtml(item) {
+    const cells = printCells(item);
+    return `
+      <tr>
+        <td class="ps-unit"><strong>${escapeHtml(itemLabel(item))}</strong>${cells.note ? `<span>${escapeHtml(cells.note)}</span>` : ""}</td>
+        <td>${escapeHtml(item.area || "—")}</td>
+        <td>${escapeHtml(cells.extra)}</td>
+        <td><span class="ps-status ps-status-${item.status}">${escapeHtml(STATUS_LABELS[item.status] || item.status)}</span></td>
+        <td class="ps-price">${item.pricePrefix ? `${escapeHtml(item.pricePrefix)} ` : ""}${money(item.price)}</td>
+      </tr>
+    `;
+  }
+
+  function printTableHtml(emp) {
+    const columns = printColumnsFor(emp);
+    const groups = printGroupsFor(emp);
+    return `
+      <table class="ps-table">
+        <thead><tr>${columns.map((column) => `<th>${escapeHtml(column)}</th>`).join("")}</tr></thead>
+        ${groups.map((group) => `
+          <tbody>
+            ${group.titulo ? `<tr class="ps-group"><td colspan="5"><strong>${escapeHtml(group.titulo)}</strong>${group.nota ? ` — ${escapeHtml(group.nota)}` : ""}</td></tr>` : ""}
+            ${group.items.map(printRowHtml).join("")}
+          </tbody>
+        `).join("")}
+      </table>
+    `;
+  }
+
+  function printEnterpriseHead(emp, variant) {
+    const minimum = minPrice(emp);
+    const active = marketableItems(emp).length;
+    return `
+      <div class="ps-emp-head ps-emp-head-${variant}">
+        <img class="ps-emp-photo" src="${escapeHtml(assetUrl(cardImage(emp)))}" alt="${escapeHtml(emp.nome)}">
+        <div class="ps-emp-info">
+          <span class="ps-emp-city">${escapeHtml(emp.cidade)} · ${escapeHtml(CATEGORY_LABELS[emp.categoria] || emp.categoria)}</span>
+          <h2>${escapeHtml(emp.nome)}</h2>
+          <p class="ps-emp-tag">${escapeHtml(emp.tagline || emp.entrega || "")}</p>
+          ${emp.condicoes ? `<p class="ps-emp-note"><strong>Condições:</strong> ${escapeHtml(emp.condicoes)}</p>` : ""}
+        </div>
+        <div class="ps-emp-numbers">
+          <div><span>Etapa</span><strong>${escapeHtml(emp.statusLabel || emp.entrega || "—")}</strong></div>
+          <div><span>Opções</span><strong>${active}</strong></div>
+          <div><span>A partir de</span><strong>${minimum ? money(minimum) : "Sob consulta"}</strong></div>
+        </div>
+      </div>
+    `;
+  }
+
+  function printHeaderHtml(meta, title, subtitle) {
+    return `
+      <header class="ps-head">
+        <img class="ps-head-logo" src="${escapeHtml(assetUrl("assets/senger-logo.png"))}" alt="Construtora Senger">
+        <div class="ps-head-text">
+          <h1>${escapeHtml(title)}</h1>
+          <p>${escapeHtml(subtitle)}</p>
+        </div>
+        <div class="ps-head-meta">
+          <div><span>Tabela</span><strong>${escapeHtml(meta.month)}</strong></div>
+          <div><span>INCC</span><strong>${escapeHtml(meta.incc)}</strong></div>
+        </div>
+      </header>
+    `;
+  }
+
+  function printIndexHtml(list) {
+    return `
+      <table class="ps-table ps-index">
+        <thead><tr><th>Empreendimento</th><th>Cidade</th><th>Etapa</th><th>Opções</th><th>A partir de</th></tr></thead>
+        <tbody>
+          ${list.map((emp) => {
+            const minimum = minPrice(emp);
+            return `
+              <tr>
+                <td class="ps-unit"><strong>${escapeHtml(emp.nome)}</strong></td>
+                <td>${escapeHtml(emp.cidade)}</td>
+                <td>${escapeHtml(emp.statusLabel || emp.entrega || "—")}</td>
+                <td>${marketableItems(emp).length}</td>
+                <td class="ps-price">${minimum ? money(minimum) : "Sob consulta"}</td>
+              </tr>
+            `;
+          }).join("")}
+        </tbody>
+      </table>
+    `;
+  }
+
+  function printSheetHtml(model) {
+    const list = printEnterprises();
+    const meta = printTableMeta();
+    const subtitle = `${list.length} empreendimentos · ${meta.total} opções comercializáveis · ${meta.cities}`;
+    const legal = `Tabela ${meta.month} · INCC ${meta.incc}. Valores e disponibilidade sujeitos a alteração sem aviso prévio. Imagens meramente ilustrativas. Uso interno dos corretores.`;
+    let body = "";
+
+    if (model === "planilha") {
+      body = `
+        ${printHeaderHtml(meta, "Lista de preços", subtitle)}
+        <table class="ps-table ps-sheet-table">
+          <thead><tr><th>Empreendimento</th><th>Unidade</th><th>Área</th><th>Garagem / Local</th><th>Situação</th><th>Valor</th></tr></thead>
+          ${list.map((emp) => `
+            <tbody>
+              <tr class="ps-sheet-emp">
+                <td colspan="6">
+                  <img src="${escapeHtml(assetUrl(cardImage(emp)))}" alt="${escapeHtml(emp.nome)}">
+                  <strong>${escapeHtml(emp.nome)}</strong>
+                  <span>${escapeHtml(emp.cidade)} · ${escapeHtml(emp.statusLabel || emp.entrega || "")} · ${marketableItems(emp).length} opções</span>
+                </td>
+              </tr>
+              ${printGroupsFor(emp).map((group) => group.items.map((item) => {
+                const cells = printCells(item);
+                return `
+                  <tr>
+                    <td class="ps-sheet-name">${escapeHtml(emp.nome)}</td>
+                    <td class="ps-unit"><strong>${escapeHtml(itemLabel(item))}</strong>${group.titulo ? `<span>${escapeHtml(group.titulo)}</span>` : ""}</td>
+                    <td>${escapeHtml(item.area || "—")}</td>
+                    <td>${escapeHtml(cells.extra)}</td>
+                    <td><span class="ps-status ps-status-${item.status}">${escapeHtml(STATUS_LABELS[item.status] || item.status)}</span></td>
+                    <td class="ps-price">${item.pricePrefix ? `${escapeHtml(item.pricePrefix)} ` : ""}${money(item.price)}</td>
+                  </tr>
+                `;
+              }).join("")).join("")}
+            </tbody>
+          `).join("")}
+        </table>
+      `;
+    } else if (model === "apresentacao") {
+      const cover = list[0];
+      body = `
+        <section class="ps-cover">
+          <img class="ps-cover-photo" src="${escapeHtml(assetUrl(cover ? cardImage(cover) : "assets/fachada.jpg"))}" alt="">
+          <div class="ps-cover-text">
+            <img class="ps-cover-logo" src="${escapeHtml(assetUrl("assets/senger-logo-branco.png"))}" alt="Construtora Senger">
+            <p class="ps-cover-eyebrow">Portfólio comercial oficial</p>
+            <h1>Lista de preços e disponibilidade</h1>
+            <p class="ps-cover-sub">${escapeHtml(subtitle)}</p>
+            <div class="ps-cover-meta">
+              <div><span>Tabela comercial</span><strong>${escapeHtml(meta.month)}</strong></div>
+              <div><span>INCC informado</span><strong>${escapeHtml(meta.incc)}</strong></div>
+              <div><span>Abrangência</span><strong>${escapeHtml(meta.cities)}</strong></div>
+            </div>
+          </div>
+        </section>
+        <section class="ps-section ps-break">
+          <h2 class="ps-section-title">Índice do portfólio</h2>
+          ${printIndexHtml(list)}
+        </section>
+        ${list.map((emp) => `
+          <section class="ps-emp ps-break">
+            ${printEnterpriseHead(emp, "media")}
+            ${printTableHtml(emp)}
+          </section>
+        `).join("")}
+      `;
+    } else if (model === "ficha") {
+      body = `
+        ${printHeaderHtml(meta, "Lista de preços", subtitle)}
+        ${printIndexHtml(list)}
+        ${list.map((emp) => `
+          <section class="ps-emp ps-break">
+            ${printEnterpriseHead(emp, "grande")}
+            ${printTableHtml(emp)}
+          </section>
+        `).join("")}
+      `;
+    } else {
+      body = `
+        ${printHeaderHtml(meta, "Lista de preços", subtitle)}
+        ${list.map((emp) => `
+          <section class="ps-emp">
+            ${printEnterpriseHead(emp, "compacta")}
+            ${printTableHtml(emp)}
+          </section>
+        `).join("")}
+      `;
+    }
+
+    return `<div class="ps-body ps-model-${model}">${body}<p class="ps-legal">${escapeHtml(legal)}</p></div>`;
+  }
+
+  function buildPrintSheet(model) {
+    let sheet = document.getElementById("print-sheet");
+    if (!sheet) {
+      sheet = document.createElement("div");
+      sheet.id = "print-sheet";
+      sheet.setAttribute("aria-hidden", "true");
+      document.body.appendChild(sheet);
+    }
+    sheet.innerHTML = printSheetHtml(model);
+    return sheet;
+  }
+
+  function clearPrintSheet() {
+    document.body.classList.remove("printing-catalog");
+    const sheet = document.getElementById("print-sheet");
+    if (sheet) sheet.innerHTML = "";
+  }
+
   let printing = false;
+
+  async function printCatalog(event) {
+    if (printing) return;
+    printing = true;
+    const button = event?.currentTarget;
+    const label = button ? button.textContent : "";
+    if (button) {
+      button.disabled = true;
+      button.textContent = "Preparando…";
+    }
+    try {
+      showToast("Montando a lista de preços com todos os empreendimentos…");
+      buildPrintSheet(currentPrintModel());
+      document.body.classList.add("printing-catalog");
+      await loadAllImages();
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      window.print();
+    } finally {
+      if (button) {
+        button.disabled = false;
+        button.textContent = label;
+      }
+      printing = false;
+    }
+  }
 
   async function printDocument(event) {
     if (printing) return;
@@ -1071,7 +1350,8 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
 
   function bindGlobalEvents() {
     document.getElementById("brand-home").addEventListener("click", navigateHome);
-    document.getElementById("print-catalog").addEventListener("click", printDocument);
+    document.getElementById("print-catalog").addEventListener("click", printCatalog);
+    window.addEventListener("afterprint", clearPrintSheet);
     document.getElementById("selection-fab").addEventListener("click", openDrawer);
     document.querySelectorAll("[data-close-drawer]").forEach((button) => button.addEventListener("click", closeDrawer));
     document.getElementById("clear-selection").addEventListener("click", () => {
