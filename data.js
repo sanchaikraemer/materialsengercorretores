@@ -482,11 +482,11 @@ const EMPREENDIMENTOS = [
     hero: "assets/prime-hero.jpg",
     destaque: true,
     tagline: "Prime, no coração da cidade — qualidade de vida todos os dias.",
-    localizacao: "R. Venâncio Aires, 121 — Centro, Carazinho/RS. Edifício de esquina, ao lado de mercado, escolas e farmácia.",
+    localizacao: "R. Venâncio Aires, 121 — Centro, Carazinho/RS.",
     diferenciais: [
-      { titulo: "Localização", desc: "Edifício de esquina com posição solar privilegiada, ao lado de mercado, escolas e farmácia." },
-      { titulo: "Alto padrão", desc: "Amplos apartamentos com living integrado, churrasqueira a carvão e vista para a praça central." },
-      { titulo: "Lazer e convivência", desc: "Salão de festas com terraço e hall de entrada com pé direito alto." },
+      { titulo: "Localização", desc: "Edifício de esquina com posição solar privilegiada, ao lado de mercado, escolas, farmácia e tudo mais necessário no dia a dia." },
+      { titulo: "Alto padrão", desc: "Living integrado com churrasqueira a carvão e vista para a praça central." },
+      { titulo: "Lazer e convivência", desc: "Salão de festas com terraço e hall de entrada com pé direito duplo." },
       { titulo: "Conforto", desc: "Acabamento refinado, aquecimento a gás, 2 elevadores, persianas elétricas e fechadura biométrica." },
     ],
     galeria: [
