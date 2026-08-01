@@ -38,11 +38,11 @@ const EMPREENDIMENTOS = [
     tagline: "Alto padrão Renaissance — 2 e 3 suítes, Casa Suspensa, pavimentos superiores e Duplex exclusivo.",
     localizacao: "R. Venâncio Aires — Centro, Carazinho/RS.",
     diferenciais: [
-      { titulo: "Lazer aquático", desc: "Piscinas interna e externa aquecidas e sauna." },
-      { titulo: "Esporte", desc: "Quadra de areia para esportes." },
-      { titulo: "Fitness e bem-estar", desc: "Área fitness, pilates e Wellness." },
-      { titulo: "Convivência", desc: "Salão de festas, lounges com pergolados, terraço/área de lazer e playground." },
-      { titulo: "Entrada", desc: "Hall de entrada imponente com pé direito duplo." },
+      { titulo: "Esporte", desc: "Quadra de areia para beach tennis, futevôlei e vôlei de areia." },
+      { titulo: "Lazer aquático", desc: "Duas piscinas: aquecida na área externa, com clima de resort, e térmica interna coberta, para hidroginástica, fisioterapia e bem-estar." },
+      { titulo: "Fitness e bem-estar", desc: "Área fitness, espaço wellness com área para pilates e sauna." },
+      { titulo: "Convivência", desc: "Salão de festas, estar do fogo e playground." },
+      { titulo: "Entrada", desc: "Hall de entrada luxuoso, com pé-direito duplo." },
       // naMensagem: false -> outras unidades do predio, nao acompanham o imovel ofertado.
       { titulo: "Tipologias exclusivas", desc: "Casa Suspensa, pavimentos superiores de 3 suítes e Duplex exclusivo de 4 suítes.", naMensagem: false },
       { titulo: "Térreo comercial", desc: "Salas comerciais no pavimento térreo.", naMensagem: false },
@@ -98,7 +98,7 @@ const EMPREENDIMENTOS = [
         area: "243 m² global · 159 m² privativo",
         garagem: "Box opcional (consultar)",
         planta: "ren-planta-3s-superior",
-        obs: "Valores sem box de garagem.",
+        obs: "Pé-direito livre de 3 metros. Valores sem box de garagem.",
         unidades: [
           { apto: "1401", preco: 1450000, status: "disponivel" },
           { apto: "1402", preco: 1450000, status: "disponivel" },
