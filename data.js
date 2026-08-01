@@ -39,13 +39,13 @@ const EMPREENDIMENTOS = [
     localizacao: "R. Venâncio Aires — Centro, Carazinho/RS.",
     diferenciais: [
       { titulo: "Wellness Renaissance Experience", desc: "Um pavimento inteiro dedicado ao lazer, à saúde e à convivência." },
-      { titulo: "Esporte", desc: "Quadra de areia para beach tennis, futevôlei e vôlei de areia." },
-      { titulo: "Lazer aquático", desc: "Duas piscinas: aquecida na área externa, com clima de resort, e térmica interna coberta, para hidroginástica, fisioterapia e bem-estar." },
+      { titulo: "Esporte", desc: "Quadra de areia para esportes." },
+      { titulo: "Lazer aquático", desc: "Duas piscinas aquecidas, uma na área externa e outra interna." },
       { titulo: "Fitness e bem-estar", desc: "Área fitness, espaço wellness com área para pilates e sauna." },
-      { titulo: "Espaço Care", desc: "Ambientes dedicados ao atendimento de profissionais da área da saúde e bem-estar." },
       { titulo: "Convivência", desc: "Salão de festas, estar do fogo e playground." },
       { titulo: "Entrada", desc: "Hall de entrada luxuoso, com pé-direito duplo." },
-      // naMensagem: false -> outras unidades do predio, nao acompanham o imovel ofertado.
+      // naMensagem: false -> fica na ficha do empreendimento, fora da mensagem da unidade.
+      { titulo: "Espaço Care", desc: "Ambientes dedicados ao atendimento de profissionais da área da saúde e bem-estar.", naMensagem: false },
       { titulo: "Tipologias exclusivas", desc: "Casa Suspensa, pavimentos superiores de 3 suítes e Duplex exclusivo de 4 suítes.", naMensagem: false },
       { titulo: "Térreo comercial", desc: "Salas comerciais no pavimento térreo.", naMensagem: false },
     ],
@@ -62,7 +62,7 @@ const EMPREENDIMENTOS = [
         tipo: "Casa Suspensa (3 suítes)",
         area: "306 a 385 m² global · 208 a 280 m² privativo",
         garagem: "Box opcional (consultar)",
-        obs: "Plantas exclusivas — pavimentos 4 e 13. Valores sem box de garagem.",
+        obs: "Plantas exclusivas — pavimentos 4 e 13. Valor sem box de garagem.",
         unidades: [
           { apto: "401", preco: 1490000, status: "disponivel", areaUnit: "358 m² global · 258 m² privativo", tags: ["Terraço"] },
           { apto: "402", preco: 1490000, status: "disponivel", areaUnit: "385 m² global · 280 m² privativo", tags: ["Terraço"] },
@@ -75,7 +75,7 @@ const EMPREENDIMENTOS = [
         area: "180 m² global · 117 m² privativo",
         garagem: "Box opcional (consultar)",
         planta: "ren-planta-3s-frente-dir",
-        obs: "Valores sem box de garagem.",
+        obs: "Valor sem box de garagem.",
         unidades: [
           { apto: "501", preco: 1080000, status: "disponivel", areaUnit: "179 m² global · 117 m² privativo" },
           { apto: "502", preco: 1080000, status: "disponivel", areaUnit: "179 m² global · 117 m² privativo" },
@@ -100,7 +100,7 @@ const EMPREENDIMENTOS = [
         area: "243 m² global · 159 m² privativo",
         garagem: "Box opcional (consultar)",
         planta: "ren-planta-3s-superior",
-        obs: "Pé-direito livre de 3 metros. Valores sem box de garagem.",
+        obs: "Pé-direito livre de 3 metros. Valor sem box de garagem.",
         unidades: [
           { apto: "1401", preco: 1450000, status: "disponivel" },
           { apto: "1402", preco: 1450000, status: "disponivel" },
@@ -117,7 +117,7 @@ const EMPREENDIMENTOS = [
         area: "130 m² global · 86 m² privativo",
         garagem: "Box opcional (consultar)",
         planta: "ren-planta-2suites",
-        obs: "Valores sem box de garagem.",
+        obs: "Valor sem box de garagem.",
         unidades: [
           { apto: "503", preco: 730000, status: "disponivel" },
           { apto: "603", preco: 730000, status: "disponivel" },
@@ -148,7 +148,7 @@ const EMPREENDIMENTOS = [
         tipo: "Salas comerciais — térreo",
         area: "175 m² global · 114 m² privativo",
         garagem: "",
-        obs: "Pavimento térreo. Valores sem box de garagem.",
+        obs: "Pavimento térreo. Valor sem box de garagem.",
         unidades: [
           { apto: "Sala 04", preco: 1140000, status: "disponivel", areaUnit: "175 m² global · 114 m² privativo" },
         ],

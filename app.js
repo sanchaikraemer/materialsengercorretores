@@ -785,8 +785,9 @@
     itemBullets(item).forEach((b) => lines.push(`✅ ${b}`));
     lines.push("");
 
-    if (includePrice) lines.push(`💰 *${money(item.price)}*`, "");
-    else lines.push("💰 Valor sob consulta.", "");
+    // Observacoes ficam coladas no valor: elas explicam o que o preco inclui.
+    if (includePrice) lines.push(`💰 *${money(item.price)}*`);
+    else lines.push("💰 Valor sob consulta.");
 
     if (emp.condicoes) lines.push(semPonto(emp.condicoes) + ".");
     if (item.notes) lines.push(semPonto(item.notes) + ".");
