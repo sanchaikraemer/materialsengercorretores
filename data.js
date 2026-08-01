@@ -38,9 +38,11 @@ const EMPREENDIMENTOS = [
     tagline: "Alto padrão Renaissance — 2 e 3 suítes, Casa Suspensa, pavimentos superiores e Duplex exclusivo.",
     localizacao: "R. Venâncio Aires — Centro, Carazinho/RS.",
     diferenciais: [
+      { titulo: "Wellness Renaissance Experience", desc: "Um pavimento inteiro dedicado ao lazer, à saúde e à convivência." },
       { titulo: "Esporte", desc: "Quadra de areia para beach tennis, futevôlei e vôlei de areia." },
       { titulo: "Lazer aquático", desc: "Duas piscinas: aquecida na área externa, com clima de resort, e térmica interna coberta, para hidroginástica, fisioterapia e bem-estar." },
       { titulo: "Fitness e bem-estar", desc: "Área fitness, espaço wellness com área para pilates e sauna." },
+      { titulo: "Espaço Care", desc: "Ambientes dedicados ao atendimento de profissionais da área da saúde e bem-estar." },
       { titulo: "Convivência", desc: "Salão de festas, estar do fogo e playground." },
       { titulo: "Entrada", desc: "Hall de entrada luxuoso, com pé-direito duplo." },
       // naMensagem: false -> outras unidades do predio, nao acompanham o imovel ofertado.
