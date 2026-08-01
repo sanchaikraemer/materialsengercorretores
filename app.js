@@ -746,10 +746,9 @@
   function itemBullets(item) {
     const bullets = [];
     const etiquetas = (item.tags || []).map((t) => t.toLowerCase());
-    const feminino = item.kind === "unit" && item.emp.categoria === "comercial";
-    const cond = item.status !== "disponivel"
-      ? (STATUS_LABELS[item.status] || item.status).toLowerCase()
-      : (item.emp.id === "outros" || item.kind === "land" ? "" : (feminino ? "nova" : "novo"));
+    // A linha do prazo de entrega ja diz se e novo, pronto ou pre-lancamento:
+    // aqui so entram os status que mudam a oferta (reservado, vendido, alugado).
+    const cond = item.status !== "disponivel" ? (STATUS_LABELS[item.status] || item.status).toLowerCase() : "";
     const primeiro = [cond, ...etiquetas].filter(Boolean).join(" e ");
     if (primeiro) bullets.push(primeiro.replace(/^./, (c) => c.toUpperCase()));
 
@@ -759,7 +758,8 @@
     else if (tipo) bullets.push(tipo);
     else if (privativa) bullets.push(privativa);
 
-    if (item.garage) bullets.push(item.garage);
+    // Box opcional nao acompanha a unidade; o valor sem box ja e informado no rodape.
+    if (item.garage && !/opcional|consultar/i.test(item.garage)) bullets.push(item.garage);
     const andar = andarDe(item.code);
     if (andar) bullets.push(`${andar}º andar`);
     if (item.rua) bullets.push(`Rua ${item.rua}`);
