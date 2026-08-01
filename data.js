@@ -39,7 +39,7 @@ const EMPREENDIMENTOS = [
     condicoes: "Valores das unidades sem box de garagem — consulte opções de box disponíveis.",
     localizacao: "R. Venâncio Aires — Centro, Carazinho/RS.",
     diferenciais: [
-      { titulo: "Lazer aquático", desc: "Piscina com solário, piscina térmica/descanso e sauna." },
+      { titulo: "Lazer aquático", desc: "Piscinas interna e externa aquecidas e sauna." },
       { titulo: "Esporte", desc: "Quadra de beach tennis." },
       { titulo: "Fitness e bem-estar", desc: "Academia, studio de pilates, fitness center e SPA." },
       { titulo: "Convivência", desc: "Salão de festas, lounges com pergolados, terraço/área de lazer e playground." },
