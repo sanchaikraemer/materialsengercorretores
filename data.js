@@ -30,7 +30,7 @@ const EMPREENDIMENTOS = [
     categoria: "residencial",
     status: "obra",
     statusLabel: "Pré-lançamento",
-    entrega: "Pré-lançamento",
+    entrega: "Pré-lançamento (preços lançamento com entrega em 5 anos)",
     ri: [],
     hero: "assets/ren-hero.jpg",
     logo: "assets/ren-logo.png",
