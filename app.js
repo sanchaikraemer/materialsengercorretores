@@ -712,7 +712,7 @@
     } else {
       lines.push(`${items.length} ${items.length === 1 ? "opção comercializável" : "opções comercializáveis"}. Consulte valores e condições.`);
     }
-    if (emp.entrega) lines.push(`Etapa: ${emp.entrega}`);
+    if (emp.entrega) lines.push(`Entrega: ${semPonto(emp.entrega)}`);
     lines.push("", `Tabela ${META.mesTabela || ""}. Valores e disponibilidade sujeitos a alteração.`);
     return lines.filter((line, index, array) => line !== "" || array[index - 1] !== "").join("\n");
   }
@@ -766,13 +766,21 @@
     if (item.local && item.emp.id !== "outros") bullets.push(item.local);
     if (item.description) bullets.push(semPonto(item.description));
 
-    (item.emp.diferenciais || []).forEach((d) => bullets.push(semPonto(d.desc)));
+    // Diferenciais marcados com naMensagem: false descrevem outras unidades do predio.
+    (item.emp.diferenciais || [])
+      .filter((d) => d.naMensagem !== false)
+      .forEach((d) => bullets.push(semPonto(d.desc)));
     return bullets;
   }
 
   function itemMessage(item, includePrice) {
     const emp = item.emp;
-    const lines = [titulo(item), semPonto(ondeFica(item)) + ".", ""];
+    const lines = [titulo(item), semPonto(ondeFica(item)) + "."];
+
+    // Prazo de entrega logo no topo: data prevista, "Pronto para morar" ou "Pre-lancamento".
+    const prazo = emp.id !== "outros" ? semPonto(emp.entrega || emp.statusLabel || "") : "";
+    if (prazo) lines.push(`🗓️ ${prazo}`);
+    lines.push("");
 
     itemBullets(item).forEach((b) => lines.push(`✅ ${b}`));
     lines.push("");
@@ -780,7 +788,6 @@
     if (includePrice) lines.push(`💰 *${money(item.price)}*`, "");
     else lines.push("💰 Valor sob consulta.", "");
 
-    if (emp.entrega && emp.id !== "outros") lines.push(`${semPonto(emp.entrega)} 🏦`);
     if (emp.condicoes) lines.push(semPonto(emp.condicoes) + ".");
     if (item.notes) lines.push(semPonto(item.notes) + ".");
     lines.push("", `Tabela ${META.mesTabela || ""}. Valores e disponibilidade sujeitos a alteração.`);
@@ -988,6 +995,8 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
       if (item.area) lines.push(`Área: ${item.area}`);
       if (item.garage) lines.push(`Garagem: ${item.garage}`);
       if (item.rua) lines.push(`Localização: ${item.rua}`);
+      const prazo = item.emp.id !== "outros" ? semPonto(item.emp.entrega || item.emp.statusLabel || "") : "";
+      if (prazo) lines.push(`Entrega: ${prazo}`);
       lines.push(includePrices ? `Valor: *${money(item.price)}*` : "Valor: consulte a equipe comercial");
       lines.push("");
     });

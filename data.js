@@ -37,14 +37,15 @@ const EMPREENDIMENTOS = [
     destaque: true,
     tagline: "Alto padrão Renaissance — 2 e 3 suítes, Casa Suspensa, pavimentos superiores e Duplex exclusivo.",
     condicoes: "Valores das unidades sem box de garagem — consulte opções de box disponíveis.",
-    localizacao: "R. Venâncio Aires, lado ímpar — Centro, Carazinho/RS. Edifício multifamiliar residencial e comercial.",
+    localizacao: "R. Venâncio Aires — Centro, Carazinho/RS.",
     diferenciais: [
       { titulo: "Lazer aquático", desc: "Piscina com solário, piscina térmica/descanso e sauna." },
       { titulo: "Esporte", desc: "Quadra de beach tennis." },
       { titulo: "Fitness e bem-estar", desc: "Academia, studio de pilates, fitness center e SPA." },
       { titulo: "Convivência", desc: "Salão de festas, lounges com pergolados, terraço/área de lazer e playground." },
-      { titulo: "Tipologias exclusivas", desc: "Casa Suspensa, pavimentos superiores de 3 suítes e Duplex exclusivo de 4 suítes." },
-      { titulo: "Térreo comercial", desc: "Salas comerciais no pavimento térreo." },
+      // naMensagem: false -> outras unidades do predio, nao acompanham o imovel ofertado.
+      { titulo: "Tipologias exclusivas", desc: "Casa Suspensa, pavimentos superiores de 3 suítes e Duplex exclusivo de 4 suítes.", naMensagem: false },
+      { titulo: "Térreo comercial", desc: "Salas comerciais no pavimento térreo.", naMensagem: false },
     ],
     galeria: [
       { src: "assets/ren-planta-3s-frente-dir.webp", legenda: "Planta humanizada — 3 suítes frente (direita)" },
