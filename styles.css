@@ -233,7 +233,7 @@ img { max-width: 100%; display: block; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
 .hero-stats {
   display: grid;
-  grid-template-columns: repeat(4, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   max-width: 870px;
   margin-top: 38px;
   border-top: 1px solid rgba(255,255,255,.22);
@@ -582,7 +582,7 @@ img { max-width: 100%; display: block; }
   .hero-content { padding: 48px 0 28px; }
   .hero h1 { max-width: 100%; font-size: clamp(30px, 9vw, 43px); line-height: 1.08; }
   .hero-copy { margin-top: 16px; font-size: 14px; line-height: 1.5; }
-  .hero-stats { grid-template-columns: repeat(2, 1fr); margin-top: 36px; }
+  .hero-stats { grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); margin-top: 36px; }
   .hero-stat { padding-top: 17px; }
   .hero-stat strong { font-size: 23px; }
   .trust-grid { grid-template-columns: repeat(2, 1fr); }

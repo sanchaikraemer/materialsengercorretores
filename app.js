@@ -77,7 +77,6 @@
     .toLowerCase();
 
   const unique = (values) => [...new Set(values.filter(Boolean))];
-  const isAvailable = (status) => (status || "disponivel") === "disponivel";
   const isMarketable = (status) => !["vendido", "reservado"].includes(status || "disponivel");
   const safeUrl = (url) => /^https?:\/\//i.test(url || "") ? url : `https://${url}`;
 
@@ -173,10 +172,6 @@
     return enterpriseItems.get(emp.id) || [];
   }
 
-  function availableItems(emp) {
-    return itemsFor(emp).filter((item) => isAvailable(item.status));
-  }
-
   function marketableItems(emp) {
     return itemsFor(emp).filter((item) => isMarketable(item.status));
   }
@@ -215,7 +210,6 @@
 
   function renderMetadata() {
     const allItems = EMPREENDIMENTOS.flatMap(itemsFor);
-    const available = allItems.filter((item) => isAvailable(item.status));
     const marketable = allItems.filter((item) => isMarketable(item.status));
     const cities = unique(EMPREENDIMENTOS.flatMap((emp) => emp.cidade.split(" · ")));
     const categories = unique(EMPREENDIMENTOS.map((emp) => emp.categoria));
@@ -232,8 +226,7 @@
 
     const stats = [
       [EMPREENDIMENTOS.length, "empreendimentos"],
-      [available.length, "opções disponíveis"],
-      [marketable.length, "opções comercializáveis"],
+      [marketable.length, "opções à venda"],
       [categories.length, "categorias"],
     ];
     document.getElementById("hero-stats").innerHTML = stats.map(([value, label]) => `
