@@ -657,6 +657,25 @@ img { max-width: 100%; display: block; }
 /* Folha do PDF do portfólio: só existe na impressão. */
 .print-sheet { display: none; }
 
+/* Modo cliente (?cliente): pagina travada no empreendimento, sem navegacao
+   de volta ao portfolio nem controles internos da equipe. */
+.client-mode .detail-back,
+.client-mode #share-emp-prices,
+.client-mode #share-emp-no-prices,
+.client-mode #share-emp-link,
+.client-mode #print-detail,
+.client-mode .selection-fab,
+.client-mode .selection-drawer,
+.client-mode [data-share-item],
+.client-mode [data-select-item],
+.client-mode .unit-actions,
+.client-mode .mobile-unit-actions,
+.client-mode .header-summary,
+.client-mode .version-tag { display: none !important; }
+.client-mode .brand-button { pointer-events: none; }
+.client-mode #unidades .section-title-row p,
+.client-mode .inventory-toolbar { display: none !important; }
+
 @media print {
   @page { size: A4; margin: 12mm; }
 
@@ -672,6 +691,28 @@ img { max-width: 100%; display: block; }
   .ps-head h1 { margin: 1mm 0 .8mm; font-family: var(--font-display); font-size: 15pt; line-height: 1.1; color: #202a32; }
   .ps-meta { margin: 0; color: #55606a; font-size: 9pt; }
   .ps-contact { margin: .8mm 0 0; color: #77828a; font-size: 7pt; line-height: 1.35; }
+
+  /* Folha do empreendimento: fotos lado a lado, plantas grandes. */
+  .ps-address { margin: 0 0 3mm; color: #4a555e; font-size: 9pt; }
+  .ps-diffs { display: grid; grid-template-columns: 1fr 1fr; gap: 1.6mm 4mm; margin-bottom: 3mm; }
+  .ps-diff { break-inside: avoid; font-size: 8pt; line-height: 1.35; color: #4a555e; }
+  .ps-diff strong { color: #202a32; }
+  .ps-diff span { display: block; }
+  .ps-section { break-after: avoid; margin: 4mm 0 2mm; font-family: var(--font-display); font-size: 12pt; color: #202a32; border-bottom: .8pt solid #178fa0; padding-bottom: 1mm; }
+  .ps-group { margin-bottom: 3mm; }
+  .ps-group h3 { margin: 0; font-size: 9.5pt; color: #202a32; break-after: avoid; }
+  .ps-group-note { margin: .6mm 0 1mm; color: #77828a; font-size: 7.5pt; break-after: avoid; }
+  .ps-table thead { display: table-header-group; }
+  .ps-table tr { break-inside: avoid; }
+  .ps-table { width: 100%; border-collapse: collapse; font-size: 8pt; }
+  .ps-table th { text-align: left; padding: 1mm 1.6mm; color: #77828a; font-size: 6.8pt; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; border-bottom: .8pt solid #d7dcdf; }
+  .ps-table td { padding: 1.1mm 1.6mm; border-bottom: .6pt solid #e4e8ea; color: #202a32; }
+  .ps-photo { flex: 1; margin: 0; break-inside: avoid; }
+  .ps-photo img { width: 100%; height: 52mm; object-fit: cover; border-radius: 2mm; }
+  .ps-photo figcaption { margin-top: .8mm; color: #77828a; font-size: 7pt; }
+  .ps-plant { break-inside: avoid; margin: 0 0 4mm; }
+  .ps-plant img { width: 100%; max-height: 118mm; object-fit: contain; background: #fff; border: .8pt solid #e4e8ea; border-radius: 2mm; }
+  .ps-plant figcaption { margin-top: .8mm; color: #55606a; font-size: 8pt; }
 
   .ps-page { break-after: page; }
   .ps-page:last-child { break-after: auto; }

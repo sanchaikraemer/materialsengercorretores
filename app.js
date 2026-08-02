@@ -54,6 +54,11 @@
     picks: new Set(JSON.parse(storage.get("senger-picks", "[]"))),
   };
 
+  // Link enviado ao cliente (?cliente): a pagina fica travada no empreendimento
+  // aberto, sem voltar ao portfolio nem botoes internos da equipe.
+  const CLIENT_MODE = new URLSearchParams(location.search).has("cliente");
+  const clientLockHash = CLIENT_MODE ? location.hash : "";
+
   const itemMap = new Map();
   const enterpriseItems = new Map();
 
@@ -416,11 +421,16 @@
   }
 
   function navigateHome() {
+    if (CLIENT_MODE) return;
     history.pushState(null, "", `${location.pathname}${location.search}`);
     renderRoute();
   }
 
   function renderRoute() {
+    if (CLIENT_MODE && location.hash !== clientLockHash) {
+      location.hash = clientLockHash;
+      return;
+    }
     const match = location.hash.match(/^#emp-([\w-]+)/);
     const emp = match ? findEnterprise(match[1]) : null;
     if (emp) renderDetail(emp);
@@ -529,11 +539,12 @@
               <h1>${escapeHtml(emp.nome)}</h1>
               <p>${escapeHtml(emp.tagline || emp.entrega || "Consulte informações e disponibilidade.")}</p>
               <div class="detail-actions">
-                <button class="button button-primary" type="button" id="share-emp-prices">Compartilhar com preços</button>
-                <button class="button button-outline" type="button" id="share-emp-no-prices">Compartilhar sem preços</button>
+                <button class="button button-primary" type="button" id="share-emp-prices">WhatsApp com preços</button>
+                <button class="button button-outline" type="button" id="share-emp-no-prices">WhatsApp sem preços</button>
+                <button class="button button-outline" type="button" id="share-emp-link">Enviar link</button>
+                <button class="button button-outline" type="button" id="print-detail">Gerar PDF</button>
                 ${local.mapsUrl ? `<a class="button button-outline" href="${escapeHtml(local.mapsUrl)}" target="_blank" rel="noopener">Ver localização</a>` : ""}
                 ${emp.folder ? `<a class="button button-outline" href="${escapeHtml(assetUrl(emp.folder))}" target="_blank" rel="noopener">Baixar folder</a>` : ""}
-                <button class="button button-outline" type="button" id="print-detail">Gerar PDF</button>
               </div>
             </div>
             ${emp.logo ? `<img class="detail-brand-logo" src="${escapeHtml(assetUrl(emp.logo))}" alt="Logo ${escapeHtml(emp.nome)}">` : ""}
@@ -576,7 +587,8 @@
     document.getElementById("detail-back").addEventListener("click", navigateHome);
     document.getElementById("share-emp-prices").addEventListener("click", () => shareEnterprise(emp, true));
     document.getElementById("share-emp-no-prices").addEventListener("click", () => shareEnterprise(emp, false));
-    document.getElementById("print-detail").addEventListener("click", printDocument);
+    document.getElementById("share-emp-link").addEventListener("click", (event) => shareClientLink(emp, event.currentTarget));
+    document.getElementById("print-detail").addEventListener("click", (event) => printEnterprise(emp, event));
     const featuredImage = detail.querySelector("[data-gallery-featured]");
     const featuredCounter = detail.querySelector("[data-gallery-counter]");
     detail.querySelectorAll("[data-gallery-thumb]").forEach((button) => {
@@ -987,6 +999,33 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
     }, []);
   }
 
+  function clientLinkFor(emp) {
+    return `${location.origin}${location.pathname}?cliente#emp-${emp.id}`;
+  }
+
+  // Envia o link travado no empreendimento: o cliente ve fotos, plantas e
+  // opcoes, sem conseguir navegar para o resto do portfolio.
+  async function shareClientLink(emp, button) {
+    const url = clientLinkFor(emp);
+    const text = `${emp.nome} — Construtora Senger\n${url}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: emp.nome, text: emp.nome, url });
+        return;
+      } catch (error) {
+        if (error?.name === "AbortError") return;
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast("Link copiado! Cole na conversa com o cliente.");
+      if (button) button.textContent = "Link copiado!";
+      setTimeout(() => { if (button) button.textContent = "Enviar link"; }, 2200);
+    } catch (_) {
+      window.prompt("Copie o link do empreendimento:", url);
+    }
+  }
+
   function shareEnterprise(emp, includePrices) {
     if (!emp) return;
     sendShare(enterpriseMessage(emp, includePrices), emp.nome, [coverPhoto(emp)]);
@@ -1158,14 +1197,99 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
     `);
   }
 
+  // Folha A4 de um empreendimento: fotos lado a lado (2 por linha) e
+  // plantas em tamanho grande, uma por linha — pensado para leitura em PDF.
+  function buildEnterprisePrintSheet(emp) {
+    const contato = [META.contato?.telefones?.[0], META.contato?.instagram, META.contato?.site].filter(Boolean).join(" · ");
+    const prazo = semPonto(emp.entrega || emp.statusLabel || "");
+    const minimo = minPrice(emp);
+    const media = mediaFor(emp);
+    const isPlant = (item) => /planta/i.test(`${item?.src || ""} ${item?.legenda || ""}`);
+    const photos = media.filter((item) => !isPlant(item) && !/\.pdf(?:$|\?)/i.test(item.src || "")).slice(0, 8);
+    const plants = media.filter((item) => isPlant(item) && !/\.pdf(?:$|\?)/i.test(item.src || ""));
+
+    const photoRows = [];
+    for (let i = 0; i < photos.length; i += 2) {
+      photoRows.push(`<div class="ps-row">${photos.slice(i, i + 2).map((item) => `
+        <figure class="ps-photo"><img src="${escapeHtml(assetUrl(item.src))}" alt="">${item.legenda ? `<figcaption>${escapeHtml(item.legenda)}</figcaption>` : ""}</figure>
+      `).join("")}</div>`);
+    }
+
+    const plantBlocks = plants.map((item) => `
+      <figure class="ps-plant"><img src="${escapeHtml(assetUrl(item.src))}" alt="">${item.legenda ? `<figcaption>${escapeHtml(item.legenda)}</figcaption>` : ""}</figure>
+    `).join("");
+
+    const groupTables = (emp.grupos || []).map((group, groupIndex) => {
+      const units = (group.unidades || []).map((unit, unitIndex) => itemMap.get(`${emp.id}:unit:${groupIndex}:${unitIndex}`)).filter(Boolean);
+      if (!units.length) return "";
+      return `
+        <div class="ps-group">
+          <h3>${escapeHtml(group.tipo)}</h3>
+          <p class="ps-group-note">${escapeHtml([group.area, group.garagem, group.obs].filter(Boolean).join(" · "))}</p>
+          <table class="ps-table">
+            <thead><tr><th>Unidade</th><th>Área</th><th>Status</th><th>Valor</th></tr></thead>
+            <tbody>${units.map((item) => `
+              <tr><td>${escapeHtml(itemLabel(item))}</td><td>${escapeHtml(item.area || "—")}</td><td>${escapeHtml(STATUS_LABELS[item.status] || item.status)}</td><td>${money(item.price)}</td></tr>
+            `).join("")}</tbody>
+          </table>
+        </div>
+      `;
+    }).join("");
+
+    const landTable = (emp.terrenos || []).length ? `
+      <div class="ps-group">
+        <h3>Lotes</h3>
+        <table class="ps-table">
+          <thead><tr><th>Quadra · Lote</th><th>Rua</th><th>Área</th><th>Valor</th></tr></thead>
+          <tbody>${itemsFor(emp).filter((item) => item.kind === "land").map((item) => `
+            <tr><td>${escapeHtml(itemLabel(item))}</td><td>${escapeHtml(item.rua || "—")}</td><td>${escapeHtml(item.area || "—")}</td><td>${money(item.price)}</td></tr>
+          `).join("")}</tbody>
+        </table>
+      </div>
+    ` : "";
+
+    const diffs = (emp.diferenciais || []).map((d) => `
+      <div class="ps-diff"><strong>${escapeHtml(d.titulo)}</strong><span>${escapeHtml(d.desc)}</span></div>
+    `).join("");
+
+    setHtml("print-sheet", `
+      <header class="ps-head">
+        <img class="ps-logo" src="${escapeHtml(assetUrl("assets/senger-logo.png"))}" alt="Construtora Senger">
+        <div>
+          <p class="ps-eyebrow">${escapeHtml(emp.cidade)} · ${escapeHtml(CATEGORY_LABELS[emp.categoria] || emp.categoria)}</p>
+          <h1>${escapeHtml(emp.nome)}</h1>
+          <p class="ps-meta">${escapeHtml(prazo)}${minimo ? ` · A partir de ${money(minimo)}` : ""} · Tabela ${escapeHtml(META.mesTabela || "")}</p>
+          <p class="ps-contact">${contato ? `${escapeHtml(contato)} — ` : ""}Valores e disponibilidade sujeitos a alteração sem aviso prévio. Imagens meramente ilustrativas.</p>
+        </div>
+      </header>
+      ${emp.localizacao ? `<p class="ps-address">${escapeHtml(emp.localizacao)}</p>` : ""}
+      ${diffs ? `<div class="ps-diffs">${diffs}</div>` : ""}
+      ${groupTables || landTable ? `<h2 class="ps-section">Unidades e valores</h2>${groupTables}${landTable}` : ""}
+      ${photoRows.length ? `<h2 class="ps-section">Imagens</h2>${photoRows.join("")}` : ""}
+      ${plantBlocks ? `<h2 class="ps-section">Plantas</h2>${plantBlocks}` : ""}
+    `);
+  }
+
   let printing = false;
 
-  // Impressao pelo menu do navegador (sem passar pelo botao): na home,
-  // monta a folha do portfolio na hora para nao sair a tela crua.
+  async function printEnterprise(emp, event) {
+    buildEnterprisePrintSheet(emp);
+    document.body.classList.add("print-list");
+    try {
+      await printDocument(event);
+    } finally {
+      document.body.classList.remove("print-list");
+    }
+  }
+
+  // Impressao pelo menu do navegador (sem passar pelo botao): monta a folha
+  // certa na hora — portfolio na home, empreendimento no detalhe.
   window.addEventListener("beforeprint", () => {
-    const detailOpen = !document.getElementById("detail-view").hidden;
-    if (detailOpen || document.body.classList.contains("print-list")) return;
-    buildPrintSheet(portfolioList());
+    if (document.body.classList.contains("print-list")) return;
+    const match = location.hash.match(/^#emp-([\w-]+)/);
+    const emp = match ? findEnterprise(match[1]) : null;
+    if (emp) buildEnterprisePrintSheet(emp);
+    else buildPrintSheet(portfolioList());
     document.body.classList.add("print-list");
     window.addEventListener("afterprint", () => document.body.classList.remove("print-list"), { once: true });
   });
@@ -1251,6 +1375,7 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
     }
   }
 
+  if (CLIENT_MODE) document.body.classList.add("client-mode");
   buildInventory();
   renderMetadata();
   renderFilters();
