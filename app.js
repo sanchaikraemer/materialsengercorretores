@@ -50,6 +50,8 @@
     price: "todos",
     sort: "destaque",
     selected: new Set(JSON.parse(storage.get("senger-selection", "[]"))),
+    // Empreendimentos marcados para a lista enviada ao cliente. Vazio = todos os filtrados.
+    picks: new Set(JSON.parse(storage.get("senger-picks", "[]"))),
   };
 
   const itemMap = new Map();
@@ -318,16 +320,19 @@
     document.getElementById("empty-state").hidden = enterprises.length > 0;
     setHtml("results-count", `<strong>${enterprises.length}</strong> ${enterprises.length === 1 ? "empreendimento encontrado" : "empreendimentos encontrados"}`);
 
+    const filtrando = state.picks.size > 0;
     grid.innerHTML = enterprises.map((emp) => {
       const active = marketableItems(emp);
       const minimum = minPrice(emp);
       const statusClass = emp.status === "pronto" ? "pronto" : "obra";
       const typeLabel = CATEGORY_LABELS[emp.categoria] || emp.categoria;
+      const napista = state.picks.has(emp.id);
       return `
-        <article class="portfolio-card">
+        <article class="portfolio-card${filtrando && !napista ? " is-unpicked" : ""}">
           <div class="card-media">
             <img src="${escapeHtml(assetUrl(cardImage(emp)))}" alt="${escapeHtml(emp.nome)}" loading="lazy">
             ${emp.logo ? `<img class="card-logo" src="${escapeHtml(assetUrl(emp.logo))}" alt="">` : ""}
+            <button class="card-pick${napista ? " picked" : ""}" type="button" data-pick-emp="${emp.id}" aria-pressed="${napista}">${napista ? "✓ Na lista" : "+ Lista"}</button>
           </div>
           <div class="card-body">
             <div class="card-badges">
@@ -361,6 +366,43 @@
       event.stopPropagation();
       shareEnterprise(findEnterprise(button.dataset.shareEmp), false);
     }));
+
+    grid.querySelectorAll("[data-pick-emp]").forEach((button) => button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      togglePick(button.dataset.pickEmp);
+    }));
+
+    updatePicksUi();
+  }
+
+  function togglePick(id) {
+    if (state.picks.has(id)) state.picks.delete(id);
+    else state.picks.add(id);
+    storage.set("senger-picks", JSON.stringify([...state.picks]));
+    renderPortfolio();
+  }
+
+  function clearPicks() {
+    state.picks.clear();
+    storage.set("senger-picks", JSON.stringify([]));
+    renderPortfolio();
+  }
+
+  // Lista que vai para o cliente: os marcados ou, se nenhum estiver marcado, os filtrados.
+  function portfolioList() {
+    const enterprises = filteredEnterprises();
+    if (!state.picks.size) return enterprises;
+    return enterprises.filter((emp) => state.picks.has(emp.id));
+  }
+
+  function updatePicksUi() {
+    const total = portfolioList().length;
+    const marcados = state.picks.size;
+    document.getElementById("clear-picks").hidden = marcados === 0;
+    const button = document.getElementById("share-portfolio");
+    button.disabled = total === 0;
+    button.textContent = marcados ? `Enviar lista (${total})` : "Enviar lista";
   }
 
   function findEnterprise(id) {
@@ -708,6 +750,30 @@
     if (emp.entrega) lines.push(`Entrega: ${semPonto(emp.entrega)}`);
     lines.push("", `Tabela ${META.mesTabela || ""}. Valores e disponibilidade sujeitos a alteração.`);
     return lines.filter((line, index, array) => line !== "" || array[index - 1] !== "").join("\n");
+  }
+
+  // Resumo do portfolio para o cliente que ainda nao sabe o que quer:
+  // nome, cidade, prazo de entrega e valor inicial de cada empreendimento.
+  function portfolioMessage(enterprises) {
+    const lines = ["*Construtora Senger — Portfólio*", ""];
+    enterprises.forEach((emp, index) => {
+      const prazo = semPonto(emp.entrega || emp.statusLabel || "");
+      const minimo = minPrice(emp);
+      const opcoes = marketableItems(emp).length;
+      lines.push(`*${index + 1}. ${emp.nome}* · ${emp.cidade}`);
+      if (prazo) lines.push(`🗓️ ${prazo}`);
+      lines.push(`💰 A partir de *${minimo ? money(minimo) : "sob consulta"}* · ${opcoes} ${opcoes === 1 ? "opção" : "opções"}`);
+      lines.push("");
+    });
+    lines.push("Me diga quais te interessam que eu envio plantas, valores e disponibilidade.", "");
+    lines.push(`Tabela ${META.mesTabela || ""}. Valores e disponibilidade sujeitos a alteração.`);
+    return lines.join("\n");
+  }
+
+  function sharePortfolio() {
+    const enterprises = portfolioList();
+    if (!enterprises.length) return;
+    sendShare(portfolioMessage(enterprises), "Portfólio Construtora Senger", enterprises.map(coverPhoto));
   }
 
   const semPonto = (texto = "") => String(texto).trim().replace(/\.$/, "");
@@ -1075,6 +1141,8 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
   function bindGlobalEvents() {
     document.getElementById("brand-home").addEventListener("click", navigateHome);
     document.getElementById("print-catalog").addEventListener("click", printDocument);
+    document.getElementById("share-portfolio").addEventListener("click", sharePortfolio);
+    document.getElementById("clear-picks").addEventListener("click", clearPicks);
     document.getElementById("selection-fab").addEventListener("click", openDrawer);
     document.querySelectorAll("[data-close-drawer]").forEach((button) => button.addEventListener("click", closeDrawer));
     document.getElementById("clear-selection").addEventListener("click", () => {
