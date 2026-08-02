@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="styles.css?v=84">
+  <link rel="stylesheet" href="styles.css?v=85">
 </head>
 <body>
   <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
@@ -176,6 +176,21 @@
     </div>
   </aside>
 
+  <!-- Escolha de como enviar uma unidade: mensagem pronta ou link travado. -->
+  <div class="share-modal" id="send-choice" aria-hidden="true">
+    <div class="share-modal-backdrop" data-close-choice></div>
+    <div class="share-modal-panel send-choice-panel">
+      <div class="drawer-header">
+        <div><span class="eyebrow dark">Enviar ao cliente</span><h2 id="send-choice-title">Unidade</h2></div>
+        <button class="icon-button" type="button" data-close-choice aria-label="Fechar">×</button>
+      </div>
+      <div class="send-choice-actions">
+        <button class="button button-primary" type="button" id="choice-message">Mensagem com foto e preço</button>
+        <button class="button button-outline" type="button" id="choice-link">Enviar link da unidade</button>
+      </div>
+    </div>
+  </div>
+
   <div class="share-modal" id="share-modal" aria-hidden="true">
     <div class="share-modal-backdrop" data-close-share></div>
     <div class="share-modal-panel">
@@ -195,7 +210,7 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="data.js?v=84"></script>
-  <script src="app.js?v=84"></script>
+  <script src="data.js?v=85"></script>
+  <script src="app.js?v=85"></script>
 </body>
 </html>

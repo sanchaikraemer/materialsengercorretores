@@ -615,6 +615,16 @@
       });
     });
     bindInventoryEvents(detail);
+
+    // Link de unidade (?u=501): rola ate a linha e destaca, para o cliente
+    // achar o apartamento certo sem procurar na tabela.
+    const unitCode = new URLSearchParams(location.search).get("u");
+    if (unitCode) {
+      const alvo = detail.querySelectorAll(`[data-unit-code="${CSS.escape(unitCode)}"]`);
+      alvo.forEach((el) => el.classList.add("unit-highlight"));
+      const visivel = [...alvo].find((el) => el.offsetParent !== null);
+      if (visivel) setTimeout(() => visivel.scrollIntoView({ behavior: "smooth", block: "center" }), 450);
+    }
     window.scrollTo({ top: 0, behavior: "auto" });
   }
 
@@ -654,7 +664,7 @@
     const selectable = isMarketable(item.status);
     const selected = state.selected.has(item.key);
     return `
-      <tr>
+      <tr data-unit-code="${escapeHtml(String(item.code))}">
         <td><strong>${escapeHtml(itemLabel(item))}</strong>${item.tags.length ? `<br><small>${escapeHtml(item.tags.join(" · "))}</small>` : ""}</td>
         <td>${escapeHtml(item.area || "—")}</td>
         <td>${escapeHtml(item.garage || "—")}</td>
@@ -669,7 +679,7 @@
     const selectable = isMarketable(item.status);
     const selected = state.selected.has(item.key);
     return `
-      <article class="mobile-unit-card">
+      <article class="mobile-unit-card" data-unit-code="${escapeHtml(String(item.code))}">
         <div class="mobile-unit-head"><strong>${escapeHtml(itemLabel(item))}</strong><span class="status-pill status-${item.status}">${escapeHtml(STATUS_LABELS[item.status] || item.status)}</span></div>
         <div class="mobile-unit-meta">
           <div><span>Área</span><strong>${escapeHtml(item.area || "—")}</strong></div>
@@ -714,7 +724,7 @@
     const selectable = isMarketable(item.status);
     const selected = state.selected.has(item.key);
     return `
-      <tr>
+      <tr data-unit-code="${escapeHtml(String(item.code))}">
         <td><strong>${escapeHtml(itemLabel(item))}</strong>${description ? `<br><small>${escapeHtml(description)}</small>` : ""}</td>
         <td>${escapeHtml(item.area || "—")}</td>
         <td>${escapeHtml(secondary || "—")}</td>
@@ -729,7 +739,7 @@
     const selectable = isMarketable(item.status);
     const selected = state.selected.has(item.key);
     return `
-      <article class="mobile-unit-card">
+      <article class="mobile-unit-card" data-unit-code="${escapeHtml(String(item.code))}">
         <div class="mobile-unit-head"><strong>${escapeHtml(itemLabel(item))}</strong><span class="status-pill status-${item.status}">${escapeHtml(STATUS_LABELS[item.status] || item.status)}</span></div>
         ${description ? `<p class="mobile-unit-note">${escapeHtml(description)}</p>` : ""}
         <div class="mobile-unit-meta">
@@ -742,7 +752,7 @@
   }
 
   function bindInventoryEvents(root) {
-    root.querySelectorAll("[data-share-item]").forEach((button) => button.addEventListener("click", () => shareItem(itemMap.get(button.dataset.shareItem), true)));
+    root.querySelectorAll("[data-share-item]").forEach((button) => button.addEventListener("click", () => openSendChoice(itemMap.get(button.dataset.shareItem))));
     root.querySelectorAll("[data-select-item]").forEach((button) => button.addEventListener("click", () => toggleSelection(button.dataset.selectItem)));
   }
 
@@ -1043,6 +1053,56 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
   function shareItem(item, includePrice) {
     if (!item) return;
     sendShare(itemMessage(item, includePrice), `${item.emp.nome} — ${itemLabel(item)}`, [coverPhoto(item.emp)]);
+  }
+
+  // Link do modo cliente apontando para a unidade: abre o empreendimento
+  // travado e rola ate a linha do apartamento, destacada.
+  async function shareUnitLink(item) {
+    const emp = item.emp;
+    const url = `${location.origin}${location.pathname}?cliente&u=${encodeURIComponent(item.code)}#emp-${emp.id}`;
+    const text = [
+      `*${emp.nome} — ${itemLabel(item)}*`,
+      emp.cidade,
+      "",
+      "👇 Clique no link abaixo para ver fotos, planta, valores e todas as informações desta unidade:",
+      url,
+    ].join("\n");
+    if (navigator.share) {
+      const file = await loadShareFile(assetUrl(cardImage(emp)));
+      if (file && navigator.canShare({ text, files: [file] })) {
+        try {
+          await navigator.share({ title: `${emp.nome} — ${itemLabel(item)}`, text, files: [file] });
+          return;
+        } catch (error) {
+          if (error?.name === "AbortError") return;
+        }
+      }
+      try {
+        await navigator.share({ title: `${emp.nome} — ${itemLabel(item)}`, text });
+        return;
+      } catch (error) {
+        if (error?.name === "AbortError") return;
+      }
+    }
+    openShareModal(text, [coverPhoto(emp)]);
+  }
+
+  function openSendChoice(item) {
+    if (!item) return;
+    const modal = document.getElementById("send-choice");
+    document.getElementById("send-choice-title").textContent = `${item.emp.nome} — ${itemLabel(item)}`;
+    const message = document.getElementById("choice-message");
+    const link = document.getElementById("choice-link");
+    message.onclick = () => { closeSendChoice(); shareItem(item, true); };
+    link.onclick = () => { closeSendChoice(); shareUnitLink(item); };
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden", "false");
+  }
+
+  function closeSendChoice() {
+    const modal = document.getElementById("send-choice");
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden", "true");
   }
 
   function toggleSelection(key) {
@@ -1368,6 +1428,7 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
     document.getElementById("share-selected-no-prices").addEventListener("click", () => shareSelection(false));
 
     document.querySelectorAll("[data-close-share]").forEach((button) => button.addEventListener("click", closeShareModal));
+    document.querySelectorAll("[data-close-choice]").forEach((button) => button.addEventListener("click", closeSendChoice));
     document.getElementById("share-modal-copy").addEventListener("click", copyShareModalText);
     document.getElementById("share-modal-open").addEventListener("click", () => window.open("https://web.whatsapp.com/", "_blank", "noopener"));
 

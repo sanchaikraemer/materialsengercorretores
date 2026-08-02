@@ -676,6 +676,15 @@ img { max-width: 100%; display: block; }
 .client-mode #unidades .section-title-row p,
 .client-mode .inventory-toolbar { display: none !important; }
 
+/* Modal de escolha de envio da unidade */
+.send-choice-panel { grid-template-rows: auto auto; }
+.send-choice-actions { display: grid; gap: 12px; padding: 20px 24px 26px; }
+
+/* Unidade apontada pelo link do cliente (?u=) */
+tr.unit-highlight td { background: var(--brand-soft); }
+tr.unit-highlight td:first-child { box-shadow: inset 4px 0 0 var(--brand); }
+.mobile-unit-card.unit-highlight { border: 2px solid var(--brand); background: var(--brand-soft); }
+
 @media print {
   @page { size: A4; margin: 12mm; }
 
