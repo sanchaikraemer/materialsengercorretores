@@ -461,12 +461,23 @@
     const active = marketableItems(emp);
     const minimum = minPrice(emp);
     const statusClass = emp.status === "pronto" ? "pronto" : "obra";
-    const inventory = renderInventory(emp);
+    // Link do cliente com unidade (?cliente&u=501): a pagina mostra so essa
+    // unidade — sem os precos das demais nem as plantas das outras tipologias.
+    const unitParam = new URLSearchParams(location.search).get("u");
+    const focusItem = CLIENT_MODE && unitParam
+      ? itemsFor(emp).find((it) => String(it.code) === unitParam) || null
+      : null;
+    const inventory = renderInventory(emp, focusItem);
 
     const isPlantMedia = (item) => /planta/i.test(`${item?.src || ""} ${item?.legenda || ""}`);
     const photoMedia = media.filter((item) => !isPlantMedia(item)).slice(0, 12);
-    const humanizedPlants = media.filter((item) => isPlantMedia(item) && !/\.pdf(?:$|\?)/i.test(item.src || ""));
-    const technicalPlants = media.filter((item) => isPlantMedia(item) && /\.pdf(?:$|\?)/i.test(item.src || ""));
+    let humanizedPlants = media.filter((item) => isPlantMedia(item) && !/\.pdf(?:$|\?)/i.test(item.src || ""));
+    let technicalPlants = media.filter((item) => isPlantMedia(item) && /\.pdf(?:$|\?)/i.test(item.src || ""));
+    if (focusItem) {
+      const plantaId = focusItem.group?.planta || "";
+      humanizedPlants = plantaId ? humanizedPlants.filter((item) => (item.src || "").includes(plantaId)) : [];
+      technicalPlants = plantaId ? technicalPlants.filter((item) => (item.src || "").includes(plantaId)) : [];
+    }
 
     const THUMB_W = 84;
     const THUMB_GAP = 10;
@@ -536,7 +547,7 @@
                 <span class="badge">${escapeHtml(emp.cidade)}</span>
                 <span class="badge">${escapeHtml(CATEGORY_LABELS[emp.categoria] || emp.categoria)}</span>
               </div>
-              <h1>${escapeHtml(emp.nome)}</h1>
+              <h1>${escapeHtml(emp.nome)}${focusItem ? ` — ${escapeHtml(itemLabel(focusItem))}` : ""}</h1>
               <p>${escapeHtml(emp.tagline || emp.entrega || "Consulte informações e disponibilidade.")}</p>
               <div class="detail-actions">
                 <button class="button button-primary" type="button" id="share-emp-prices">WhatsApp com preços</button>
@@ -572,8 +583,13 @@
             <h2>Informações principais</h2>
             <div class="fact-grid">
               <div class="fact-card"><span>Etapa</span><strong>${escapeHtml(emp.entrega || emp.statusLabel || "—")}</strong></div>
-              <div class="fact-card"><span>Opções ativas</span><strong>${active.length}</strong></div>
-              <div class="fact-card"><span>Preço inicial</span><strong class="price-value">${minimum ? money(minimum) : "Sob consulta"}</strong></div>
+              ${focusItem ? `
+                <div class="fact-card"><span>Área</span><strong>${escapeHtml(focusItem.area || "—")}</strong></div>
+                <div class="fact-card"><span>Valor</span><strong class="price-value">${money(focusItem.price)}</strong></div>
+              ` : `
+                <div class="fact-card"><span>Opções ativas</span><strong>${active.length}</strong></div>
+                <div class="fact-card"><span>Preço inicial</span><strong class="price-value">${minimum ? money(minimum) : "Sob consulta"}</strong></div>
+              `}
               <div class="fact-card"><span>Registro</span><strong>${escapeHtml((emp.ri || []).join(" · ") || "Não informado")}</strong></div>
             </div>
           </article>
@@ -628,21 +644,23 @@
     window.scrollTo({ top: 0, behavior: "auto" });
   }
 
-  function renderInventory(emp) {
-    if ((emp.grupos || []).length) return renderUnitGroups(emp);
-    if ((emp.terrenos || []).length) return renderLandInventory(emp);
-    if ((emp.outros || []).length) return renderOtherInventory(emp);
+  function renderInventory(emp, focusItem = null) {
+    if ((emp.grupos || []).length) return renderUnitGroups(emp, focusItem);
+    if ((emp.terrenos || []).length) return renderLandInventory(emp, focusItem);
+    if ((emp.outros || []).length) return renderOtherInventory(emp, focusItem);
     return "";
   }
 
-  function renderUnitGroups(emp) {
+  function renderUnitGroups(emp, focusItem = null) {
     const groups = emp.grupos || [];
     return `
       <section class="content-section" id="unidades">
-        <div class="section-title-row"><h2>Unidades e valores</h2><p>Selecione opções para encaminhar ao cliente</p></div>
+        <div class="section-title-row"><h2>${focusItem ? "Sua unidade" : "Unidades e valores"}</h2><p>Selecione opções para encaminhar ao cliente</p></div>
         <div class="inventory-toolbar"><p>${marketableItems(emp).length} opções comercializáveis nesta tabela.</p></div>
         ${groups.map((group, groupIndex) => {
-          const units = (group.unidades || []).map((unit, unitIndex) => itemMap.get(`${emp.id}:unit:${groupIndex}:${unitIndex}`));
+          let units = (group.unidades || []).map((unit, unitIndex) => itemMap.get(`${emp.id}:unit:${groupIndex}:${unitIndex}`));
+          if (focusItem) units = units.filter((it) => it && it.key === focusItem.key);
+          if (!units.length) return "";
           return `
             <article class="unit-group">
               <div class="unit-group-header">
@@ -690,8 +708,8 @@
     `;
   }
 
-  function renderLandInventory(emp) {
-    const items = itemsFor(emp);
+  function renderLandInventory(emp, focusItem = null) {
+    const items = focusItem ? itemsFor(emp).filter((it) => it.key === focusItem.key) : itemsFor(emp);
     return `
       <section class="content-section" id="unidades">
         <div class="section-title-row"><h2>Lotes e valores</h2><p>Disponibilidade por quadra e lote</p></div>
@@ -705,8 +723,8 @@
     `;
   }
 
-  function renderOtherInventory(emp) {
-    const items = itemsFor(emp);
+  function renderOtherInventory(emp, focusItem = null) {
+    const items = focusItem ? itemsFor(emp).filter((it) => it.key === focusItem.key) : itemsFor(emp);
     return `
       <section class="content-section" id="unidades">
         <div class="section-title-row"><h2>Imóveis disponíveis</h2><p>Oportunidades complementares</p></div>
