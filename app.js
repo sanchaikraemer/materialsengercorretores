@@ -403,6 +403,7 @@
     const button = document.getElementById("share-portfolio");
     button.disabled = total === 0;
     button.textContent = marcados ? `Enviar lista (${total})` : "Enviar lista";
+    document.getElementById("print-list").disabled = total === 0;
   }
 
   function findEnterprise(id) {
@@ -1103,7 +1104,67 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
     return Promise.race([ready, new Promise((resolve) => setTimeout(resolve, timeout))]);
   }
 
+  // Folha exclusiva do PDF: capa de cada empreendimento, prazo de entrega e valor inicial.
+  function buildPrintSheet(enterprises) {
+    const contato = [META.contato?.telefones?.[0], META.contato?.instagram, META.contato?.site].filter(Boolean).join(" · ");
+    const cidades = unique(enterprises.flatMap((emp) => emp.cidade.split(" · ")))
+      .map((city) => city.replace("/RS", "")).join(" · ");
+
+    const cards = enterprises.map((emp) => {
+      const minimo = minPrice(emp);
+      const opcoes = marketableItems(emp).length;
+      const prazo = semPonto(emp.entrega || emp.statusLabel || "");
+      return `
+        <article class="ps-card">
+          <div class="ps-media"><img src="${escapeHtml(assetUrl(cardImage(emp)))}" alt="${escapeHtml(emp.nome)}"></div>
+          <div class="ps-body">
+            <div class="ps-badges">
+              <span class="ps-badge ps-badge-stage">${escapeHtml(emp.statusLabel || prazo)}</span>
+              <span class="ps-badge">${escapeHtml(CATEGORY_LABELS[emp.categoria] || emp.categoria)}</span>
+            </div>
+            <h2>${escapeHtml(emp.nome)}</h2>
+            <p class="ps-city">${escapeHtml(emp.cidade)}</p>
+            <p class="ps-tagline">${escapeHtml(emp.tagline || "")}</p>
+            <div class="ps-facts">
+              <div><span>Entrega</span><strong>${escapeHtml(prazo || "Consultar")}</strong></div>
+              <div><span>A partir de</span><strong>${minimo ? money(minimo) : "Sob consulta"}</strong></div>
+              <div><span>Opções</span><strong>${opcoes}</strong></div>
+            </div>
+          </div>
+        </article>
+      `;
+    }).join("");
+
+    setHtml("print-sheet", `
+      <header class="ps-head">
+        <img class="ps-logo" src="${escapeHtml(assetUrl("assets/senger-logo.png"))}" alt="Construtora Senger">
+        <div>
+          <p class="ps-eyebrow">Portfólio comercial</p>
+          <h1>Empreendimentos e oportunidades</h1>
+          <p class="ps-meta">Tabela ${escapeHtml(META.mesTabela || "")}${cidades ? ` · ${escapeHtml(cidades)}` : ""}</p>
+        </div>
+      </header>
+      ${cards}
+      <footer class="ps-foot">
+        <strong>Construtora Senger</strong>${contato ? ` · ${escapeHtml(contato)}` : ""}<br>
+        Valores e disponibilidade sujeitos a alteração sem aviso prévio. Imagens meramente ilustrativas.
+      </footer>
+    `);
+  }
+
   let printing = false;
+
+  async function printPortfolio(event) {
+    const enterprises = portfolioList();
+    if (!enterprises.length) return;
+    buildPrintSheet(enterprises);
+    document.body.classList.add("print-list");
+    try {
+      await printDocument(event);
+    } finally {
+      document.body.classList.remove("print-list");
+    }
+  }
 
   async function printDocument(event) {
     if (printing) return;
@@ -1140,7 +1201,8 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
 
   function bindGlobalEvents() {
     document.getElementById("brand-home").addEventListener("click", navigateHome);
-    document.getElementById("print-catalog").addEventListener("click", printDocument);
+    document.getElementById("print-catalog").addEventListener("click", printPortfolio);
+    document.getElementById("print-list").addEventListener("click", printPortfolio);
     document.getElementById("share-portfolio").addEventListener("click", sharePortfolio);
     document.getElementById("clear-picks").addEventListener("click", clearPicks);
     document.getElementById("selection-fab").addEventListener("click", openDrawer);

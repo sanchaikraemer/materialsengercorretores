@@ -358,7 +358,7 @@ img { max-width: 100%; display: block; }
 .card-pick.picked { border-color: var(--brand); background: var(--brand); }
 .portfolio-card.is-unpicked { opacity: .5; }
 .portfolio-card.is-unpicked:hover { opacity: .78; }
-.results-actions { display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+.results-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; flex-shrink: 0; }
 
 .card-badges { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 10px; }
 .badge {
@@ -654,8 +654,40 @@ img { max-width: 100%; display: block; }
   .detail-actions .button { padding-inline: 6px; font-size: 10.5px; }
 }
 
+/* Folha do PDF do portfólio: só existe na impressão. */
+.print-sheet { display: none; }
+
 @media print {
   @page { size: A4; margin: 12mm; }
+
+  body.print-list .site-header,
+  body.print-list main,
+  body.print-list .site-footer,
+  body.print-list .selection-fab { display: none !important; }
+  body.print-list .print-sheet { display: block !important; }
+
+  .ps-head { display: grid; grid-template-columns: 22mm 1fr; align-items: center; gap: 6mm; padding-bottom: 4mm; margin-bottom: 5mm; border-bottom: 1.5pt solid #178fa0; }
+  .ps-logo { width: 20mm; }
+  .ps-eyebrow { margin: 0; color: #178fa0; font-size: 8pt; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+  .ps-head h1 { margin: 1.5mm 0 1mm; font-family: var(--font-display); font-size: 16pt; line-height: 1.1; color: #202a32; }
+  .ps-meta { margin: 0; color: #55606a; font-size: 9.5pt; }
+
+  .ps-card { break-inside: avoid; display: grid; grid-template-columns: 66mm 1fr; gap: 4.5mm; margin-bottom: 4mm; padding: 3mm; border: .8pt solid #d7dcdf; border-radius: 3mm; }
+  .ps-media { display: flex; overflow: hidden; border-radius: 2mm; background: #eceff1; }
+  .ps-media img { display: block; width: 100%; height: 100%; min-height: 38mm; object-fit: cover; }
+  .ps-body { display: flex; flex-direction: column; }
+  .ps-badges { display: flex; flex-wrap: wrap; gap: 2mm; margin-bottom: 2mm; }
+  .ps-badge { padding: 1mm 2.6mm; border: .8pt solid #d7dcdf; border-radius: 999px; font-size: 8pt; font-weight: 700; color: #55606a; }
+  .ps-badge-stage { border-color: transparent; background: #178fa0; color: #fff; }
+  .ps-card h2 { margin: 0; font-family: var(--font-display); font-size: 14pt; color: #202a32; }
+  .ps-city { margin: 1mm 0 0; color: #178fa0; font-size: 8.5pt; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+  .ps-tagline { margin: 1.5mm 0 0; color: #4a555e; font-size: 9pt; line-height: 1.4; }
+  .ps-facts { display: grid; grid-template-columns: repeat(3, auto); gap: 4mm; margin-top: auto; padding-top: 2.5mm; }
+  .ps-facts span { display: block; color: #77828a; font-size: 7.5pt; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+  .ps-facts strong { display: block; margin-top: .8mm; color: #202a32; font-size: 10.5pt; }
+
+  .ps-foot { margin-top: 6mm; padding-top: 4mm; border-top: .8pt solid #d7dcdf; color: #55606a; font-size: 8.5pt; line-height: 1.5; }
+  .ps-foot strong { color: #202a32; }
   *, *::before, *::after { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   body { background: #fff !important; color: #000; }
   .skip-link, .site-header, .hero-actions, .filter-panel, .results-bar, .site-footer, .selection-fab, .selection-drawer, .share-modal, .toast, .detail-actions, .unit-actions, .mobile-unit-actions, .detail-back, .card-footer, .card-open-overlay, .card-pick { display: none !important; }

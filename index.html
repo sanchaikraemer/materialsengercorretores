@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="styles.css?v=79">
+  <link rel="stylesheet" href="styles.css?v=80">
 </head>
 <body>
   <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
@@ -112,6 +112,7 @@
           <p id="results-count">—</p>
           <div class="results-actions">
             <button class="text-button" id="clear-picks" type="button" hidden>Limpar seleção</button>
+            <button class="button button-outline" id="print-list" type="button">Gerar PDF</button>
             <button class="button button-primary" id="share-portfolio" type="button">Enviar lista</button>
           </div>
         </div>
@@ -127,6 +128,9 @@
 
     <section class="detail-view" id="detail-view" hidden aria-live="polite"></section>
   </main>
+
+  <!-- Folha montada na hora para o PDF do portfolio; invisivel na tela. -->
+  <section class="print-sheet" id="print-sheet" aria-hidden="true"></section>
 
   <footer class="site-footer">
     <div class="shell footer-grid">
@@ -186,7 +190,7 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="data.js?v=79"></script>
-  <script src="app.js?v=79"></script>
+  <script src="data.js?v=80"></script>
+  <script src="app.js?v=80"></script>
 </body>
 </html>
