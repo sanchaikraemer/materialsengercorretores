@@ -632,14 +632,11 @@
     });
     bindInventoryEvents(detail);
 
-    // Link de unidade (?u=501): rola ate a linha e destaca, para o cliente
-    // achar o apartamento certo sem procurar na tabela.
+    // Link de unidade (?u=501): so destaca a linha. A pagina abre no topo,
+    // para o cliente ver o empreendimento e os diferenciais antes do preco.
     const unitCode = new URLSearchParams(location.search).get("u");
     if (unitCode) {
-      const alvo = detail.querySelectorAll(`[data-unit-code="${CSS.escape(unitCode)}"]`);
-      alvo.forEach((el) => el.classList.add("unit-highlight"));
-      const visivel = [...alvo].find((el) => el.offsetParent !== null);
-      if (visivel) setTimeout(() => visivel.scrollIntoView({ behavior: "smooth", block: "center" }), 450);
+      detail.querySelectorAll(`[data-unit-code="${CSS.escape(unitCode)}"]`).forEach((el) => el.classList.add("unit-highlight"));
     }
     window.scrollTo({ top: 0, behavior: "auto" });
   }
