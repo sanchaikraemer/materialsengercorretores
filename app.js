@@ -464,7 +464,7 @@
     const inventory = renderInventory(emp);
 
     const isPlantMedia = (item) => /planta/i.test(`${item?.src || ""} ${item?.legenda || ""}`);
-    const photoMedia = media.filter((item) => !isPlantMedia(item)).slice(0, 8);
+    const photoMedia = media.filter((item) => !isPlantMedia(item)).slice(0, 12);
     const humanizedPlants = media.filter((item) => isPlantMedia(item) && !/\.pdf(?:$|\?)/i.test(item.src || ""));
     const technicalPlants = media.filter((item) => isPlantMedia(item) && /\.pdf(?:$|\?)/i.test(item.src || ""));
 
