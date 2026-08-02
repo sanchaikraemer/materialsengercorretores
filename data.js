@@ -511,7 +511,7 @@ const EMPREENDIMENTOS = [
 
   {
     id: "quality",
-    nome: "Senger Quality Residence",
+    nome: "Quality Residence",
     confirmado: true,
     cidade: "Carazinho/RS",
     categoria: "residencial",
@@ -522,7 +522,7 @@ const EMPREENDIMENTOS = [
     hero: "assets/qual-1.jpg",
     destaque: true,
     tagline: "Piscina, academia e 3 salões de festas — pronto para morar e financiável.",
-    localizacao: "Carazinho/RS — excelente localização.",
+    localizacao: "Rua Carlos Barbosa, Carazinho/RS.",
     diferenciais: [
       { titulo: "Lazer", desc: "Piscina na área social, junto ao salão de festas." },
       { titulo: "Área fitness", desc: "Academia completa." },
@@ -551,21 +551,21 @@ const EMPREENDIMENTOS = [
       {
         tipo: "2 dormitórios c/ móveis",
         area: "57 m² global · 43 m² privativo",
-        garagem: "Box de garagem",
+        garagem: "1 Box de garagem",
         planta: "qual-planta-57",
         unidades: [{ apto: "802A", preco: 430000, status: "disponivel" }],
       },
       {
         tipo: "2 dormitórios c/ móveis",
         area: "69 m² global · 53 m² privativo",
-        garagem: "Box de garagem",
+        garagem: "1 Box de garagem",
         planta: "qual-planta-69",
         unidades: [{ apto: "801B", preco: 530000, status: "disponivel" }],
       },
       {
         tipo: "2 dormitórios — já alugados",
         area: "69 m² global · 53 m² privativo",
-        garagem: "Box de garagem",
+        garagem: "1 Box de garagem",
         planta: "qual-planta-69",
         obs: "Aluguel R$ 1.400,00 · Condomínio e IPTU por conta do inquilino.",
         unidades: [
@@ -577,7 +577,7 @@ const EMPREENDIMENTOS = [
       {
         tipo: "3 dormitórios — já alugados",
         area: "87 m² global · 66 m² privativo",
-        garagem: "Box de garagem",
+        garagem: "1 Box de garagem",
         planta: "qual-planta-3d",
         obs: "Aluguel R$ 1.600,00 · Condomínio e IPTU por conta do inquilino.",
         unidades: [
@@ -589,7 +589,7 @@ const EMPREENDIMENTOS = [
       {
         tipo: "3 dormitórios (1 suíte) c/ móveis",
         area: "87 m² global · 66 m² privativo",
-        garagem: "Box de garagem",
+        garagem: "1 Box de garagem",
         planta: "qual-planta-3d",
         unidades: [
           { apto: "201A", preco: 550000, status: "disponivel" },
