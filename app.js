@@ -587,7 +587,7 @@
     document.getElementById("detail-back").addEventListener("click", navigateHome);
     document.getElementById("share-emp-prices").addEventListener("click", () => shareEnterprise(emp, true));
     document.getElementById("share-emp-no-prices").addEventListener("click", () => shareEnterprise(emp, false));
-    document.getElementById("share-emp-link").addEventListener("click", (event) => shareClientLink(emp, event.currentTarget));
+    document.getElementById("share-emp-link").addEventListener("click", () => shareClientLink(emp));
     document.getElementById("print-detail").addEventListener("click", (event) => printEnterprise(emp, event));
     const featuredImage = detail.querySelector("[data-gallery-featured]");
     const featuredCounter = detail.querySelector("[data-gallery-counter]");
@@ -1003,27 +1003,36 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
     return `${location.origin}${location.pathname}?cliente#emp-${emp.id}`;
   }
 
-  // Envia o link travado no empreendimento: o cliente ve fotos, plantas e
-  // opcoes, sem conseguir navegar para o resto do portfolio.
-  async function shareClientLink(emp, button) {
+  // Envia o link travado no empreendimento, com a foto de capa e um texto
+  // explicando o que fazer. O cliente ve fotos, plantas e opcoes, sem
+  // conseguir navegar para o resto do portfolio.
+  async function shareClientLink(emp) {
     const url = clientLinkFor(emp);
-    const text = `${emp.nome} — Construtora Senger\n${url}`;
+    const text = [
+      `*${emp.nome} — Construtora Senger*`,
+      emp.cidade,
+      "",
+      "👇 Clique no link abaixo para ver fotos, plantas, valores e todas as informações:",
+      url,
+    ].join("\n");
     if (navigator.share) {
+      const file = await loadShareFile(assetUrl(cardImage(emp)));
+      if (file && navigator.canShare({ text, files: [file] })) {
+        try {
+          await navigator.share({ title: emp.nome, text, files: [file] });
+          return;
+        } catch (error) {
+          if (error?.name === "AbortError") return;
+        }
+      }
       try {
-        await navigator.share({ title: emp.nome, text: emp.nome, url });
+        await navigator.share({ title: emp.nome, text });
         return;
       } catch (error) {
         if (error?.name === "AbortError") return;
       }
     }
-    try {
-      await navigator.clipboard.writeText(text);
-      showToast("Link copiado! Cole na conversa com o cliente.");
-      if (button) button.textContent = "Link copiado!";
-      setTimeout(() => { if (button) button.textContent = "Enviar link"; }, 2200);
-    } catch (_) {
-      window.prompt("Copie o link do empreendimento:", url);
-    }
+    openShareModal(text, [coverPhoto(emp)]);
   }
 
   function shareEnterprise(emp, includePrices) {
