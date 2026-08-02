@@ -1126,14 +1126,23 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
             <p class="ps-city">${escapeHtml(emp.cidade)}</p>
             <p class="ps-tagline">${escapeHtml(emp.tagline || "")}</p>
             <div class="ps-facts">
-              <div><span>Entrega</span><strong>${escapeHtml(prazo || "Consultar")}</strong></div>
-              <div><span>A partir de</span><strong>${minimo ? money(minimo) : "Sob consulta"}</strong></div>
-              <div><span>Opções</span><strong>${opcoes}</strong></div>
+              <div class="ps-fact-wide"><span>Entrega</span><strong>${escapeHtml(prazo || "Consultar")}</strong></div>
+              <div class="ps-fact-row">
+                <div><span>A partir de</span><strong>${minimo ? money(minimo) : "Sob consulta"}</strong></div>
+                <div><span>Opções</span><strong>${opcoes}</strong></div>
+              </div>
             </div>
           </div>
         </article>
       `;
-    }).join("");
+    });
+
+    // Paginacao explicita (a quebra automatica do Chrome e imprevisivel):
+    // 2 cartoes por linha, 3 linhas por pagina A4.
+    const rows = [];
+    for (let i = 0; i < cards.length; i += 2) rows.push(`<div class="ps-row">${cards[i]}${cards[i + 1] || ""}</div>`);
+    const pages = [];
+    for (let i = 0; i < rows.length; i += 3) pages.push(`<div class="ps-page">${rows.slice(i, i + 3).join("")}</div>`);
 
     setHtml("print-sheet", `
       <header class="ps-head">
@@ -1142,17 +1151,24 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
           <p class="ps-eyebrow">Portfólio comercial</p>
           <h1>Empreendimentos e oportunidades</h1>
           <p class="ps-meta">Tabela ${escapeHtml(META.mesTabela || "")}${cidades ? ` · ${escapeHtml(cidades)}` : ""}</p>
+          <p class="ps-contact">${contato ? `${escapeHtml(contato)} — ` : ""}Valores e disponibilidade sujeitos a alteração sem aviso prévio. Imagens meramente ilustrativas.</p>
         </div>
       </header>
-      ${cards}
-      <footer class="ps-foot">
-        <strong>Construtora Senger</strong>${contato ? ` · ${escapeHtml(contato)}` : ""}<br>
-        Valores e disponibilidade sujeitos a alteração sem aviso prévio. Imagens meramente ilustrativas.
-      </footer>
+      ${pages.join("")}
     `);
   }
 
   let printing = false;
+
+  // Impressao pelo menu do navegador (sem passar pelo botao): na home,
+  // monta a folha do portfolio na hora para nao sair a tela crua.
+  window.addEventListener("beforeprint", () => {
+    const detailOpen = !document.getElementById("detail-view").hidden;
+    if (detailOpen || document.body.classList.contains("print-list")) return;
+    buildPrintSheet(portfolioList());
+    document.body.classList.add("print-list");
+    window.addEventListener("afterprint", () => document.body.classList.remove("print-list"), { once: true });
+  });
 
   async function printPortfolio(event) {
     const enterprises = portfolioList();
