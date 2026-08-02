@@ -58,6 +58,17 @@
   // aberto, sem voltar ao portfolio nem botoes internos da equipe.
   const CLIENT_MODE = new URLSearchParams(location.search).has("cliente");
   const clientLockHash = CLIENT_MODE ? location.hash : "";
+  // v90 — link de LISTA (?cliente&lista=id1,id2,...): a home vira a vitrine do cliente com SO
+  // esses empreendimentos (cada um com a sua foto), navegando entre eles e mais nada. Substitui
+  // o envio da lista como texto: o WhatsApp so mostra UMA imagem de previa por mensagem, entao
+  // o texto antigo saia com a foto do primeiro empreendimento e os demais "pelados" — confuso.
+  const CLIENT_LIST_IDS = (() => {
+    if (!CLIENT_MODE) return null;
+    const raw = String(new URLSearchParams(location.search).get("lista") || "").trim();
+    if (!raw) return null;
+    const ids = raw.split(",").map((s) => s.trim()).filter(Boolean);
+    return ids.length ? ids : null;
+  })();
 
   const itemMap = new Map();
   const enterpriseItems = new Map();
@@ -298,6 +309,7 @@
   function filteredEnterprises() {
     const query = normalizeText(state.query);
     const result = EMPREENDIMENTOS.filter((emp) => {
+      if (CLIENT_LIST_IDS && !CLIENT_LIST_IDS.includes(emp.id)) return false;
       if (state.city !== "todos" && !emp.cidade.split(" · ").includes(state.city)) return false;
       if (state.stage !== "todos" && emp.status !== state.stage) return false;
       if (marketableItems(emp).length === 0) return false;
@@ -323,7 +335,9 @@
     const grid = document.getElementById("portfolio-grid");
     const enterprises = filteredEnterprises();
     document.getElementById("empty-state").hidden = enterprises.length > 0;
-    setHtml("results-count", `<strong>${enterprises.length}</strong> ${enterprises.length === 1 ? "empreendimento encontrado" : "empreendimentos encontrados"}`);
+    setHtml("results-count", CLIENT_LIST_IDS
+      ? `Seleção preparada para você — <strong>${enterprises.length}</strong> ${enterprises.length === 1 ? "empreendimento" : "empreendimentos"}. Toque em um deles para ver fotos, valores e disponibilidade.`
+      : `<strong>${enterprises.length}</strong> ${enterprises.length === 1 ? "empreendimento encontrado" : "empreendimentos encontrados"}`);
 
     const filtrando = state.picks.size > 0;
     grid.innerHTML = enterprises.map((emp) => {
@@ -421,13 +435,19 @@
   }
 
   function navigateHome() {
-    if (CLIENT_MODE) return;
+    // No link de LISTA a home e a vitrine do cliente — voltar pra ela e permitido.
+    if (CLIENT_MODE && !CLIENT_LIST_IDS) return;
     history.pushState(null, "", `${location.pathname}${location.search}`);
     renderRoute();
   }
 
   function renderRoute() {
-    if (CLIENT_MODE && location.hash !== clientLockHash) {
+    if (CLIENT_MODE && CLIENT_LIST_IDS) {
+      // Lista do cliente: pode ficar na home (vitrine) ou abrir um empreendimento DA lista.
+      const m = location.hash.match(/^#emp-([\w-]+)/);
+      const permitido = !location.hash || location.hash === "#" || (m && CLIENT_LIST_IDS.includes(m[1]));
+      if (!permitido) { location.hash = ""; return; }
+    } else if (CLIENT_MODE && location.hash !== clientLockHash) {
       location.hash = clientLockHash;
       return;
     }
@@ -438,8 +458,14 @@
   }
 
   function renderHome() {
-    document.getElementById("home-hero").hidden = false;
-    document.querySelector(".trust-strip").hidden = false;
+    // Lista do cliente: esconde o "palco" do corretor (hero, faixa da tabela, filtros) e deixa
+    // so a vitrine com os empreendimentos escolhidos.
+    const vitrineCliente = Boolean(CLIENT_LIST_IDS);
+    document.getElementById("home-hero").hidden = vitrineCliente;
+    const strip = document.querySelector(".trust-strip");
+    if (strip) strip.hidden = vitrineCliente;
+    const filtros = document.getElementById("filters-panel");
+    if (filtros) filtros.hidden = vitrineCliente;
     document.getElementById("catalogo").hidden = false;
     document.getElementById("detail-view").hidden = true;
     document.getElementById("detail-view").innerHTML = "";
@@ -792,26 +818,28 @@
 
   // Resumo do portfolio para o cliente que ainda nao sabe o que quer:
   // nome, cidade, prazo de entrega e valor inicial de cada empreendimento.
-  function portfolioMessage(enterprises) {
-    const lines = ["*Construtora Senger — Portfólio*", ""];
-    enterprises.forEach((emp, index) => {
-      const prazo = semPonto(emp.entrega || emp.statusLabel || "");
-      const minimo = minPrice(emp);
-      const opcoes = marketableItems(emp).length;
-      lines.push(`*${index + 1}. ${emp.nome}* · ${emp.cidade}`);
-      if (prazo) lines.push(`🗓️ ${prazo}`);
-      lines.push(`💰 A partir de *${minimo ? money(minimo) : "sob consulta"}* · ${opcoes} ${opcoes === 1 ? "opção" : "opções"}`);
-      lines.push("");
-    });
-    lines.push("Me diga quais te interessam que eu envio plantas, valores e disponibilidade.", "");
-    lines.push(`Tabela ${META.mesTabela || ""}. Valores e disponibilidade sujeitos a alteração.`);
-    return lines.join("\n");
+  // v90 — a lista vai como LINK, no mesmo molde dos links de empreendimento e de unidade.
+  // O texto antigo (um bloco com todos os empreendimentos) saia no WhatsApp com a foto SO do
+  // primeiro e os demais sem imagem — o proprio dono vetou ("nao da pra mandar isso nunca").
+  // Agora: mensagem curta + link; o cliente abre a vitrine com todos, cada um com a sua foto.
+  function listClientLink(enterprises) {
+    const ids = enterprises.map((emp) => emp.id).join(",");
+    return `${location.origin}${location.pathname}?cliente&lista=${ids}`;
   }
 
   function sharePortfolio() {
     const enterprises = portfolioList();
     if (!enterprises.length) return;
-    sendShare(portfolioMessage(enterprises), "Portfólio Construtora Senger", enterprises.map(coverPhoto));
+    const nomes = enterprises.map((emp) => emp.nome);
+    const resumoNomes = nomes.length <= 3 ? nomes.join(", ") : `${nomes.slice(0, 3).join(", ")} e mais ${nomes.length - 3}`;
+    const text = [
+      `*Construtora Senger — Seleção de ${enterprises.length === 1 ? "empreendimento" : "empreendimentos"}*`,
+      resumoNomes,
+      "",
+      "👇 Clique no link abaixo para ver cada um com fotos, valores e disponibilidade:",
+      listClientLink(enterprises),
+    ].join("\n");
+    sendShare(text, "Seleção Construtora Senger", [coverPhoto(enterprises[0])]);
   }
 
   const semPonto = (texto = "") => String(texto).trim().replace(/\.$/, "");
@@ -1498,6 +1526,7 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
   }
 
   if (CLIENT_MODE) document.body.classList.add("client-mode");
+  if (CLIENT_LIST_IDS) document.body.classList.add("client-list");
   buildInventory();
   renderMetadata();
   renderFilters();

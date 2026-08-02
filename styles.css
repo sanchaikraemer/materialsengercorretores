@@ -676,6 +676,16 @@ img { max-width: 100%; display: block; }
 .client-mode #unidades .section-title-row p,
 .client-mode .inventory-toolbar { display: none !important; }
 
+/* v90 — link de LISTA (?cliente&lista=...): a home vira a vitrine do cliente. Os controles
+   da equipe na home somem; o "voltar" do detalhe REAPARECE (na lista o cliente navega entre
+   os empreendimentos escolhidos e volta pra vitrine). */
+.client-mode .card-pick,
+.client-mode .card-share,
+.client-mode #clear-picks,
+.client-mode #share-portfolio,
+.client-mode #print-list { display: none !important; }
+.client-mode.client-list .detail-back { display: inline-flex !important; }
+
 /* Aviso de instalacao do app */
 .install-banner {
   position: fixed;
