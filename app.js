@@ -827,7 +827,90 @@
     return `${location.origin}${location.pathname}?cliente&lista=${ids}`;
   }
 
-  function sharePortfolio() {
+  function carregarImagem(src) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+      img.src = src;
+    });
+  }
+
+  // v91 — a imagem da mensagem e um MOSAICO "cartoes claros" (modelo escolhido pelo dono entre
+  // 4 propostas): fundo claro, cada foto num cartao branco com nome e cidade embaixo. Mandar so
+  // a capa do primeiro dava a impressao de que o link era so dele (segunda reclamacao do dono
+  // sobre o mesmo sintoma). Regra da grade: 2 colunas; quantidade impar deixa o ULTIMO cartao
+  // centralizado sozinho (2+1, 2+2+1 — sem buraco). Ate 6 fotos; com 7+, o ultimo quadro vira
+  // um cartao "+N veja no link" — e a vitrine do link mostra todos de qualquer jeito.
+  async function montarMosaicoLista(enterprises) {
+    if (enterprises.length < 2) return null; // 1 so: a capa dele e a imagem certa
+    const MAX = 6;
+    const visiveis = enterprises.length > MAX ? enterprises.slice(0, MAX - 1) : enterprises.slice(0, MAX);
+    const extras = enterprises.length - visiveis.length;
+    const imgs = await Promise.all(visiveis.map((emp) => carregarImagem(assetUrl(cardImage(emp)))));
+    const blocos = visiveis.map((emp, i) => ({ emp, img: imgs[i] })).filter((b) => b.img);
+    if (blocos.length < 2) return null;
+    const total = blocos.length + (extras > 0 ? 1 : 0);
+    const CW = 700, PH = 430, PAD = 18, LBL = 110, GAP = 26;
+    const CARD_H = PH + LBL + PAD * 2;
+    const rows = Math.ceil(total / 2);
+    const canvas = document.createElement("canvas");
+    canvas.width = CW * 2 + GAP * 3;
+    canvas.height = CARD_H * rows + GAP * (rows + 1);
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#eef2f4";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const posDoCartao = (i) => {
+      const ultimoSozinho = (i === total - 1) && (total % 2 === 1);
+      return {
+        x: ultimoSozinho ? (canvas.width - CW) / 2 : GAP + (i % 2) * (CW + GAP),
+        y: GAP + Math.floor(i / 2) * (CARD_H + GAP)
+      };
+    };
+    const cartaoBranco = (x, y) => {
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.roundRect(x, y, CW, CARD_H, 22);
+      ctx.fill();
+    };
+    blocos.forEach((bloco, i) => {
+      const { x, y } = posDoCartao(i);
+      cartaoBranco(x, y);
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(x + PAD, y + PAD, CW - PAD * 2, PH, 14);
+      ctx.clip();
+      // corte tipo "cover": preenche o quadro sem distorcer a foto
+      const esc = Math.max((CW - PAD * 2) / bloco.img.width, PH / bloco.img.height);
+      const w = bloco.img.width * esc, h = bloco.img.height * esc;
+      ctx.drawImage(bloco.img, x + PAD + (CW - PAD * 2 - w) / 2, y + PAD + (PH - h) / 2, w, h);
+      ctx.restore();
+      ctx.fillStyle = "#12262e";
+      ctx.font = "700 40px system-ui, -apple-system, sans-serif";
+      ctx.textBaseline = "top";
+      ctx.fillText(bloco.emp.nome, x + PAD + 6, y + PAD + PH + 16, CW - PAD * 2 - 12);
+      ctx.fillStyle = "#5b7078";
+      ctx.font = "500 30px system-ui, -apple-system, sans-serif";
+      ctx.fillText(bloco.emp.cidade, x + PAD + 6, y + PAD + PH + 64, CW - PAD * 2 - 12);
+    });
+    if (extras > 0) {
+      const { x, y } = posDoCartao(total - 1);
+      cartaoBranco(x, y);
+      ctx.fillStyle = "#12262e";
+      ctx.textAlign = "center";
+      ctx.font = "800 110px system-ui, -apple-system, sans-serif";
+      ctx.textBaseline = "middle";
+      ctx.fillText(`+${extras}`, x + CW / 2, y + CARD_H / 2 - 34);
+      ctx.fillStyle = "#5b7078";
+      ctx.font = "600 36px system-ui, -apple-system, sans-serif";
+      ctx.fillText("veja no link", x + CW / 2, y + CARD_H / 2 + 56);
+      ctx.textAlign = "left";
+    }
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.86));
+    return blob ? new File([blob], "selecao-senger.jpg", { type: "image/jpeg" }) : null;
+  }
+
+  async function sharePortfolio() {
     const enterprises = portfolioList();
     if (!enterprises.length) return;
     const nomes = enterprises.map((emp) => emp.nome);
@@ -839,7 +922,21 @@
       "👇 Clique no link abaixo para ver cada um com fotos, valores e disponibilidade:",
       listClientLink(enterprises),
     ].join("\n");
-    sendShare(text, "Seleção Construtora Senger", [coverPhoto(enterprises[0])]);
+    const title = "Seleção Construtora Senger";
+    if (navigator.share) {
+      const file = enterprises.length === 1
+        ? await loadShareFile(assetUrl(cardImage(enterprises[0])))
+        : await montarMosaicoLista(enterprises);
+      if (file && navigator.canShare && navigator.canShare({ title, text, files: [file] })) {
+        try { await navigator.share({ title, text, files: [file] }); return; }
+        catch (error) { if (error?.name === "AbortError") return; }
+      }
+      // Sem mosaico, melhor SEM foto do que com a foto de um so (a previa do link mostra a
+      // imagem generica da marca — neutra, nao engana o cliente).
+      try { await navigator.share({ title, text }); return; }
+      catch (error) { if (error?.name === "AbortError") return; }
+    }
+    openShareModal(text, enterprises.map(coverPhoto));
   }
 
   const semPonto = (texto = "") => String(texto).trim().replace(/\.$/, "");
