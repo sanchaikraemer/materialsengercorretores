@@ -1413,6 +1413,42 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
     }
   }
 
+  // Instalacao como app (PWA). O navegador dispara beforeinstallprompt quando
+  // da para instalar — e nunca dispara se o app ja esta instalado ou se a
+  // pagina ja abriu pelo app, entao o aviso some sozinho nesses casos.
+  let installPrompt = null;
+  const INSTALL_DISMISS_KEY = "senger-install-adiado";
+  const isStandalone = () => window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+
+  window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault();
+    if (CLIENT_MODE || isStandalone()) return;
+    const adiadoEm = Number(storage.get(INSTALL_DISMISS_KEY, "0"));
+    if (adiadoEm && Date.now() - adiadoEm < 7 * 24 * 60 * 60 * 1000) return;
+    installPrompt = event;
+    document.getElementById("install-banner").hidden = false;
+  });
+
+  window.addEventListener("appinstalled", () => {
+    document.getElementById("install-banner").hidden = true;
+    installPrompt = null;
+    showToast("Aplicativo instalado! Procure o ícone Senger na tela inicial.");
+  });
+
+  function bindInstallEvents() {
+    document.getElementById("install-app").addEventListener("click", async () => {
+      if (!installPrompt) return;
+      document.getElementById("install-banner").hidden = true;
+      installPrompt.prompt();
+      try { await installPrompt.userChoice; } catch (_) { /* usuario fechou o dialogo */ }
+      installPrompt = null;
+    });
+    document.getElementById("install-dismiss").addEventListener("click", () => {
+      document.getElementById("install-banner").hidden = true;
+      storage.set(INSTALL_DISMISS_KEY, String(Date.now()));
+    });
+  }
+
   function setText(id, value) {
     const element = document.getElementById(id);
     if (element) element.textContent = value;
@@ -1424,6 +1460,7 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
   }
 
   function bindGlobalEvents() {
+    bindInstallEvents();
     document.getElementById("brand-home").addEventListener("click", navigateHome);
     document.getElementById("print-catalog").addEventListener("click", printPortfolio);
     document.getElementById("print-list").addEventListener("click", printPortfolio);

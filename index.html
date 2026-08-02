@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="styles.css?v=88">
+  <link rel="stylesheet" href="styles.css?v=89">
 </head>
 <body>
   <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
@@ -176,6 +176,17 @@
     </div>
   </aside>
 
+  <!-- Aviso de instalacao do app (PWA); some depois de instalado. -->
+  <div class="install-banner" id="install-banner" hidden>
+    <img src="icons/icon-192.png" alt="">
+    <div>
+      <strong>Instalar aplicativo</strong>
+      <span>O ícone Senger vai direto para a sua tela inicial.</span>
+    </div>
+    <button class="button button-primary" type="button" id="install-app">Instalar</button>
+    <button class="icon-button" type="button" id="install-dismiss" aria-label="Agora não">×</button>
+  </div>
+
   <!-- Escolha de como enviar uma unidade: mensagem pronta ou link travado. -->
   <div class="share-modal" id="send-choice" aria-hidden="true">
     <div class="share-modal-backdrop" data-close-choice></div>
@@ -210,7 +221,7 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="data.js?v=88"></script>
-  <script src="app.js?v=88"></script>
+  <script src="data.js?v=89"></script>
+  <script src="app.js?v=89"></script>
 </body>
 </html>

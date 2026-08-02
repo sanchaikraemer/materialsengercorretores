@@ -676,6 +676,31 @@ img { max-width: 100%; display: block; }
 .client-mode #unidades .section-title-row p,
 .client-mode .inventory-toolbar { display: none !important; }
 
+/* Aviso de instalacao do app */
+.install-banner {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  z-index: 210;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  max-width: 520px;
+  margin-inline: auto;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+}
+.install-banner img { width: 46px; height: 46px; border-radius: 10px; border: 1px solid var(--line); }
+.install-banner > div { flex: 1; min-width: 0; }
+.install-banner strong { display: block; font-size: 14.5px; }
+.install-banner span { color: var(--muted); font-size: 12.5px; }
+.install-banner .icon-button { width: 36px; height: 36px; font-size: 20px; flex: 0 0 auto; }
+.client-mode .install-banner { display: none !important; }
+
 /* Modal de escolha de envio da unidade */
 .send-choice-panel { grid-template-rows: auto auto; }
 .send-choice-actions { display: grid; gap: 12px; padding: 20px 24px 26px; }
@@ -744,7 +769,7 @@ tr.unit-highlight td:first-child { box-shadow: inset 4px 0 0 var(--brand); }
 
     *, *::before, *::after { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   body { background: #fff !important; color: #000; }
-  .skip-link, .site-header, .hero-actions, .filter-panel, .results-bar, .site-footer, .selection-fab, .selection-drawer, .share-modal, .toast, .detail-actions, .unit-actions, .mobile-unit-actions, .detail-back, .card-footer, .card-open-overlay, .card-pick { display: none !important; }
+  .skip-link, .site-header, .hero-actions, .filter-panel, .results-bar, .site-footer, .selection-fab, .selection-drawer, .share-modal, .toast, .detail-actions, .unit-actions, .mobile-unit-actions, .detail-back, .card-footer, .card-open-overlay, .card-pick, .install-banner { display: none !important; }
   /* Com empreendimentos marcados, o PDF sai so com a lista escolhida. */
   .portfolio-card.is-unpicked { display: none !important; }
   img { break-inside: avoid; }
