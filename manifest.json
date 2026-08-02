@@ -4,7 +4,7 @@
   "description": "Portfólio comercial, preços e disponibilidade dos empreendimentos da Construtora Senger.",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#f4f6f7",
+  "background_color": "#ffffff",
   "theme_color": "#182129",
   "icons": [
     {
