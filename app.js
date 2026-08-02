@@ -836,12 +836,14 @@
     });
   }
 
-  // v91 — a imagem da mensagem e um MOSAICO "cartoes claros" (modelo escolhido pelo dono entre
-  // 4 propostas): fundo claro, cada foto num cartao branco com nome e cidade embaixo. Mandar so
-  // a capa do primeiro dava a impressao de que o link era so dele (segunda reclamacao do dono
-  // sobre o mesmo sintoma). Regra da grade: 2 colunas; quantidade impar deixa o ULTIMO cartao
-  // centralizado sozinho (2+1, 2+2+1 — sem buraco). Ate 6 fotos; com 7+, o ultimo quadro vira
-  // um cartao "+N veja no link" — e a vitrine do link mostra todos de qualquer jeito.
+  // v92 — a imagem da mensagem e um BANNER DE FAIXAS DIAGONAIS (estilo escolhido pelo dono a
+  // partir de um exemplo real de material de lancamento): as fachadas dividem a faixa em
+  // diagonais separadas por filetes bronze, com o cabecalho da marca em serifada e o nome de
+  // cada empreendimento discreto na base da faixa. SEM preco (decisao dele: valor fica pro
+  // link e pra conversa). Qualquer quantidade fecha a linha sem sobrar espaco; ate 6 fotos —
+  // com 7+, a ultima faixa vira "+N veja no link". Historico: a v90 mandava so a capa do
+  // primeiro (vetado), a v91 usou cartoes claros (vetado como simples demais pra imovel de
+  // R$ 1 milhao+).
   async function montarMosaicoLista(enterprises) {
     if (enterprises.length < 2) return null; // 1 so: a capa dele e a imagem certa
     const MAX = 6;
@@ -851,62 +853,97 @@
     const blocos = visiveis.map((emp, i) => ({ emp, img: imgs[i] })).filter((b) => b.img);
     if (blocos.length < 2) return null;
     const total = blocos.length + (extras > 0 ? 1 : 0);
-    const CW = 700, PH = 430, PAD = 18, LBL = 110, GAP = 26;
-    const CARD_H = PH + LBL + PAD * 2;
-    const rows = Math.ceil(total / 2);
+    const SERIF = "Georgia, 'Times New Roman', serif";
+    const SANS = "system-ui, -apple-system, sans-serif";
+    const BRONZE = "#b08d57";
+    const W = 1500, BANNER = 680, HEAD = 120, FOOT = 110, SKEW = 110, LINHA = 7;
     const canvas = document.createElement("canvas");
-    canvas.width = CW * 2 + GAP * 3;
-    canvas.height = CARD_H * rows + GAP * (rows + 1);
+    canvas.width = W;
+    canvas.height = HEAD + BANNER + FOOT;
     const ctx = canvas.getContext("2d");
-    ctx.fillStyle = "#eef2f4";
+    ctx.fillStyle = "#14181c";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    const posDoCartao = (i) => {
-      const ultimoSozinho = (i === total - 1) && (total % 2 === 1);
-      return {
-        x: ultimoSozinho ? (canvas.width - CW) / 2 : GAP + (i % 2) * (CW + GAP),
-        y: GAP + Math.floor(i / 2) * (CARD_H + GAP)
-      };
+    ctx.fillStyle = "#f4efe8";
+    ctx.font = `600 44px ${SERIF}`;
+    ctx.textBaseline = "middle";
+    ctx.textAlign = "center";
+    ctx.fillText("Construtora Senger", W / 2, 52);
+    ctx.font = `500 24px ${SANS}`;
+    ctx.fillStyle = BRONZE;
+    ctx.fillText("SELEÇÃO EXCLUSIVA DE EMPREENDIMENTOS", W / 2, 96);
+    const y0 = HEAD, y1 = HEAD + BANNER;
+    const passo = (W + SKEW) / total;
+    const cover = (img, x, y, w, h) => {
+      const s = Math.max(w / img.width, h / img.height);
+      const iw = img.width * s, ih = img.height * s;
+      ctx.drawImage(img, x + (w - iw) / 2, y + (h - ih) / 2, iw, ih);
     };
-    const cartaoBranco = (x, y) => {
-      ctx.fillStyle = "#ffffff";
-      ctx.beginPath();
-      ctx.roundRect(x, y, CW, CARD_H, 22);
-      ctx.fill();
-    };
-    blocos.forEach((bloco, i) => {
-      const { x, y } = posDoCartao(i);
-      cartaoBranco(x, y);
+    const faixa = (i, pintar) => {
+      const xTopo = -SKEW + i * passo, xBase = xTopo + SKEW;
       ctx.save();
       ctx.beginPath();
-      ctx.roundRect(x + PAD, y + PAD, CW - PAD * 2, PH, 14);
+      ctx.moveTo(xTopo + (i === 0 ? -SKEW : 0), y0);
+      ctx.lineTo(xTopo + passo, y0);
+      ctx.lineTo(xBase + passo, y1);
+      ctx.lineTo(xBase + (i === 0 ? -SKEW : 0), y1);
+      ctx.closePath();
       ctx.clip();
-      // corte tipo "cover": preenche o quadro sem distorcer a foto
-      const esc = Math.max((CW - PAD * 2) / bloco.img.width, PH / bloco.img.height);
-      const w = bloco.img.width * esc, h = bloco.img.height * esc;
-      ctx.drawImage(bloco.img, x + PAD + (CW - PAD * 2 - w) / 2, y + PAD + (PH - h) / 2, w, h);
+      pintar(xTopo, xBase);
       ctx.restore();
-      ctx.fillStyle = "#12262e";
-      ctx.font = "700 40px system-ui, -apple-system, sans-serif";
-      ctx.textBaseline = "top";
-      ctx.fillText(bloco.emp.nome, x + PAD + 6, y + PAD + PH + 16, CW - PAD * 2 - 12);
-      ctx.fillStyle = "#5b7078";
-      ctx.font = "500 30px system-ui, -apple-system, sans-serif";
-      ctx.fillText(bloco.emp.cidade, x + PAD + 6, y + PAD + PH + 64, CW - PAD * 2 - 12);
-    });
-    if (extras > 0) {
-      const { x, y } = posDoCartao(total - 1);
-      cartaoBranco(x, y);
-      ctx.fillStyle = "#12262e";
+      if (i > 0) { // filete bronze na divisa
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(xTopo - LINHA / 2, y0);
+        ctx.lineTo(xTopo + LINHA / 2, y0);
+        ctx.lineTo(xBase + LINHA / 2, y1);
+        ctx.lineTo(xBase - LINHA / 2, y1);
+        ctx.closePath();
+        const lg = ctx.createLinearGradient(0, y0, 0, y1);
+        lg.addColorStop(0, "#d8b87e");
+        lg.addColorStop(0.5, "#b08d57");
+        lg.addColorStop(1, "#d8b87e");
+        ctx.fillStyle = lg;
+        ctx.fill();
+        ctx.restore();
+      }
+    };
+    blocos.forEach((bloco, i) => faixa(i, (xTopo) => {
+      cover(bloco.img, Math.max(0, xTopo - 140), y0, passo + 280, BANNER);
+      const cx = xTopo + passo / 2 + SKEW / 2;
+      const grad = ctx.createLinearGradient(0, y1 - 120, 0, y1);
+      grad.addColorStop(0, "rgba(0,0,0,0)");
+      grad.addColorStop(1, "rgba(0,0,0,.78)");
+      ctx.fillStyle = grad;
+      ctx.fillRect(xTopo - SKEW, y1 - 120, passo + SKEW * 2, 120);
+      ctx.fillStyle = "#f4efe8";
       ctx.textAlign = "center";
-      ctx.font = "800 110px system-ui, -apple-system, sans-serif";
+      ctx.font = `600 ${total > 4 ? 26 : 32}px ${SERIF}`;
+      ctx.textBaseline = "bottom";
+      ctx.fillText(bloco.emp.nome, cx, y1 - 18, passo - 30);
+    }));
+    if (extras > 0) faixa(total - 1, (xTopo) => {
+      ctx.fillStyle = "#1d242c";
+      ctx.fillRect(xTopo - SKEW, y0, passo + SKEW * 2, BANNER);
+      // centro recuado da borda pra caber o "veja no link" inteiro na ultima faixa
+      const cx = Math.min(xTopo + passo / 2 + SKEW / 2, W - 130);
+      ctx.fillStyle = "#f4efe8";
+      ctx.textAlign = "center";
+      ctx.font = `700 96px ${SERIF}`;
       ctx.textBaseline = "middle";
-      ctx.fillText(`+${extras}`, x + CW / 2, y + CARD_H / 2 - 34);
-      ctx.fillStyle = "#5b7078";
-      ctx.font = "600 36px system-ui, -apple-system, sans-serif";
-      ctx.fillText("veja no link", x + CW / 2, y + CARD_H / 2 + 56);
-      ctx.textAlign = "left";
-    }
-    const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.86));
+      ctx.fillText(`+${extras}`, cx, y0 + BANNER / 2 - 26);
+      ctx.fillStyle = BRONZE;
+      ctx.font = `500 28px ${SANS}`;
+      ctx.fillText("veja no link", cx, y0 + BANNER / 2 + 48);
+    });
+    ctx.fillStyle = BRONZE;
+    ctx.fillRect(0, y1, W, 3);
+    ctx.fillStyle = "#9aa4ab";
+    ctx.textAlign = "center";
+    ctx.font = `500 26px ${SANS}`;
+    ctx.textBaseline = "middle";
+    ctx.fillText("Fotos, valores e disponibilidade no link", W / 2, y1 + FOOT / 2 + 2);
+    ctx.textAlign = "left";
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.88));
     return blob ? new File([blob], "selecao-senger.jpg", { type: "image/jpeg" }) : null;
   }
 
