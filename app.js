@@ -368,6 +368,26 @@
       const statusClass = emp.status === "pronto" ? "pronto" : "obra";
       const typeLabel = CATEGORY_LABELS[emp.categoria] || emp.categoria;
       const napista = state.picks.has(emp.id);
+      // v95 — link de selecao (?sel=): o cartao da vitrine mostra AS UNIDADES escolhidas com o
+      // valor de cada uma, no lugar dos numeros do predio inteiro ("43 opcoes ativas / a partir
+      // de...") — senao parece que a escolha do corretor se perdeu no caminho.
+      const selCodes = CLIENT_SEL ? CLIENT_SEL.get(emp.id) : null;
+      const selUnits = selCodes ? itemsFor(emp).filter((it) => selCodes.has(String(it.code))) : null;
+      const metricas = selUnits && selUnits.length ? `
+            <div class="card-units-sel">
+              <span>${selUnits.length === 1 ? "Unidade escolhida para você" : "Unidades escolhidas para você"}</span>
+              ${selUnits.slice(0, 4).map((it) => `<div class="card-unit-line"><strong>${escapeHtml(itemLabel(it))}</strong><strong class="price-value">${money(it.price)}</strong></div>`).join("")}
+              ${selUnits.length > 4 ? `<div class="card-unit-line"><strong>e mais ${selUnits.length - 4} no detalhe…</strong></div>` : ""}
+            </div>` : `
+            <div class="card-metrics">
+              <div class="card-metric"><span>Opções ativas</span><strong>${active.length}</strong></div>
+              <div class="card-metric card-price-panel">
+                <span class="card-price-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" focusable="false"><path d="M4 21V8.5L12 4l8 4.5V21M8 21v-8h8v8M9 9h.01M12 9h.01M15 9h.01"/></svg>
+                </span>
+                <span class="card-price-copy"><span>A partir de</span><strong class="price-value">${minimum ? money(minimum) : "Sob consulta"}</strong></span>
+              </div>
+            </div>`;
       return `
         <article class="portfolio-card${filtrando && !napista ? " is-unpicked" : ""}">
           <div class="card-media">
@@ -383,18 +403,10 @@
             <span class="card-kicker">${escapeHtml(emp.cidade)}</span>
             <h3 class="card-title">${escapeHtml(emp.nome)}</h3>
             <p class="card-tagline">${escapeHtml(emp.tagline || emp.entrega || "Consulte informações e disponibilidade.")}</p>
-            <div class="card-metrics">
-              <div class="card-metric"><span>Opções ativas</span><strong>${active.length}</strong></div>
-              <div class="card-metric card-price-panel">
-                <span class="card-price-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" focusable="false"><path d="M4 21V8.5L12 4l8 4.5V21M8 21v-8h8v8M9 9h.01M12 9h.01M15 9h.01"/></svg>
-                </span>
-                <span class="card-price-copy"><span>A partir de</span><strong class="price-value">${minimum ? money(minimum) : "Sob consulta"}</strong></span>
-              </div>
-            </div>
+            ${metricas}
           </div>
           <div class="card-footer">
-            <span class="button button-dark card-open-label" aria-hidden="true">Ver empreendimento</span>
+            <span class="button button-dark card-open-label" aria-hidden="true">${selUnits && selUnits.length ? (selUnits.length > 1 ? "Ver minhas unidades" : "Ver minha unidade") : "Ver empreendimento"}</span>
             <button class="card-share" type="button" data-share-emp="${emp.id}" aria-label="Compartilhar ${escapeHtml(emp.nome)}">↗</button>
           </div>
           <a class="card-open-overlay" href="#emp-${emp.id}" aria-label="Abrir detalhes do empreendimento ${escapeHtml(emp.nome)}"></a>

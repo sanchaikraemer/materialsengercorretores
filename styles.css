@@ -676,6 +676,14 @@ img { max-width: 100%; display: block; }
 .client-mode #unidades .section-title-row p,
 .client-mode .inventory-toolbar { display: none !important; }
 
+/* v95 — link de SELECAO (?cliente&sel=...): o cartao da vitrine lista as unidades escolhidas
+   com o valor de cada uma, no lugar das metricas do predio inteiro. */
+.card-units-sel { display: grid; gap: 7px; margin-top: 14px; padding: 12px 14px; background: var(--brand-soft); border: 1px solid var(--line); border-radius: 12px; }
+.card-units-sel > span { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--brand); }
+.card-unit-line { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 14.5px; }
+.card-unit-line strong { color: var(--ink); }
+.card-unit-line .price-value { white-space: nowrap; }
+
 /* v90 — link de LISTA (?cliente&lista=...): a home vira a vitrine do cliente. Os controles
    da equipe na home somem; o "voltar" do detalhe REAPARECE (na lista o cliente navega entre
    os empreendimentos escolhidos e volta pra vitrine). */
