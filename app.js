@@ -153,6 +153,9 @@
             garage: group.garagem || "",
             tags: unit.tags || [],
             notes: unit.obs || group.obs || "",
+            // v96 — planta propria da unidade (ex.: Casa Suspensa tem uma por apto);
+            // sem ela, vale a planta da tipologia.
+            planta: unit.planta || group.planta || "",
           };
           items.push(item);
           itemMap.set(item.key, item);
@@ -544,7 +547,7 @@
     let humanizedPlants = media.filter((item) => isPlantMedia(item) && !/\.pdf(?:$|\?)/i.test(item.src || ""));
     let technicalPlants = media.filter((item) => isPlantMedia(item) && /\.pdf(?:$|\?)/i.test(item.src || ""));
     if (focusItems) {
-      const plantas = unique(focusItems.map((f) => f.group?.planta).filter(Boolean));
+      const plantas = unique(focusItems.map((f) => f.planta || f.group?.planta).filter(Boolean));
       humanizedPlants = plantas.length ? humanizedPlants.filter((item) => plantas.some((p) => (item.src || "").includes(p))) : [];
       technicalPlants = plantas.length ? technicalPlants.filter((item) => plantas.some((p) => (item.src || "").includes(p))) : [];
     }

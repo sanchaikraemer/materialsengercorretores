@@ -63,6 +63,10 @@ const EMPREENDIMENTOS = [
       { src: "assets/ren-planta-3s-superior.webp", legenda: "Planta humanizada — 3 suítes superior" },
       { src: "assets/ren-planta-2suites.jpg", legenda: "Planta humanizada — 2 suítes" },
       { src: "assets/ren-planta-504.webp", legenda: "Planta humanizada — Casa Suspensa 2 suítes (504)" },
+      { src: "assets/ren-planta-401.webp", legenda: "Planta humanizada — Casa Suspensa 3 suítes (401)" },
+      { src: "assets/ren-planta-402.webp", legenda: "Planta humanizada — Casa Suspensa 3 suítes (402)" },
+      { src: "assets/ren-planta-1301.webp", legenda: "Planta humanizada — Casa Suspensa 3 suítes (1301)" },
+      { src: "assets/ren-planta-1302.webp", legenda: "Planta humanizada — Casa Suspensa 3 suítes (1302)" },
       { src: "assets/ren-planta-604.webp", legenda: "Planta humanizada — 2 suítes (final 04)" },
     ],
     grupos: [
@@ -72,10 +76,10 @@ const EMPREENDIMENTOS = [
         garagem: "Box opcional (consultar)",
         obs: "Plantas exclusivas — pavimentos 4 e 13. Valor sem box de garagem.",
         unidades: [
-          { apto: "401", preco: 1490000, status: "disponivel", areaUnit: "358 m² global · 258 m² privativo", tags: ["Terraço"] },
-          { apto: "402", preco: 1490000, status: "disponivel", areaUnit: "385 m² global · 280 m² privativo", tags: ["Terraço"] },
-          { apto: "1301", preco: 1590000, status: "disponivel", areaUnit: "306 m² global · 208 m² privativo", tags: ["Terraço"] },
-          { apto: "1302", preco: 1590000, status: "disponivel", areaUnit: "306 m² global · 208 m² privativo", tags: ["Terraço"] },
+          { apto: "401", preco: 1490000, status: "disponivel", areaUnit: "358 m² global · 258 m² privativo", tags: ["Terraço"], planta: "ren-planta-401" },
+          { apto: "402", preco: 1490000, status: "disponivel", areaUnit: "385 m² global · 280 m² privativo", tags: ["Terraço"], planta: "ren-planta-402" },
+          { apto: "1301", preco: 1590000, status: "disponivel", areaUnit: "306 m² global · 208 m² privativo", tags: ["Terraço"], planta: "ren-planta-1301" },
+          { apto: "1302", preco: 1590000, status: "disponivel", areaUnit: "306 m² global · 208 m² privativo", tags: ["Terraço"], planta: "ren-planta-1302" },
         ],
       },
       {
