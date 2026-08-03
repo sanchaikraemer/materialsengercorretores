@@ -62,10 +62,32 @@
   // esses empreendimentos (cada um com a sua foto), navegando entre eles e mais nada. Substitui
   // o envio da lista como texto: o WhatsApp so mostra UMA imagem de previa por mensagem, entao
   // o texto antigo saia com a foto do primeiro empreendimento e os demais "pelados" — confuso.
+  // v94 — link de SELECAO DE UNIDADES (?cliente&sel=emp~cod,emp~cod,...): o cliente ve so as
+  // unidades escolhidas, de um ou de varios empreendimentos. Cada pedaco e "empId~codigo"
+  // (o ~ separa, porque codigo pode ter hifen). E o mesmo tratamento do ?u= de uma unidade,
+  // agora valendo pra selecao inteira do carrinho.
+  const CLIENT_SEL = (() => {
+    if (!CLIENT_MODE) return null;
+    const raw = String(new URLSearchParams(location.search).get("sel") || "").trim();
+    if (!raw) return null;
+    const porEmp = new Map();
+    raw.split(",").map((s) => s.trim()).filter(Boolean).forEach((par) => {
+      const corte = par.indexOf("~");
+      if (corte < 1) return;
+      const empId = par.slice(0, corte);
+      const code = par.slice(corte + 1);
+      if (!code) return;
+      if (!porEmp.has(empId)) porEmp.set(empId, new Set());
+      porEmp.get(empId).add(code);
+    });
+    return porEmp.size ? porEmp : null;
+  })();
+
   const CLIENT_LIST_IDS = (() => {
     if (!CLIENT_MODE) return null;
     const raw = String(new URLSearchParams(location.search).get("lista") || "").trim();
-    if (!raw) return null;
+    // Sem lista= mas com sel=: a vitrine mostra os empreendimentos das unidades escolhidas.
+    if (!raw) return CLIENT_SEL ? [...CLIENT_SEL.keys()] : null;
     const ids = raw.split(",").map((s) => s.trim()).filter(Boolean);
     return ids.length ? ids : null;
   })();
@@ -490,19 +512,29 @@
     // Link do cliente com unidade (?cliente&u=501): a pagina mostra so essa
     // unidade — sem os precos das demais nem as plantas das outras tipologias.
     const unitParam = new URLSearchParams(location.search).get("u");
-    const focusItem = CLIENT_MODE && unitParam
-      ? itemsFor(emp).find((it) => String(it.code) === unitParam) || null
-      : null;
-    const inventory = renderInventory(emp, focusItem);
+    // v94 — o foco pode ser UMA unidade (?u=) ou a SELECAO (?sel=): sempre uma lista.
+    const focusItems = (() => {
+      if (!CLIENT_MODE) return null;
+      if (unitParam) {
+        const unico = itemsFor(emp).find((it) => String(it.code) === unitParam);
+        return unico ? [unico] : null;
+      }
+      const codes = CLIENT_SEL ? CLIENT_SEL.get(emp.id) : null;
+      if (!codes) return null;
+      const escolhidos = itemsFor(emp).filter((it) => codes.has(String(it.code)));
+      return escolhidos.length ? escolhidos : null;
+    })();
+    const focusItem = focusItems && focusItems.length === 1 ? focusItems[0] : null;
+    const inventory = renderInventory(emp, focusItems);
 
     const isPlantMedia = (item) => /planta/i.test(`${item?.src || ""} ${item?.legenda || ""}`);
     const photoMedia = media.filter((item) => !isPlantMedia(item)).slice(0, 12);
     let humanizedPlants = media.filter((item) => isPlantMedia(item) && !/\.pdf(?:$|\?)/i.test(item.src || ""));
     let technicalPlants = media.filter((item) => isPlantMedia(item) && /\.pdf(?:$|\?)/i.test(item.src || ""));
-    if (focusItem) {
-      const plantaId = focusItem.group?.planta || "";
-      humanizedPlants = plantaId ? humanizedPlants.filter((item) => (item.src || "").includes(plantaId)) : [];
-      technicalPlants = plantaId ? technicalPlants.filter((item) => (item.src || "").includes(plantaId)) : [];
+    if (focusItems) {
+      const plantas = unique(focusItems.map((f) => f.group?.planta).filter(Boolean));
+      humanizedPlants = plantas.length ? humanizedPlants.filter((item) => plantas.some((p) => (item.src || "").includes(p))) : [];
+      technicalPlants = plantas.length ? technicalPlants.filter((item) => plantas.some((p) => (item.src || "").includes(p))) : [];
     }
 
     const THUMB_W = 84;
@@ -667,22 +699,23 @@
     window.scrollTo({ top: 0, behavior: "auto" });
   }
 
-  function renderInventory(emp, focusItem = null) {
-    if ((emp.grupos || []).length) return renderUnitGroups(emp, focusItem);
-    if ((emp.terrenos || []).length) return renderLandInventory(emp, focusItem);
-    if ((emp.outros || []).length) return renderOtherInventory(emp, focusItem);
+  function renderInventory(emp, focusItems = null) {
+    if ((emp.grupos || []).length) return renderUnitGroups(emp, focusItems);
+    if ((emp.terrenos || []).length) return renderLandInventory(emp, focusItems);
+    if ((emp.outros || []).length) return renderOtherInventory(emp, focusItems);
     return "";
   }
 
-  function renderUnitGroups(emp, focusItem = null) {
+  function renderUnitGroups(emp, focusItems = null) {
     const groups = emp.grupos || [];
+    const focusKeys = focusItems ? new Set(focusItems.map((f) => f.key)) : null;
     return `
       <section class="content-section" id="unidades">
-        <div class="section-title-row"><h2>${focusItem ? "Sua unidade" : "Unidades e valores"}</h2><p>Selecione opções para encaminhar ao cliente</p></div>
+        <div class="section-title-row"><h2>${focusItems ? (focusItems.length > 1 ? "Suas unidades" : "Sua unidade") : "Unidades e valores"}</h2><p>Selecione opções para encaminhar ao cliente</p></div>
         <div class="inventory-toolbar"><p>${marketableItems(emp).length} opções comercializáveis nesta tabela.</p></div>
         ${groups.map((group, groupIndex) => {
           let units = (group.unidades || []).map((unit, unitIndex) => itemMap.get(`${emp.id}:unit:${groupIndex}:${unitIndex}`));
-          if (focusItem) units = units.filter((it) => it && it.key === focusItem.key);
+          if (focusKeys) units = units.filter((it) => it && focusKeys.has(it.key));
           if (!units.length) return "";
           return `
             <article class="unit-group">
@@ -731,8 +764,9 @@
     `;
   }
 
-  function renderLandInventory(emp, focusItem = null) {
-    const items = focusItem ? itemsFor(emp).filter((it) => it.key === focusItem.key) : itemsFor(emp);
+  function renderLandInventory(emp, focusItems = null) {
+    const focusKeys = focusItems ? new Set(focusItems.map((f) => f.key)) : null;
+    const items = focusKeys ? itemsFor(emp).filter((it) => focusKeys.has(it.key)) : itemsFor(emp);
     return `
       <section class="content-section" id="unidades">
         <div class="section-title-row"><h2>Lotes e valores</h2><p>Disponibilidade por quadra e lote</p></div>
@@ -746,8 +780,9 @@
     `;
   }
 
-  function renderOtherInventory(emp, focusItem = null) {
-    const items = focusItem ? itemsFor(emp).filter((it) => it.key === focusItem.key) : itemsFor(emp);
+  function renderOtherInventory(emp, focusItems = null) {
+    const focusKeys = focusItems ? new Set(focusItems.map((f) => f.key)) : null;
+    const items = focusKeys ? itemsFor(emp).filter((it) => focusKeys.has(it.key)) : itemsFor(emp);
     return `
       <section class="content-section" id="unidades">
         <div class="section-title-row"><h2>Imóveis disponíveis</h2><p>Oportunidades complementares</p></div>
@@ -1332,6 +1367,37 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
     sendShare(selectedMessage(includePrices), "Seleção de imóveis", coverPhotosFor(items));
   }
 
+  // v94 — a selecao tambem vai como LINK (mesma janela que uma unidade sozinha ja tinha):
+  // o cliente abre a vitrine so com os empreendimentos escolhidos e, dentro de cada um,
+  // so as unidades selecionadas. Um empreendimento so: o link ja abre direto nele.
+  async function shareSelectionLink() {
+    const items = selectedItems();
+    if (!items.length) return;
+    closeDrawer();
+    const emps = [];
+    const vistos = new Set();
+    items.forEach((item) => { if (!vistos.has(item.emp.id)) { vistos.add(item.emp.id); emps.push(item.emp); } });
+    const sel = items.map((item) => `${item.emp.id}~${encodeURIComponent(String(item.code))}`).join(",");
+    const url = `${location.origin}${location.pathname}?cliente&sel=${sel}${emps.length === 1 ? `#emp-${emps[0].id}` : ""}`;
+    const linhas = [`*Construtora Senger — Seleção de ${items.length === 1 ? "imóvel" : "imóveis"}*`, ""];
+    items.forEach((item) => linhas.push(`• ${item.emp.nome} — ${itemLabel(item)}`));
+    linhas.push("", "👇 Clique no link abaixo para ver fotos, plantas, valores e todas as informações:", url);
+    const text = linhas.join("\n");
+    const title = "Seleção Construtora Senger";
+    if (navigator.share) {
+      const file = emps.length === 1
+        ? await loadShareFile(assetUrl(cardImage(emps[0])))
+        : await montarMosaicoLista(emps);
+      if (file && navigator.canShare && navigator.canShare({ title, text, files: [file] })) {
+        try { await navigator.share({ title, text, files: [file] }); return; }
+        catch (error) { if (error?.name === "AbortError") return; }
+      }
+      try { await navigator.share({ title, text }); return; }
+      catch (error) { if (error?.name === "AbortError") return; }
+    }
+    openShareModal(text, emps.map(coverPhoto));
+  }
+
   function selectedMessage(includePrices) {
     const items = selectedItems();
     const lines = ["*Seleção de imóveis — Construtora Senger*", ""];
@@ -1658,6 +1724,7 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
       renderRoute();
       showToast("Seleção limpa.");
     });
+    document.getElementById("share-selected-link").addEventListener("click", shareSelectionLink);
     document.getElementById("share-selected-prices").addEventListener("click", () => shareSelection(true));
     document.getElementById("share-selected-no-prices").addEventListener("click", () => shareSelection(false));
 
