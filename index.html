@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="styles.css?v=96">
+  <link rel="stylesheet" href="styles.css?v=97">
 </head>
 <body>
   <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
@@ -177,15 +177,19 @@
     </div>
   </aside>
 
-  <!-- Aviso de instalacao do app (PWA); some depois de instalado. -->
+  <!-- Aviso de instalacao do app (PWA); some depois de instalado. Modelo A escolhido pelo dono:
+       texto em cima, botao largo embaixo, "Agora nao" discreto. -->
   <div class="install-banner" id="install-banner" hidden>
-    <img src="icons/icon-192.png" alt="">
-    <div>
-      <strong>Instalar aplicativo</strong>
-      <span>O ícone Senger vai direto para a sua tela inicial.</span>
+    <div class="install-top">
+      <img src="icons/icon-192.png" alt="">
+      <div>
+        <strong>Instalar o app da Senger</strong>
+        <span>Acesso em um toque, direto da tela inicial.</span>
+      </div>
+      <button class="icon-button" type="button" id="install-dismiss" aria-label="Agora não">×</button>
     </div>
-    <button class="button button-primary" type="button" id="install-app">Instalar</button>
-    <button class="icon-button" type="button" id="install-dismiss" aria-label="Agora não">×</button>
+    <button class="button button-primary install-cta" type="button" id="install-app">Instalar agora</button>
+    <button class="install-later" type="button" id="install-later">Agora não</button>
   </div>
 
   <!-- Escolha de como enviar uma unidade: mensagem pronta ou link travado. -->
@@ -222,7 +226,7 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="data.js?v=96"></script>
-  <script src="app.js?v=96"></script>
+  <script src="data.js?v=97"></script>
+  <script src="app.js?v=97"></script>
 </body>
 </html>

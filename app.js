@@ -1705,10 +1705,13 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
       try { await installPrompt.userChoice; } catch (_) { /* usuario fechou o dialogo */ }
       installPrompt = null;
     });
-    document.getElementById("install-dismiss").addEventListener("click", () => {
+    const adiar = () => {
       document.getElementById("install-banner").hidden = true;
       storage.set(INSTALL_DISMISS_KEY, String(Date.now()));
-    });
+    };
+    document.getElementById("install-dismiss").addEventListener("click", adiar);
+    const depois = document.getElementById("install-later");
+    if (depois) depois.addEventListener("click", adiar);
   }
 
   function setText(id, value) {

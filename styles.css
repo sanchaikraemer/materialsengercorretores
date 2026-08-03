@@ -694,29 +694,33 @@ img { max-width: 100%; display: block; }
 .client-mode #print-list { display: none !important; }
 .client-mode.client-list .detail-back { display: inline-flex !important; }
 
-/* Aviso de instalacao do app */
+/* Aviso de instalacao do app — v97, modelo A escolhido pelo dono: cabecalho com icone e
+   texto, botao de instalar LARGO embaixo e "Agora nao" discreto (nada sobreposto). */
 .install-banner {
   position: fixed;
-  left: 16px;
-  right: 16px;
-  bottom: 16px;
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
   z-index: 210;
-  display: flex;
-  align-items: center;
-  gap: 14px;
   max-width: 520px;
   margin-inline: auto;
-  padding: 14px 16px;
+  padding: 16px 16px 8px;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
+  border-radius: 18px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, .35);
 }
-.install-banner img { width: 46px; height: 46px; border-radius: 10px; border: 1px solid var(--line); }
-.install-banner > div { flex: 1; min-width: 0; }
-.install-banner strong { display: block; font-size: 14.5px; }
-.install-banner span { color: var(--muted); font-size: 12.5px; }
-.install-banner .icon-button { width: 36px; height: 36px; font-size: 20px; flex: 0 0 auto; }
+.install-top { display: flex; align-items: flex-start; gap: 12px; }
+.install-top img { width: 44px; height: 44px; border-radius: 11px; border: 1px solid var(--line); }
+.install-top > div { flex: 1; min-width: 0; }
+.install-banner strong { display: block; font-size: 15.5px; }
+.install-banner span { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
+/* negrito e icone DENTRO da frase (instrucao do iPhone) seguem no fluxo do texto */
+.install-banner span strong { display: inline; font-size: inherit; color: var(--ink); }
+.install-banner span span { display: inline; font-size: inherit; margin: 0; }
+.install-banner .icon-button { width: 30px; height: 30px; font-size: 20px; flex: 0 0 auto; margin: -4px -4px 0 0; }
+.install-cta { display: block; width: 100%; margin-top: 13px; border-radius: 12px; }
+.install-later { display: block; width: 100%; margin-top: 2px; padding: 9px; border: 0; background: none; color: var(--muted); font-size: 13px; font-weight: 600; cursor: pointer; }
 .client-mode .install-banner { display: none !important; }
 
 /* Modal de escolha de envio da unidade */
