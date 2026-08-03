@@ -505,7 +505,6 @@ const EMPREENDIMENTOS = [
       { src: "assets/prime-6.jpg", legenda: "Hall de entrada" },
       { src: "assets/prime-5.jpg", legenda: "Fechadura biométrica" },
       { src: "assets/prime-planta.jpg", legenda: "Planta — 3 dormitórios (2 suítes)" },
-      { src: "assets/prime-map.jpg", legenda: "R. Venâncio Aires, 121 — Centro" },
     ],
     grupos: [
       {

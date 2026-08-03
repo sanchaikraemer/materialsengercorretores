@@ -1597,6 +1597,25 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
     showToast("Aplicativo instalado! Procure o ícone Senger na tela inicial.");
   });
 
+  // iPhone/iPad: o Safari NUNCA dispara beforeinstallprompt — a Apple so permite
+  // instalacao manual (Compartilhar → Adicionar a Tela de Inicio). Entao la o mesmo
+  // aviso aparece, mas ensinando o caminho em vez de oferecer um botao que nao existe.
+  const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+  function mostrarDicaInstalacaoIOS() {
+    if (!isIOS() || CLIENT_MODE || isStandalone()) return;
+    const adiadoEm = Number(storage.get(INSTALL_DISMISS_KEY, "0"));
+    if (adiadoEm && Date.now() - adiadoEm < 7 * 24 * 60 * 60 * 1000) return;
+    const banner = document.getElementById("install-banner");
+    banner.querySelector("strong").textContent = "Adicionar à tela inicial";
+    banner.querySelector("span").innerHTML =
+      "Toque em <strong>Compartilhar</strong> <span aria-hidden=\"true\">(&#x2BAD;)</span> " +
+      "e depois em <strong>&ldquo;Adicionar à Tela de Início&rdquo;</strong>.";
+    document.getElementById("install-app").hidden = true;
+    banner.hidden = false;
+  }
+
   function bindInstallEvents() {
     document.getElementById("install-app").addEventListener("click", async () => {
       if (!installPrompt) return;
@@ -1623,6 +1642,7 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
 
   function bindGlobalEvents() {
     bindInstallEvents();
+    mostrarDicaInstalacaoIOS();
     document.getElementById("brand-home").addEventListener("click", navigateHome);
     document.getElementById("print-catalog").addEventListener("click", printPortfolio);
     document.getElementById("print-list").addEventListener("click", printPortfolio);
