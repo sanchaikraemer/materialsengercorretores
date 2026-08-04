@@ -209,6 +209,7 @@ const EMPREENDIMENTOS = [
     grupos: [
       {
         tipo: "2 dormitórios (1 suíte)",
+        planta: "evo-p2",
         area: "99 m² global · 73 m² privativo",
         garagem: "01 box",
         unidades: [
@@ -221,6 +222,7 @@ const EMPREENDIMENTOS = [
       },
       {
         tipo: "2 dormitórios (1 suíte)",
+        planta: "evo-p2",
         area: "99 m² global · 73 m² privativo",
         garagem: "01 box",
         unidades: [
@@ -231,6 +233,7 @@ const EMPREENDIMENTOS = [
       },
       {
         tipo: "2 dormitórios (2 suítes)",
+        planta: "evo-p2",
         area: "118 m² global · 87 m² privativo",
         garagem: "01 box",
         unidades: [
@@ -240,6 +243,7 @@ const EMPREENDIMENTOS = [
       },
       {
         tipo: "3 dormitórios (3 suítes)",
+        planta: "evo-p3",
         area: "179 m² global · 132 m² privativo",
         garagem: "01 box duplo",
         unidades: [
@@ -471,6 +475,7 @@ const EMPREENDIMENTOS = [
     grupos: [
       {
         tipo: "3 suítes + lavabo",
+        planta: "perso-planta",
         area: "172 m² global · 132 m² privativo",
         garagem: "Box duplo",
         unidades: [
@@ -513,6 +518,7 @@ const EMPREENDIMENTOS = [
     grupos: [
       {
         tipo: "3 dormitórios (2 suítes)",
+        planta: "prime-planta",
         area: "124 m² global · 96 m² privativo",
         garagem: "Box duplo",
         unidades: [{ apto: "303", preco: 1180000, status: "disponivel", tags: ["Decorado"] }],

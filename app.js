@@ -563,8 +563,15 @@
     let technicalPlants = media.filter((item) => isPlantMedia(item) && /\.pdf(?:$|\?)/i.test(item.src || ""));
     if (focusItems) {
       const plantas = unique(focusItems.map((f) => f.planta || f.group?.planta).filter(Boolean));
-      humanizedPlants = plantas.length ? humanizedPlants.filter((item) => plantas.some((p) => (item.src || "").includes(p))) : [];
-      technicalPlants = plantas.length ? technicalPlants.filter((item) => plantas.some((p) => (item.src || "").includes(p))) : [];
+      // v101 — so filtra quando as unidades escolhidas APONTAM pra uma planta.
+      // Antes, se nao apontassem, a pagina do cliente ficava SEM PLANTA NENHUMA:
+      // um link de selecao do Evolutti nao mostrava planta alguma, porque nenhum
+      // grupo de la tinha a ligacao preenchida. Ficar sem planta e pior do que
+      // mostrar as do empreendimento, entao agora esse e o piso.
+      if (plantas.length) {
+        humanizedPlants = humanizedPlants.filter((item) => plantas.some((p) => (item.src || "").includes(p)));
+        technicalPlants = technicalPlants.filter((item) => plantas.some((p) => (item.src || "").includes(p)));
+      }
     }
 
     const THUMB_W = 84;
