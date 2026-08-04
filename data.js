@@ -185,7 +185,7 @@ const EMPREENDIMENTOS = [
     localizacao: "Carazinho/RS — edifício de esquina com posição solar privilegiada.",
     diferenciais: [
       { titulo: "Energia renovável", desc: "Placas solares para geração de energia no consumo do condomínio." },
-      { titulo: "Veículos elétricos", desc: "Estações de carregamento para carros elétricos em todos os boxes." },
+      { titulo: "Veículos elétricos", desc: "Suporte para carregamento de carros elétricos." },
       { titulo: "Comodidade", desc: "Persianas elétricas em todos os dormitórios, com acionamento por controle remoto." },
       { titulo: "Segurança", desc: "Fechaduras eletrônicas com biometria — nunca mais esqueça as chaves." },
       { titulo: "Lazer", desc: "Salão de festas, área fitness e bicicletário." },
