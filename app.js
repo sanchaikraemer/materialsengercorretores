@@ -862,18 +862,20 @@
   }
 
   function enterpriseMessage(emp, includePrices) {
-    const items = marketableItems(emp);
     const lines = [
       `*${emp.nome} — Construtora Senger*`,
       emp.cidade,
       emp.tagline || emp.entrega || "",
       "",
     ];
+    // v99 — a mensagem NAO diz mais quantas opcoes existem na tabela. Anunciar
+    // "43 opcoes comercializaveis" tirava a urgencia da venda: passava a ideia de
+    // que sobra escolha e da pra decidir depois. Decisao do dono, vale para todos
+    // os empreendimentos. A contagem segue na tela do corretor, que precisa dela.
     if (includePrices) {
       lines.push(`Valores a partir de: *${minPrice(emp) ? money(minPrice(emp)) : "sob consulta"}*`);
-      lines.push(`${items.length} ${items.length === 1 ? "opção comercializável" : "opções comercializáveis"} na tabela.`);
     } else {
-      lines.push(`${items.length} ${items.length === 1 ? "opção comercializável" : "opções comercializáveis"}. Consulte valores e condições.`);
+      lines.push("Consulte valores e condições.");
     }
     if (emp.entrega) lines.push(`Entrega: ${semPonto(emp.entrega)}`);
     lines.push("", `Tabela ${META.mesTabela || ""}. Valores e disponibilidade sujeitos a alteração.`);
