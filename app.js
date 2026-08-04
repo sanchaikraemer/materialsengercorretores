@@ -267,9 +267,13 @@
     setText("header-cities", citiesLabel);
     document.getElementById("header-cities")?.setAttribute("title", citiesLabel);
 
+    // v100 — o cliente nao ve mais quantas opcoes existem, em lugar nenhum:
+    // nem "182 opcoes a venda" aqui no topo, nem "Opcoes ativas" no cartao e na
+    // ficha, nem a barra acima do quadro de unidades. Dizer o tamanho do estoque
+    // tira a urgencia da venda. Decisao do dono. O corretor continua vendo tudo.
     const stats = [
       [EMPREENDIMENTOS.length, "empreendimentos"],
-      [marketable.length, "opções à venda"],
+      ...(CLIENT_MODE ? [] : [[marketable.length, "opções à venda"]]),
       [categories.length, "categorias"],
     ];
     document.getElementById("hero-stats").innerHTML = stats.map(([value, label]) => `
@@ -383,7 +387,7 @@
               ${selUnits.length > 4 ? `<div class="card-unit-line"><strong>e mais ${selUnits.length - 4} no detalhe…</strong></div>` : ""}
             </div>` : `
             <div class="card-metrics">
-              <div class="card-metric"><span>Opções ativas</span><strong>${active.length}</strong></div>
+              ${CLIENT_MODE ? "" : `<div class="card-metric"><span>Opções ativas</span><strong>${active.length}</strong></div>`}
               <div class="card-metric card-price-panel">
                 <span class="card-price-icon" aria-hidden="true">
                   <svg viewBox="0 0 24 24" focusable="false"><path d="M4 21V8.5L12 4l8 4.5V21M8 21v-8h8v8M9 9h.01M12 9h.01M15 9h.01"/></svg>
@@ -674,7 +678,7 @@
                 <div class="fact-card"><span>Unidades selecionadas</span><strong>${focusItems.length}</strong></div>
                 <div class="fact-card"><span>Valores</span><strong class="price-value">${focusRange}</strong></div>
               ` : `
-                <div class="fact-card"><span>Opções ativas</span><strong>${active.length}</strong></div>
+                ${CLIENT_MODE ? "" : `<div class="fact-card"><span>Opções ativas</span><strong>${active.length}</strong></div>`}
                 <div class="fact-card"><span>Preço inicial</span><strong class="price-value">${minimum ? money(minimum) : "Sob consulta"}</strong></div>
               `}
               <div class="fact-card"><span>Registro</span><strong>${escapeHtml((emp.ri || []).join(" · ") || "Não informado")}</strong></div>
@@ -741,7 +745,7 @@
     return `
       <section class="content-section" id="unidades">
         <div class="section-title-row"><h2>${focusItems ? (focusItems.length > 1 ? "Suas unidades" : "Sua unidade") : "Unidades e valores"}</h2><p>Selecione opções para encaminhar ao cliente</p></div>
-        <div class="inventory-toolbar"><p>${marketableItems(emp).length} opções comercializáveis nesta tabela.</p></div>
+        ${CLIENT_MODE ? "" : `<div class="inventory-toolbar"><p>${marketableItems(emp).length} opções comercializáveis nesta tabela.</p></div>`}
         ${groups.map((group, groupIndex) => {
           let units = (group.unidades || []).map((unit, unitIndex) => itemMap.get(`${emp.id}:unit:${groupIndex}:${unitIndex}`));
           if (focusKeys) units = units.filter((it) => it && focusKeys.has(it.key));
@@ -799,7 +803,7 @@
     return `
       <section class="content-section" id="unidades">
         <div class="section-title-row"><h2>Lotes e valores</h2><p>Disponibilidade por quadra e lote</p></div>
-        <div class="inventory-toolbar"><p>${marketableItems(emp).length} opções comercializáveis nesta tabela.</p></div>
+        ${CLIENT_MODE ? "" : `<div class="inventory-toolbar"><p>${marketableItems(emp).length} opções comercializáveis nesta tabela.</p></div>`}
         <table class="units-table">
           <thead><tr><th>Lote</th><th>Área</th><th>Rua</th><th>Status</th><th>Valor</th><th></th></tr></thead>
           <tbody>${items.map((item) => renderOpportunityRow(item, item.rua)).join("")}</tbody>
@@ -815,7 +819,7 @@
     return `
       <section class="content-section" id="unidades">
         <div class="section-title-row"><h2>Imóveis disponíveis</h2><p>Oportunidades complementares</p></div>
-        <div class="inventory-toolbar"><p>${marketableItems(emp).length} opções comercializáveis nesta tabela.</p></div>
+        ${CLIENT_MODE ? "" : `<div class="inventory-toolbar"><p>${marketableItems(emp).length} opções comercializáveis nesta tabela.</p></div>`}
         <table class="units-table">
           <thead><tr><th>Imóvel</th><th>Área</th><th>Local</th><th>Status</th><th>Valor</th><th></th></tr></thead>
           <tbody>${items.map((item) => renderOpportunityRow(item, item.local, item.description)).join("")}</tbody>
@@ -1252,8 +1256,21 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
     }, []);
   }
 
+  // v100 — o link do cliente passa por uma pagina-ponte (l/<empreendimento>/).
+  // Ela existe so pra fazer a foto certa aparecer na previa do WhatsApp: o robo
+  // que monta essa previa nao roda o JavaScript do site, entao, lendo o
+  // index.html unico do portfolio, ele nunca saberia se o link e do Renaissance
+  // ou do Boulevard — mostraria sempre a mesma foto generica. A ponte e um
+  // arquivo por empreendimento, com o nome e a foto daquele predio escritos
+  // dentro, e redireciona na hora pro endereco de sempre, com os mesmos
+  // parametros. Gerada por tools/gerar-pontes.js; rodar apos mexer em data.js.
+  function pontePara(empId, query = "") {
+    const raiz = location.pathname.replace(/\/[^/]*$/, "/");
+    return `${location.origin}${raiz}l/${empId}/${query ? `?${query}` : ""}`;
+  }
+
   function clientLinkFor(emp) {
-    return `${location.origin}${location.pathname}?cliente#emp-${emp.id}`;
+    return pontePara(emp.id);
   }
 
   // Envia o link travado no empreendimento, com a foto de capa e um texto
@@ -1302,7 +1319,7 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
   // travado e rola ate a linha do apartamento, destacada.
   async function shareUnitLink(item) {
     const emp = item.emp;
-    const url = `${location.origin}${location.pathname}?cliente&u=${encodeURIComponent(item.code)}#emp-${emp.id}`;
+    const url = pontePara(emp.id, `u=${encodeURIComponent(item.code)}`);
     const text = [
       `*${emp.nome} — ${itemLabel(item)}*`,
       emp.cidade,
@@ -1409,7 +1426,12 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
     const vistos = new Set();
     items.forEach((item) => { if (!vistos.has(item.emp.id)) { vistos.add(item.emp.id); emps.push(item.emp); } });
     const sel = items.map((item) => `${item.emp.id}~${encodeURIComponent(String(item.code))}`).join(",");
-    const url = `${location.origin}${location.pathname}?cliente&sel=${sel}${emps.length === 1 ? `#emp-${emps[0].id}` : ""}`;
+    // Um empreendimento so: vai pela ponte dele, e a previa mostra a foto certa.
+    // Varios: nao ha uma foto unica que represente todos, entao segue direto —
+    // e a mensagem ja leva as capas de cada um como anexo separado.
+    const url = emps.length === 1
+      ? pontePara(emps[0].id, `sel=${sel}`)
+      : `${location.origin}${location.pathname}?cliente&sel=${sel}`;
     const linhas = [`*Construtora Senger — Seleção de ${items.length === 1 ? "imóvel" : "imóveis"}*`, ""];
     items.forEach((item) => linhas.push(`• ${item.emp.nome} — ${itemLabel(item)}`));
     linhas.push("", "👇 Clique no link abaixo para ver fotos, plantas, valores e todas as informações:", url);
