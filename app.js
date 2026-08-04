@@ -540,6 +540,17 @@
       return escolhidos.length ? escolhidos : null;
     })();
     const focusItem = focusItems && focusItems.length === 1 ? focusItems[0] : null;
+    // v98 — com 2+ unidades escolhidas o resumo fala DA SELECAO, nao do predio:
+    // antes sobravam ali "opcoes ativas" e "preco inicial" do empreendimento
+    // inteiro, contradizendo as unidades que o corretor tinha escolhido mandar.
+    const focusRange = (() => {
+      if (!focusItems || focusItems.length < 2) return null;
+      const precos = focusItems.map((it) => Number(it.price) || 0).filter((p) => p > 0);
+      if (!precos.length) return "Sob consulta";
+      const menor = Math.min(...precos);
+      const maior = Math.max(...precos);
+      return menor === maior ? money(menor) : `${money(menor)} a ${money(maior)}`;
+    })();
     const inventory = renderInventory(emp, focusItems);
 
     const isPlantMedia = (item) => /planta/i.test(`${item?.src || ""} ${item?.legenda || ""}`);
@@ -659,6 +670,9 @@
               ${focusItem ? `
                 <div class="fact-card"><span>Área</span><strong>${escapeHtml(focusItem.area || "—")}</strong></div>
                 <div class="fact-card"><span>Valor</span><strong class="price-value">${money(focusItem.price)}</strong></div>
+              ` : focusRange ? `
+                <div class="fact-card"><span>Unidades selecionadas</span><strong>${focusItems.length}</strong></div>
+                <div class="fact-card"><span>Valores</span><strong class="price-value">${focusRange}</strong></div>
               ` : `
                 <div class="fact-card"><span>Opções ativas</span><strong>${active.length}</strong></div>
                 <div class="fact-card"><span>Preço inicial</span><strong class="price-value">${minimum ? money(minimum) : "Sob consulta"}</strong></div>
