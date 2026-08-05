@@ -759,7 +759,7 @@
           if (!units.length) return "";
           // v103 — a area da tipologia fica so no cabecalho. A coluna Area da tabela
           // aparece apenas quando alguma unidade tem area diferente da do grupo.
-          const showArea = units.some((it) => hasOwnArea(it));
+          const showArea = false;
           const showGarage = units.some((it) => normalizeText(it.garage) !== normalizeText(group.garagem || ""));
           return `
             <article class="unit-group">
@@ -815,6 +815,7 @@
         <td>
           <strong>${escapeHtml(itemLabel(item))}</strong>
           ${casaSuspensaTag(item) ? `<br><span class="casa-suspensa-tag">${CASA_SUSPENSA}</span>` : ""}
+          ${hasOwnArea(item) ? `<br><small class="unit-own-area">${escapeHtml(item.area)}</small>` : ""}
           ${otherTags(item).length ? `<br><small>${escapeHtml(otherTags(item).join(" · "))}</small>` : ""}
         </td>
         ${showArea ? `<td>${hasOwnArea(item) ? escapeHtml(item.area) : "—"}</td>` : ""}
