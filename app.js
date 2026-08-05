@@ -28,6 +28,55 @@
     return match ? `v${match[1]}` : "—";
   })();
 
+  // v105 — condicao de pagamento nao e mais texto solto por empreendimento. Sao duas,
+  // e quem manda e a etapa da obra: na planta, o saldo e direto com a construtora;
+  // pronto, o saldo e financiado no banco. "Outros Imoveis" fica de fora — la cada
+  // imovel tem a sua propria negociacao.
+  function condicoesDe(emp) {
+    if (!emp || emp.id === "outros") return "";
+    return emp.status === "pronto"
+      ? "Entrada + financiamento bancário"
+      : "Entrada + saldo direto com a construtora";
+  }
+
+  // v105 — assinatura do corretor. Fica salva no aparelho de quem usa e entra no fim
+  // de toda mensagem e de todo PDF: o cliente que recebe sabe para quem ligar de volta.
+  const CORRETOR_CAMPOS = ["nome", "fone", "creci"];
+
+  function corretorDados() {
+    const dados = {};
+    CORRETOR_CAMPOS.forEach((campo) => { dados[campo] = storage.get(`senger-corretor-${campo}`, "").trim(); });
+    return dados;
+  }
+
+  function assinaturaTexto() {
+    const { nome, fone, creci } = corretorDados();
+    if (!nome && !fone) return "";
+    const quem = [nome, creci].filter(Boolean).join(" · ");
+    return [quem, fone].filter(Boolean).join(" — ");
+  }
+
+  // v105 — dormitorios da tipologia, para o filtro do portfolio. "2 dormitorios (1 suite)"
+  // vale 2; quando o tipo so fala em suites ("3 suites + lavabo"), elas sao os dormitorios.
+  // Sala comercial nao tem dormitorio.
+  function dormitoriosDe(tipo = "") {
+    const texto = String(tipo);
+    const dormitorios = texto.match(/(\d+)\s*dormit/i);
+    if (dormitorios) return Number(dormitorios[1]);
+    const suites = texto.match(/(\d+)\s*su[ií]te/i);
+    return suites ? Number(suites[1]) : null;
+  }
+
+  function dormitoriosDoEmp(emp) {
+    const total = new Set();
+    (emp.grupos || []).forEach((group) => {
+      if (!(group.unidades || []).some((unit) => isMarketable(unit.status || "disponivel"))) return;
+      const quantos = dormitoriosDe(group.tipo);
+      if (quantos) total.add(quantos);
+    });
+    return total;
+  }
+
   const CATEGORY_LABELS = {
     todos: "Todos",
     residencial: "Residencial",
@@ -47,6 +96,7 @@
     query: "",
     city: "todos",
     stage: "todos",
+    rooms: "todos",
     price: "todos",
     sort: "destaque",
     selected: new Set(JSON.parse(storage.get("senger-selection", "[]"))),
@@ -245,7 +295,7 @@
     ].join(" ")).join(" ");
     return normalizeText([
       emp.nome, emp.cidade, emp.categoria, emp.statusLabel, emp.entrega,
-      emp.tagline, emp.localizacao, emp.condicoes,
+      emp.tagline, emp.localizacao, condicoesDe(emp),
       ...(emp.diferenciais || []).flatMap((d) => [d.titulo, d.desc]),
       inventory,
     ].join(" "));
@@ -294,12 +344,18 @@
     const cities = unique(EMPREENDIMENTOS.flatMap((emp) => emp.cidade.split(" · "))).sort((a, b) => a.localeCompare(b, "pt-BR"));
     citySelect.innerHTML = `<option value="todos">Todas as cidades</option>${cities.map((city) => `<option value="${escapeHtml(city)}">${escapeHtml(city)}</option>`).join("")}`;
 
+    // v105 — as opcoes de dormitorios saem da propria tabela: nada de opcao que nao existe.
+    const roomsSelect = document.getElementById("rooms-filter");
+    const rooms = unique(EMPREENDIMENTOS.flatMap((emp) => [...dormitoriosDoEmp(emp)])).sort((a, b) => a - b);
+    roomsSelect.innerHTML = `<option value="todos">Qualquer número</option>${rooms.map((n) => `<option value="${n}">${n} dormitório${n > 1 ? "s" : ""}</option>`).join("")}`;
+
     document.getElementById("search-input").addEventListener("input", (event) => {
       state.query = event.target.value.trim();
       renderPortfolio();
     });
     citySelect.addEventListener("change", (event) => { state.city = event.target.value; renderPortfolio(); });
     document.getElementById("stage-filter").addEventListener("change", (event) => { state.stage = event.target.value; renderPortfolio(); });
+    roomsSelect.addEventListener("change", (event) => { state.rooms = event.target.value; renderPortfolio(); });
     document.getElementById("price-filter").addEventListener("change", (event) => { state.price = event.target.value; renderPortfolio(); });
     document.getElementById("sort-filter").addEventListener("change", (event) => { state.sort = event.target.value; renderPortfolio(); });
     document.getElementById("clear-filters").addEventListener("click", clearFilters);
@@ -317,11 +373,13 @@
     state.query = "";
     state.city = "todos";
     state.stage = "todos";
+    state.rooms = "todos";
     state.price = "todos";
     state.sort = "destaque";
     document.getElementById("search-input").value = "";
     document.getElementById("city-filter").value = "todos";
     document.getElementById("stage-filter").value = "todos";
+    document.getElementById("rooms-filter").value = "todos";
     document.getElementById("price-filter").value = "todos";
     document.getElementById("sort-filter").value = "destaque";
     renderPortfolio();
@@ -341,6 +399,7 @@
       if (CLIENT_LIST_IDS && !CLIENT_LIST_IDS.includes(emp.id)) return false;
       if (state.city !== "todos" && !emp.cidade.split(" · ").includes(state.city)) return false;
       if (state.stage !== "todos" && emp.status !== state.stage) return false;
+      if (state.rooms !== "todos" && !dormitoriosDoEmp(emp).has(Number(state.rooms))) return false;
       if (marketableItems(emp).length === 0) return false;
       if (!priceRangeMatches(emp)) return false;
       if (query && !portfolioSearchText(emp).includes(query)) return false;
@@ -664,7 +723,7 @@
             <p class="eyebrow dark">Apresentação</p>
             <h2>Sobre o empreendimento</h2>
             <p>${escapeHtml(emp.localizacao || emp.tagline || "Consulte a equipe comercial para mais informações.")}</p>
-            ${emp.condicoes ? `<div class="condition-note"><strong>Condições:</strong> ${escapeHtml(emp.condicoes)}</div>` : ""}
+            ${condicoesDe(emp) ? `<div class="condition-note"><strong>Pagamento:</strong> ${escapeHtml(condicoesDe(emp))}</div>` : ""}
             ${(emp.diferenciais || []).length ? `
               <div class="info-differentials">
                 ${emp.diferenciais.map((item) => `
@@ -932,6 +991,7 @@
       lines.push("Consulte valores e condições.");
     }
     if (emp.entrega) lines.push(`Entrega: ${semPonto(emp.entrega)}`);
+    if (condicoesDe(emp)) lines.push(`Pagamento: ${condicoesDe(emp)}`);
     lines.push("", `Tabela ${META.mesTabela || ""}. Valores e disponibilidade sujeitos a alteração.`);
     return lines.filter((line, index, array) => line !== "" || array[index - 1] !== "").join("\n");
   }
@@ -1169,7 +1229,7 @@
     if (includePrice) lines.push(`💰 *${money(item.price)}*`);
     else lines.push("💰 Valor sob consulta.");
 
-    if (emp.condicoes) lines.push(semPonto(emp.condicoes) + ".");
+    if (condicoesDe(emp)) lines.push(`${condicoesDe(emp)}.`);
     if (item.notes) lines.push(semPonto(item.notes) + ".");
     lines.push("", `Tabela ${META.mesTabela || ""}. Valores e disponibilidade sujeitos a alteração.`);
     return lines.join("\n");
@@ -1181,7 +1241,9 @@
     const textarea = document.getElementById("share-modal-text");
     const list = document.getElementById("share-modal-photos");
     const hint = document.getElementById("share-modal-hint");
-    textarea.value = text;
+    // Toda mensagem sai assinada por quem esta enviando (quando ele preencheu seus dados).
+    const assinatura = assinaturaTexto();
+    textarea.value = assinatura ? `${text}\n\n👤 ${assinatura}` : text;
     document.getElementById("share-modal-copy").textContent = "Copiar mensagem";
 
     list.innerHTML = photos.map((photo, index) => `
@@ -1561,7 +1623,8 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
 
   // Folha exclusiva do PDF: capa de cada empreendimento, prazo de entrega e valor inicial.
   function buildPrintSheet(enterprises) {
-    const contato = [META.contato?.telefones?.[0], META.contato?.instagram, META.contato?.site].filter(Boolean).join(" · ");
+    // O PDF sai assinado por quem gerou; sem dados preenchidos, vale o contato da empresa.
+    const contato = [assinaturaTexto() || META.contato?.telefones?.[0], META.contato?.instagram, META.contato?.site].filter(Boolean).join(" · ");
     const cidades = unique(enterprises.flatMap((emp) => emp.cidade.split(" · ")))
       .map((city) => city.replace("/RS", "")).join(" · ");
 
@@ -1616,7 +1679,8 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
   // Folha A4 de um empreendimento: fotos lado a lado (2 por linha) e
   // plantas em tamanho grande, uma por linha — pensado para leitura em PDF.
   function buildEnterprisePrintSheet(emp) {
-    const contato = [META.contato?.telefones?.[0], META.contato?.instagram, META.contato?.site].filter(Boolean).join(" · ");
+    // O PDF sai assinado por quem gerou; sem dados preenchidos, vale o contato da empresa.
+    const contato = [assinaturaTexto() || META.contato?.telefones?.[0], META.contato?.instagram, META.contato?.site].filter(Boolean).join(" · ");
     const prazo = semPonto(emp.entrega || emp.statusLabel || "");
     const minimo = minPrice(emp);
     const media = mediaFor(emp);
@@ -1676,6 +1740,7 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
           <p class="ps-eyebrow">${escapeHtml(emp.cidade)} · ${escapeHtml(CATEGORY_LABELS[emp.categoria] || emp.categoria)}</p>
           <h1>${escapeHtml(emp.nome)}</h1>
           <p class="ps-meta">${escapeHtml(prazo)}${minimo ? ` · A partir de ${money(minimo)}` : ""} · Tabela ${escapeHtml(META.mesTabela || "")}</p>
+          ${condicoesDe(emp) ? `<p class="ps-meta">Pagamento: ${escapeHtml(condicoesDe(emp))}</p>` : ""}
           <p class="ps-contact">${contato ? `${escapeHtml(contato)} — ` : ""}Valores e disponibilidade sujeitos a alteração sem aviso prévio. Imagens meramente ilustrativas.</p>
         </div>
       </header>
@@ -1838,6 +1903,7 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
 
     document.querySelectorAll("[data-close-share]").forEach((button) => button.addEventListener("click", closeShareModal));
     document.querySelectorAll("[data-close-choice]").forEach((button) => button.addEventListener("click", closeSendChoice));
+    bindCorretorEvents();
     document.getElementById("share-modal-copy").addEventListener("click", copyShareModalText);
     document.getElementById("share-modal-open").addEventListener("click", () => window.open("https://web.whatsapp.com/", "_blank", "noopener"));
 
@@ -1846,6 +1912,54 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") { closeDrawer(); closeShareModal(); }
     });
+  }
+
+  // v105 — tela "Meu contato": nome, WhatsApp e CRECI de quem esta usando o app.
+  function bindCorretorEvents() {
+    const modal = document.getElementById("corretor-modal");
+    const botao = document.getElementById("corretor-button");
+    const campos = {};
+    CORRETOR_CAMPOS.forEach((campo) => { campos[campo] = document.getElementById(`corretor-${campo}`); });
+
+    const atualizarBotao = () => {
+      const { nome } = corretorDados();
+      botao.textContent = nome ? nome.split(" ")[0] : "Meu contato";
+      botao.classList.toggle("preenchido", Boolean(assinaturaTexto()));
+    };
+    const atualizarPreview = () => {
+      const preview = [campos.nome.value.trim(), campos.creci.value.trim()].filter(Boolean).join(" · ");
+      const linha = [preview, campos.fone.value.trim()].filter(Boolean).join(" — ");
+      document.getElementById("corretor-preview").textContent = linha ? `Vai sair assim: 👤 ${linha}` : "";
+    };
+    const abrir = () => {
+      const dados = corretorDados();
+      CORRETOR_CAMPOS.forEach((campo) => { campos[campo].value = dados[campo]; });
+      atualizarPreview();
+      modal.classList.add("open");
+      modal.setAttribute("aria-hidden", "false");
+      campos.nome.focus();
+    };
+    const fechar = () => {
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden", "true");
+    };
+
+    botao.addEventListener("click", abrir);
+    modal.querySelectorAll("[data-close-corretor]").forEach((el) => el.addEventListener("click", fechar));
+    CORRETOR_CAMPOS.forEach((campo) => campos[campo].addEventListener("input", atualizarPreview));
+    document.getElementById("corretor-save").addEventListener("click", () => {
+      CORRETOR_CAMPOS.forEach((campo) => storage.set(`senger-corretor-${campo}`, campos[campo].value.trim()));
+      atualizarBotao();
+      fechar();
+      showToast(assinaturaTexto() ? "Seus dados vão nas próximas mensagens." : "Dados apagados.");
+    });
+    document.getElementById("corretor-clear").addEventListener("click", () => {
+      CORRETOR_CAMPOS.forEach((campo) => { storage.set(`senger-corretor-${campo}`, ""); campos[campo].value = ""; });
+      atualizarPreview();
+      atualizarBotao();
+      showToast("Dados apagados.");
+    });
+    atualizarBotao();
   }
 
   function registerServiceWorker() {
