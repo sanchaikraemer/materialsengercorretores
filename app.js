@@ -344,10 +344,10 @@
     const cities = unique(EMPREENDIMENTOS.flatMap((emp) => emp.cidade.split(" · "))).sort((a, b) => a.localeCompare(b, "pt-BR"));
     citySelect.innerHTML = `<option value="todos">Todas as cidades</option>${cities.map((city) => `<option value="${escapeHtml(city)}">${escapeHtml(city)}</option>`).join("")}`;
 
-    // v105 — as opcoes de dormitorios saem da propria tabela: nada de opcao que nao existe.
+    // v106 — o filtro tem duas opcoes fixas, 2 e 3 dormitorios. Decisao do dono: o
+    // corretor pergunta "quantos dormitorios", nao "quantas suites".
     const roomsSelect = document.getElementById("rooms-filter");
-    const rooms = unique(EMPREENDIMENTOS.flatMap((emp) => [...dormitoriosDoEmp(emp)])).sort((a, b) => a - b);
-    roomsSelect.innerHTML = `<option value="todos">Qualquer número</option>${rooms.map((n) => `<option value="${n}">${n} dormitório${n > 1 ? "s" : ""}</option>`).join("")}`;
+    roomsSelect.innerHTML = `<option value="todos">Qualquer número</option><option value="2">2 dormitórios</option><option value="3">3 dormitórios</option>`;
 
     document.getElementById("search-input").addEventListener("input", (event) => {
       state.query = event.target.value.trim();
