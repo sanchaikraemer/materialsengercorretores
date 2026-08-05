@@ -269,7 +269,6 @@ const EMPREENDIMENTOS = [
     hero: "assets/po-render-3.jpg",
     destaque: true,
     tagline: "Não é só um moderno centro clínico — é o futuro da área da saúde de Carazinho.",
-    condicoes: "Entrada + saldo direto com a construtora.",
     localizacao: "Rua Cipriano da Luz — em frente à Praça do Hospital de Clínicas de Carazinho.",
     diferenciais: [
       { titulo: "Rooftop", desc: "Conforto e vista privilegiada que transformam a espera do paciente em uma experiência única." },
@@ -630,7 +629,6 @@ const EMPREENDIMENTOS = [
     logo: "assets/nvr3-logo.jpg",
     destaque: true,
     tagline: "Lotes prontos para construir, no novo loteamento Nova Vila Rica III.",
-    condicoes: "Entrada de 20% + saldo direto com a construtora. Construção após quitação ou financiamento bancário.",
     localizacao: "Carazinho/RS — Ruas Laranjeira, Figueira, Jatobá, J. Kennedy e H. T. Schutz.",
     galeria: [
       { src: "assets/nvr3-mapa.jpg", legenda: "Mapa de lotes e disponibilidade" },

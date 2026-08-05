@@ -692,6 +692,7 @@ img { max-width: 100%; display: block; }
 .client-mode .unit-actions,
 .client-mode .mobile-unit-actions,
 .client-mode .header-summary,
+.client-mode .corretor-tag,
 .client-mode .version-tag { display: none !important; }
 .client-mode .brand-button { pointer-events: none; }
 .client-mode #unidades .section-title-row p,
@@ -861,3 +862,31 @@ tr.unit-highlight td:first-child { box-shadow: inset 4px 0 0 var(--brand); }
 .units-table th:nth-child(2), .units-table td:nth-child(2) { width: 26%; }
 .units-table th:nth-child(3), .units-table td:nth-child(3) { width: 13%; }
 .units-table th:nth-child(4), .units-table td:nth-child(4) { width: 14%; }
+
+/* v105 — "Meu contato": os dados do corretor que assinam mensagens e PDFs. */
+.corretor-tag {
+  flex: 0 0 auto;
+  padding: 5px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 700;
+}
+.corretor-tag:hover { border-color: var(--brand); color: var(--brand-dark); }
+.corretor-tag.preenchido { border-color: transparent; background: var(--brand); color: #fff; }
+.corretor-field { display: block; margin-top: 12px; }
+.corretor-field span { display: block; margin-bottom: 5px; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.corretor-field input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 13px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: #fff;
+  font-size: 14px;
+}
+.corretor-field input:focus-visible { outline: 3px solid rgba(23,143,160,.3); outline-offset: 1px; }
+.corretor-preview { margin: 14px 0 0; padding: 10px 12px; border-radius: 10px; background: var(--brand-soft); color: var(--brand-dark); font-size: 12.5px; font-weight: 600; min-height: 20px; }
+.corretor-preview:empty { display: none; }
