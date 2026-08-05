@@ -759,7 +759,7 @@
           if (!units.length) return "";
           // v103 — a area da tipologia fica so no cabecalho. A coluna Area da tabela
           // aparece apenas quando alguma unidade tem area diferente da do grupo.
-          const showArea = false;
+          const showArea = true;
           const showGarage = units.some((it) => normalizeText(it.garage) !== normalizeText(group.garagem || ""));
           return `
             <article class="unit-group">
@@ -815,10 +815,9 @@
         <td>
           <strong>${escapeHtml(itemLabel(item))}</strong>
           ${casaSuspensaTag(item) ? `<br><span class="casa-suspensa-tag">${CASA_SUSPENSA}</span>` : ""}
-          ${hasOwnArea(item) ? `<br><small class="unit-own-area">${escapeHtml(item.area)}</small>` : ""}
           ${otherTags(item).length ? `<br><small>${escapeHtml(otherTags(item).join(" · "))}</small>` : ""}
         </td>
-        ${showArea ? `<td>${hasOwnArea(item) ? escapeHtml(item.area) : "—"}</td>` : ""}
+        ${showArea ? `<td${hasOwnArea(item) ? ` class="unit-own-area"` : ""}>${escapeHtml(item.area || "—")}</td>` : ""}
         ${showGarage ? `<td>${escapeHtml(item.garage || "—")}</td>` : ""}
         <td><span class="status-pill status-${item.status}">${escapeHtml(STATUS_LABELS[item.status] || item.status)}</span></td>
         <td><strong class="price-value">${money(item.price)}</strong></td>
@@ -1639,8 +1638,7 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
     const groupTables = (emp.grupos || []).map((group, groupIndex) => {
       const units = (group.unidades || []).map((unit, unitIndex) => itemMap.get(`${emp.id}:unit:${groupIndex}:${unitIndex}`)).filter(Boolean);
       if (!units.length) return "";
-      // v103 — no PDF a area do tipo tambem fica so na linha de resumo do grupo.
-      const showArea = units.some((item) => hasOwnArea(item));
+      const showArea = true;
       return `
         <div class="ps-group">
           <h3>${escapeHtml(group.tipo)}</h3>
@@ -1648,7 +1646,7 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
           <table class="ps-table">
             <thead><tr><th>Unidade</th>${showArea ? "<th>Área</th>" : ""}<th>Status</th><th>Valor</th></tr></thead>
             <tbody>${units.map((item) => `
-              <tr><td>${escapeHtml(itemLabel(item))}${casaSuspensaTag(item) ? ` <b>· ${CASA_SUSPENSA}</b>` : ""}</td>${showArea ? `<td>${hasOwnArea(item) ? escapeHtml(item.area) : "—"}</td>` : ""}<td>${escapeHtml(STATUS_LABELS[item.status] || item.status)}</td><td>${money(item.price)}</td></tr>
+              <tr><td>${escapeHtml(itemLabel(item))}${casaSuspensaTag(item) ? ` <b>· ${CASA_SUSPENSA}</b>` : ""}</td>${showArea ? `<td>${escapeHtml(item.area || "—")}</td>` : ""}<td>${escapeHtml(STATUS_LABELS[item.status] || item.status)}</td><td>${money(item.price)}</td></tr>
             `).join("")}</tbody>
           </table>
         </div>

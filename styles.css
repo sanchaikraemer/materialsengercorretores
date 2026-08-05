@@ -853,9 +853,11 @@ tr.unit-highlight td:first-child { box-shadow: inset 4px 0 0 var(--brand); }
 /* Ajuste final da marca no cabeçalho */
 .brand-button img { height: 43px; max-width: 190px; object-fit: contain; }
 @media (max-width: 760px) { .brand-button img { height: 31px; max-width: 132px; } }
-.unit-own-area { color: var(--warning); font-weight: 700; }
-/* colunas com a mesma largura em todos os grupos, para as tabelas se alinharem */
+/* v103 — a coluna Area aparece em todos os grupos, preenchida em toda linha:
+   a area do tipo, ou a da propria unidade quando ela e diferente (em destaque). */
+.units-table td.unit-own-area { color: var(--warning); font-weight: 700; }
 .units-table { table-layout: fixed; }
-.units-table th:nth-child(1), .units-table td:nth-child(1) { width: 26%; }
-.units-table th:nth-child(2), .units-table td:nth-child(2) { width: 16%; }
-.units-table th:nth-child(3), .units-table td:nth-child(3) { width: 18%; }
+.units-table th:nth-child(1), .units-table td:nth-child(1) { width: 22%; }
+.units-table th:nth-child(2), .units-table td:nth-child(2) { width: 26%; }
+.units-table th:nth-child(3), .units-table td:nth-child(3) { width: 13%; }
+.units-table th:nth-child(4), .units-table td:nth-child(4) { width: 14%; }
