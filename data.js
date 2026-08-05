@@ -400,7 +400,6 @@ const EMPREENDIMENTOS = [
         tipo: "3 suítes + lavabo",
         area: "212 m² global · 149 m² privativo",
         garagem: "Box duplo",
-        obs: "Terraço: 246 m² global · 177 m² privativo.",
         unidades: [
           { apto: "602", preco: 1440000, status: "disponivel" },
           { apto: "702", preco: 1460000, status: "disponivel" },
@@ -414,7 +413,7 @@ const EMPREENDIMENTOS = [
         area: "131 m² global · 93 m² privativo",
         garagem: "01 box de garagem",
         unidades: [
-          { apto: "304", preco: 870000, status: "disponivel", tags: ["Terraço"], areaUnit: "165 m² global · 121 m² privativo" },
+          { apto: "304", preco: 870000, status: "disponivel", tags: ["Casa Suspensa"], areaUnit: "165 m² global · 121 m² privativo" },
           { apto: "404", preco: 850000, status: "disponivel" },
           { apto: "504", preco: 860000, status: "disponivel" },
           { apto: "704", preco: 880000, status: "disponivel" },
