@@ -528,6 +528,10 @@ img { max-width: 100%; display: block; }
 .mobile-unit-price { font-size: 16px; font-weight: 800; color: var(--brand-dark); }
 .mobile-unit-area { display: inline-block; margin: 10px 0 0; padding: 5px 10px; border-radius: 8px; color: var(--brand-dark); background: var(--brand-soft); font-size: 11.5px; font-weight: 700; }
 .mobile-unit-tags { margin: 8px 0 0; color: var(--muted); font-size: 11.5px; }
+/* v103 — Casa Suspensa: mesma tipologia, area aberta maior. Recebe faixa propria. */
+.mobile-unit-casa { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 10px 0 0; padding: 8px 10px; border: 1px solid rgba(168,112,31,.35); border-radius: 9px; background: rgba(168,112,31,.09); color: var(--warning); font-size: 11.5px; font-weight: 700; }
+.mobile-unit-casa span { padding: 3px 8px; border-radius: 999px; background: var(--warning); color: #fff; font-size: 10px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+.casa-suspensa-tag { display: inline-block; margin-top: 5px; padding: 3px 8px; border-radius: 999px; background: rgba(168,112,31,.13); color: var(--warning); font-size: 9.5px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
 .mobile-unit-line ~ .mobile-unit-actions { margin-top: 13px; }
 .mobile-unit-note { margin: 6px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
 .mobile-unit-meta { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 13px 0; }

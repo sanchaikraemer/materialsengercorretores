@@ -783,6 +783,14 @@
     return normalizeText(item.area) !== normalizeText(groupArea);
   }
 
+  // v103 — "Casa Suspensa" nao e uma etiqueta comum: e a unidade da mesma tipologia
+  // com area aberta maior (antes chamada de terraco). Fica no grupo dos iguais, so
+  // apresentada de forma diferente.
+  const CASA_SUSPENSA = "Casa Suspensa";
+  const isCasaSuspensa = (tag) => normalizeText(tag) === normalizeText(CASA_SUSPENSA);
+  const casaSuspensaTag = (item) => (item.tags || []).some(isCasaSuspensa);
+  const otherTags = (item) => (item.tags || []).filter((tag) => !isCasaSuspensa(tag));
+
   // v103 — modelo A: faixa colorida com o tipo em destaque e a area/garagem em etiquetas.
   function renderGroupHeader(group) {
     const chips = String(group.area || "")
@@ -804,7 +812,11 @@
     const selected = state.selected.has(item.key);
     return `
       <tr data-unit-code="${escapeHtml(String(item.code))}">
-        <td><strong>${escapeHtml(itemLabel(item))}</strong>${item.tags.length ? `<br><small>${escapeHtml(item.tags.join(" · "))}</small>` : ""}</td>
+        <td>
+          <strong>${escapeHtml(itemLabel(item))}</strong>
+          ${casaSuspensaTag(item) ? `<br><span class="casa-suspensa-tag">${CASA_SUSPENSA}</span>` : ""}
+          ${otherTags(item).length ? `<br><small>${escapeHtml(otherTags(item).join(" · "))}</small>` : ""}
+        </td>
         ${showArea ? `<td>${hasOwnArea(item) ? escapeHtml(item.area) : "—"}</td>` : ""}
         ${showGarage ? `<td>${escapeHtml(item.garage || "—")}</td>` : ""}
         <td><span class="status-pill status-${item.status}">${escapeHtml(STATUS_LABELS[item.status] || item.status)}</span></td>
@@ -826,8 +838,10 @@
           </div>
           <strong class="price-value mobile-unit-price">${money(item.price)}</strong>
         </div>
-        ${hasOwnArea(item) ? `<p class="mobile-unit-area">Esta unidade: ${escapeHtml(item.area)}</p>` : ""}
-        ${item.tags.length ? `<p class="mobile-unit-tags">${escapeHtml(item.tags.join(" · "))}</p>` : ""}
+        ${casaSuspensaTag(item)
+          ? `<p class="mobile-unit-casa"><span>${CASA_SUSPENSA}</span>${hasOwnArea(item) ? escapeHtml(item.area) : ""}</p>`
+          : hasOwnArea(item) ? `<p class="mobile-unit-area">Esta unidade: ${escapeHtml(item.area)}</p>` : ""}
+        ${otherTags(item).length ? `<p class="mobile-unit-tags">${escapeHtml(otherTags(item).join(" · "))}</p>` : ""}
         <div class="mobile-unit-actions"><button class="unit-action" type="button" data-share-item="${item.key}">Compartilhar</button><button class="selection-control ${selected ? "selected" : ""}" type="button" data-select-item="${item.key}" ${selectable ? "" : "disabled"}>${selected ? "Selecionado" : "Selecionar"}</button></div>
       </article>
     `;
@@ -1110,7 +1124,8 @@
 
   function itemBullets(item) {
     const bullets = [];
-    const etiquetas = (item.tags || []).map((t) => t.toLowerCase());
+    // "Casa Suspensa" e nome de produto: mantem as maiusculas na mensagem.
+    const etiquetas = (item.tags || []).map((t) => (isCasaSuspensa(t) ? CASA_SUSPENSA : t.toLowerCase()));
     // A linha do prazo de entrega ja diz se e novo, pronto ou pre-lancamento:
     // aqui so entram os status que mudam a oferta (reservado, vendido, alugado).
     const cond = item.status !== "disponivel" ? (STATUS_LABELS[item.status] || item.status).toLowerCase() : "";
@@ -1632,7 +1647,7 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
           <table class="ps-table">
             <thead><tr><th>Unidade</th>${showArea ? "<th>Área</th>" : ""}<th>Status</th><th>Valor</th></tr></thead>
             <tbody>${units.map((item) => `
-              <tr><td>${escapeHtml(itemLabel(item))}</td>${showArea ? `<td>${hasOwnArea(item) ? escapeHtml(item.area) : "—"}</td>` : ""}<td>${escapeHtml(STATUS_LABELS[item.status] || item.status)}</td><td>${money(item.price)}</td></tr>
+              <tr><td>${escapeHtml(itemLabel(item))}${casaSuspensaTag(item) ? ` <b>· ${CASA_SUSPENSA}</b>` : ""}</td>${showArea ? `<td>${hasOwnArea(item) ? escapeHtml(item.area) : "—"}</td>` : ""}<td>${escapeHtml(STATUS_LABELS[item.status] || item.status)}</td><td>${money(item.price)}</td></tr>
             `).join("")}</tbody>
           </table>
         </div>
