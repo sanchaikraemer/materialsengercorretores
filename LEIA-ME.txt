@@ -1,23 +1,46 @@
-ATUALIZAÇÃO COMPLETA — MATERIAL SENGER CORRETORES — v22
+MATERIAL SENGER CORRETORES — v107 (velocidade de abertura)
 
-Este ZIP contém o projeto completo e deve substituir a versão anterior.
+O QUE MUDOU NESTA VERSÃO
 
-COMO PUBLICAR NO GITHUB
-1. Extraia o ZIP.
-2. Abra o repositório do site.
-3. Substitua os arquivos e pastas da raiz pelos conteúdos deste ZIP.
-4. Confirme o commit e aguarde a publicação do GitHub Pages.
-5. Abra o site e atualize a página. O cache foi alterado para a versão 22.
+Reclamação: "está demorando um absurdo pra entrar no site quando enviado o link".
+Eram três causas, todas corrigidas:
 
-PRINCIPAIS CORREÇÕES
-- filtros alinhados e sem conteúdo ultrapassando o contêiner;
-- opção “Outros” sempre visível;
-- “Limpar filtros” também restaura a ordenação para “Destaques”;
-- galeria adaptada à quantidade real de imagens, sem áreas vazias;
-- plantas exibidas em formato mais simples;
-- data da tabela alinhada com Julho/2026: 10/07/2026;
-- logo do rodapé corrigida;
-- cache e arquivos atualizados para v22.
+1. FOTOS GRANDES DEMAIS
+   O celular baixava a foto no tamanho máximo em todo lugar — inclusive nas
+   miniaturas de 84 pixels da galeria e nas logos do cabeçalho. A logo do topo
+   sozinha tinha 208 KB para aparecer com 3 centímetros.
+   Agora cada foto existe em três tamanhos e o navegador escolhe o que cabe na
+   tela: assets/mini (320px), assets/md (900px) e a original (até 1600px).
+
+2. A PÁGINA ESPERAVA O GOOGLE PARA DESENHAR QUALQUER COISA
+   A fonte vinha do servidor do Google numa tag que BLOQUEIA a primeira pintura:
+   enquanto ela não respondia, o cliente via tela branca. Agora o texto aparece
+   na hora com a fonte do aparelho e troca para a fonte da marca quando ela chega.
+
+3. O SITE NÃO APROVEITAVA O QUE JÁ ESTAVA SALVO NO APARELHO
+   O service worker buscava tudo na rede a cada abertura, com o cache do
+   navegador desligado. Agora ele responde na hora com o que está salvo e
+   confere a versão nova por trás — quem já abriu uma vez entra na hora.
+
+Resultado medido em 4G fraco (1,5 Mbps), link de empreendimento enviado ao
+cliente: de 1,4 MB para 0,5 MB baixados, e a primeira imagem na tela deixa de
+depender do servidor do Google.
+
+COMO PUBLICAR
+1. Substitua os arquivos do repositório pelos desta versão.
+2. Confirme o commit e aguarde a publicação do GitHub Pages.
+3. Abra o site e atualize a página. O cache mudou para v107.
 
 IMPORTANTE
-Não envie apenas o styles.css. Esta atualização altera também index.html, app.js, data.js, sw.js e assets.
+Esta atualização altera index.html, app.js, data.js, styles.css, sw.js e TODA a
+pasta assets (inclusive as pastas novas assets/md e assets/mini). Não envie só
+um arquivo solto.
+
+AO ACRESCENTAR FOTOS NOVAS
+Depois de colocar as fotos em assets/, rode uma vez:
+
+    pip install Pillow
+    python3 tools/otimizar-imagens.py
+
+Ele reduz a foto original, gera as versões de assets/md e assets/mini e mostra
+quanto economizou. Sem esse passo a foto nova entra em tamanho cheio no celular.

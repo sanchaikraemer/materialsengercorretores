@@ -176,6 +176,56 @@
     return `${path}${sep}v=${APP_VERSION.replace(/^v/, "")}`;
   };
 
+  // v107 — a mesma foto existe em tres tamanhos, gerados por tools/otimizar-imagens.py:
+  //   assets/mini/foto.jpg  ->  320px de largura   (miniatura, logo sobre a foto)
+  //   assets/md/foto.jpg    ->  900px de largura   (celular: cartao, topo da ficha)
+  //   assets/foto.jpg       ->  ate 1600px         (tela grande)
+  // O celular baixava a de 1600px em TODO lugar — inclusive nas miniaturas de 84px da
+  // galeria. Era o principal motivo de o link demorar tanto para abrir.
+  const variante = (path, pasta) => {
+    if (!path || !path.startsWith("assets/") || /\.(pdf|svg)(?:$|\?)/i.test(path)) return path;
+    if (/^assets\/(mini|md|preview)\//.test(path)) return path;
+    return path.replace(/^assets\//, `assets/${pasta}/`);
+  };
+  const miniUrl = (path) => assetUrl(variante(path, "mini"));
+  const mdUrl = (path) => assetUrl(variante(path, "md"));
+
+  // Troca a foto de um <img> que usa srcset. So mexer no .src nao adianta: com
+  // srcset preenchido, quem manda e ele — a galeria ficaria travada na 1a foto.
+  function trocarImagem(img, path) {
+    if (!img || !path) return;
+    if (variante(path, "md") === path) {
+      img.removeAttribute("srcset");
+      img.src = assetUrl(path);
+      return;
+    }
+    img.srcset = `${mdUrl(path)} 900w, ${assetUrl(path)} 1600w`;
+    img.src = mdUrl(path);
+  }
+
+  // Foto que aparece grande na tela (topo da ficha, galeria, planta): o celular leva a
+  // de 900px e o computador a de 1600px.
+  //
+  // O `sizes` de celular vai de proposito abaixo do tamanho real ("45vw" e nao "100vw"):
+  // um aparelho de tela retina multiplica esse valor por 3 e acabaria puxando a de
+  // 1600px — 200 KB por foto para exibir num pedaco de 39 centimetros quadrados. Com
+  // 45vw ele fica na de 900px, que ainda e mais que o dobro da resolucao da tela.
+  // A miniatura de 320px nao entra aqui: em foto grande ela ficaria borrada.
+  function imgAttrs(path, sizes, { lazy = true } = {}) {
+    if (!path) return "";
+    const grande = assetUrl(path);
+    if (variante(path, "md") === path) {
+      return `src="${escapeHtml(grande)}"${lazy ? ' loading="lazy"' : ""} decoding="async"`;
+    }
+    return [
+      `src="${escapeHtml(mdUrl(path))}"`,
+      `srcset="${escapeHtml(`${mdUrl(path)} 900w, ${grande} 1600w`)}"`,
+      `sizes="${escapeHtml(sizes)}"`,
+      lazy ? 'loading="lazy"' : 'fetchpriority="high"',
+      'decoding="async"',
+    ].join(" ");
+  }
+
   function itemLabel(item) {
     if (item.kind === "unit") {
       const prefix = item.emp.categoria === "comercial" ? "Sala" : "Apto";
@@ -457,8 +507,8 @@
       return `
         <article class="portfolio-card${filtrando && !napista ? " is-unpicked" : ""}">
           <div class="card-media">
-            <img src="${escapeHtml(assetUrl(cardImage(emp)))}" alt="${escapeHtml(emp.nome)}" loading="lazy">
-            ${emp.logo ? `<img class="card-logo" src="${escapeHtml(assetUrl(emp.logo))}" alt="">` : ""}
+            <img src="${escapeHtml(mdUrl(cardImage(emp)))}" alt="${escapeHtml(emp.nome)}" loading="lazy" decoding="async">
+            ${emp.logo ? `<img class="card-logo" src="${escapeHtml(miniUrl(emp.logo))}" alt="" loading="lazy" decoding="async">` : ""}
             <button class="card-pick${napista ? " picked" : ""}" type="button" data-pick-emp="${emp.id}" aria-pressed="${napista}">${napista ? "✓ Na lista" : "+ Lista"}</button>
           </div>
           <div class="card-body">
@@ -642,14 +692,14 @@
         <div class="section-title-row"><h2>Imagens</h2><p>${photoMedia.length} ${photoMedia.length === 1 ? "imagem disponível" : "imagens disponíveis"}</p></div>
         <div class="gallery-showcase" data-gallery-showcase${stripWidth ? ` style="max-width:${stripWidth}px"` : ""}>
           <div class="gallery-featured">
-            <img src="${escapeHtml(assetUrl(photoMedia[0].src))}" alt="${escapeHtml(photoMedia[0].legenda || emp.nome)}" data-gallery-featured>
+            <img ${imgAttrs(photoMedia[0].src, "(max-width: 1080px) 45vw, 1100px", { lazy: false })} alt="${escapeHtml(photoMedia[0].legenda || emp.nome)}" data-gallery-featured>
             ${photoMedia.length > 1 ? `<span class="gallery-counter" data-gallery-counter>1 / ${photoMedia.length}</span>` : ""}
           </div>
           ${photoMedia.length > 1 ? `
             <div class="gallery-strip">
               ${photoMedia.map((item, index) => `
                 <button class="gallery-thumb ${index === 0 ? "active" : ""}" type="button" data-gallery-thumb="${index}" aria-label="Exibir ${escapeHtml(item.legenda || emp.nome)} na imagem principal">
-                  <img src="${escapeHtml(assetUrl(item.src))}" alt="" loading="lazy">
+                  <img src="${escapeHtml(miniUrl(item.src))}" alt="" loading="lazy" decoding="async">
                 </button>
               `).join("")}
             </div>
@@ -682,7 +732,7 @@
           </div>
           ${humanizedPlants.length ? `
             <div class="plant-viewer-preview">
-              <img src="${escapeHtml(assetUrl(humanizedPlants[0].src))}" alt="${escapeHtml(humanizedPlants[0].legenda || emp.nome)}" data-plant-preview-image>
+              <img ${imgAttrs(humanizedPlants[0].src, "(max-width: 1080px) 45vw, 560px")} alt="${escapeHtml(humanizedPlants[0].legenda || emp.nome)}" data-plant-preview-image>
             </div>
           ` : ""}
         </div>
@@ -691,7 +741,7 @@
 
     detail.innerHTML = `
       <section class="detail-hero">
-        <img class="detail-hero-image" src="${escapeHtml(assetUrl(cardImage(emp)))}" alt="${escapeHtml(emp.nome)}">
+        <img class="detail-hero-image" ${imgAttrs(cardImage(emp), "(max-width: 1080px) 45vw, 100vw", { lazy: false })} alt="${escapeHtml(emp.nome)}">
         <div class="shell detail-hero-content">
           <button class="button detail-back" type="button" id="detail-back">← Voltar ao portfólio</button>
           <div class="detail-title-row">
@@ -712,7 +762,7 @@
                 ${emp.folder ? `<a class="button button-outline" href="${escapeHtml(assetUrl(emp.folder))}" target="_blank" rel="noopener">Baixar folder</a>` : ""}
               </div>
             </div>
-            ${emp.logo ? `<img class="detail-brand-logo" src="${escapeHtml(assetUrl(emp.logo))}" alt="Logo ${escapeHtml(emp.nome)}">` : ""}
+            ${emp.logo ? `<img class="detail-brand-logo" src="${escapeHtml(miniUrl(emp.logo))}" alt="Logo ${escapeHtml(emp.nome)}" decoding="async">` : ""}
           </div>
         </div>
       </section>
@@ -769,7 +819,7 @@
         const index = Number(button.dataset.galleryThumb);
         const item = photoMedia[index];
         if (!item || !featuredImage) return;
-        featuredImage.src = assetUrl(item.src);
+        trocarImagem(featuredImage, item.src);
         featuredImage.alt = item.legenda || emp.nome;
         if (featuredCounter) featuredCounter.textContent = `${index + 1} / ${photoMedia.length}`;
         detail.querySelectorAll("[data-gallery-thumb]").forEach((thumb) => thumb.classList.remove("active"));
@@ -781,7 +831,7 @@
       button.addEventListener("click", () => {
         const item = humanizedPlants[Number(button.dataset.plantPreview)];
         if (!item || !plantPreviewImage) return;
-        plantPreviewImage.src = assetUrl(item.src);
+        trocarImagem(plantPreviewImage, item.src);
         plantPreviewImage.alt = item.legenda || emp.nome;
         detail.querySelectorAll("[data-plant-preview]").forEach((thumb) => thumb.classList.remove("active"));
         button.classList.add("active");
@@ -1029,7 +1079,7 @@
     const MAX = 6;
     const visiveis = enterprises.length > MAX ? enterprises.slice(0, MAX - 1) : enterprises.slice(0, MAX);
     const extras = enterprises.length - visiveis.length;
-    const imgs = await Promise.all(visiveis.map((emp) => carregarImagem(assetUrl(cardImage(emp)))));
+    const imgs = await Promise.all(visiveis.map((emp) => carregarImagem(mdUrl(cardImage(emp)))));
     const blocos = visiveis.map((emp, i) => ({ emp, img: imgs[i] })).filter((b) => b.img);
     if (blocos.length < 2) return null;
     const total = blocos.length + (extras > 0 ? 1 : 0);
@@ -1248,7 +1298,7 @@
 
     list.innerHTML = photos.map((photo, index) => `
       <div class="share-photo-row">
-        <img src="${escapeHtml(photo.src)}" alt="${escapeHtml(photo.nome)}" loading="lazy">
+        <img src="${escapeHtml(photo.previa || photo.src)}" alt="${escapeHtml(photo.nome)}" loading="lazy" decoding="async">
         <div class="share-photo-info">
           <span class="share-photo-name">${escapeHtml(photo.nome)}</span>
           <div class="share-photo-buttons">
@@ -1358,7 +1408,9 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
     openShareModal(text, photos);
   }
 
-  const coverPhoto = (emp) => ({ src: assetUrl(cardImage(emp)), nome: emp.nome });
+  // src = foto grande (e a que o corretor copia/baixa para mandar ao cliente);
+  // previa = versao pequena, so para a lista do modal nao baixar tudo em tamanho cheio.
+  const coverPhoto = (emp) => ({ src: assetUrl(cardImage(emp)), previa: miniUrl(cardImage(emp)), nome: emp.nome });
 
   // Uma foto por empreendimento, sem repetir quando ha varias unidades do mesmo.
   function coverPhotosFor(items) {
@@ -1634,7 +1686,7 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
       const prazo = semPonto(emp.entrega || emp.statusLabel || "");
       return `
         <article class="ps-card">
-          <div class="ps-media"><img src="${escapeHtml(assetUrl(cardImage(emp)))}" alt="${escapeHtml(emp.nome)}"></div>
+          <div class="ps-media"><img src="${escapeHtml(mdUrl(cardImage(emp)))}" alt="${escapeHtml(emp.nome)}"></div>
           <div class="ps-body">
             <div class="ps-badges">
               <span class="ps-badge ps-badge-stage">${escapeHtml(emp.statusLabel || prazo)}</span>
@@ -1963,9 +2015,28 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
   }
 
   function registerServiceWorker() {
-    if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-      navigator.serviceWorker.register("sw.js?v=45").catch(() => {});
-    }
+    if (!("serviceWorker" in navigator) || !location.protocol.startsWith("http")) return;
+    navigator.serviceWorker.register("sw.js?v=107").catch(() => {});
+
+    // v107 — o site agora abre com o que ja esta salvo no aparelho (por isso e rapido) e
+    // confere a versao nova por tras. Quando chega uma, avisa aqui: recarrega sozinho se
+    // ninguem estiver no meio de nada, ou espera um toque quando ha trabalho na tela.
+    let recarregando = false;
+    navigator.serviceWorker.addEventListener("message", (event) => {
+      if (event.data?.tipo !== "versao-nova" || recarregando) return;
+      recarregando = true;
+      const ocupado = state.picks.size > 0
+        || document.querySelector(".share-modal.open, .selection-drawer.open")
+        || location.hash.startsWith("#emp-");
+      if (!ocupado) { location.reload(); return; }
+      // Para o cliente que abriu um link nao existe "versao do site": ele veio ver o
+      // imovel. A atualizacao entra sozinha na proxima vez que ele abrir.
+      if (CLIENT_MODE) return;
+      const toast = document.getElementById("toast");
+      toast.textContent = "Nova versão do site — toque para atualizar.";
+      toast.classList.add("show", "clicavel");
+      toast.onclick = () => location.reload();
+    });
   }
 
   if (CLIENT_MODE) document.body.classList.add("client-mode");

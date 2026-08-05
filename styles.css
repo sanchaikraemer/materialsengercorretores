@@ -195,12 +195,21 @@ img { max-width: 100%; display: block; }
   background: var(--dark);
   color: #fff;
 }
+/* v107 — a foto do topo e a primeira imagem grande que o celular baixa. Ate 1080px
+   de largura ele pega a versao de 900px (assets/md), que e a que cabe na tela;
+   a de 1600px fica so para monitor. O navegador baixa APENAS a que combina com a
+   media query, entao nao ha download duplicado. */
 .hero-media {
   position: absolute;
   inset: 0;
-  background: url("assets/fachada.jpg") center/cover no-repeat;
+  background: url("assets/md/fachada.jpg?v=107") center/cover no-repeat;
   transform: scale(1.01);
 }
+@media (min-width: 1081px) {
+  .hero-media { background-image: url("assets/fachada.jpg?v=107"); }
+}
+/* Link do cliente: a foto do topo nem chega a ser pedida (ver o script no index.html). */
+.sem-hero .hero-media { background-image: none; }
 .hero-overlay {
   position: absolute;
   inset: 0;
@@ -596,6 +605,8 @@ img { max-width: 100%; display: block; }
 
 .toast { position: fixed; left: 50%; bottom: 25px; z-index: 300; max-width: min(90vw, 480px); padding: 12px 17px; border-radius: 999px; background: var(--dark); color: #fff; box-shadow: var(--shadow-md); font-size: 12.5px; font-weight: 700; opacity: 0; pointer-events: none; transform: translate(-50%, 15px); transition: opacity .2s, transform .2s; }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
+/* v107 — aviso de versao nova: este da para tocar (recarrega o site). */
+.toast.clicavel { pointer-events: auto; cursor: pointer; background: var(--brand-dark); }
 
 .site-footer { padding: 62px 0 20px; background: var(--dark); color: rgba(255,255,255,.72); }
 .footer-grid { display: grid; grid-template-columns: 1.35fr 1fr 1fr; gap: 48px; }

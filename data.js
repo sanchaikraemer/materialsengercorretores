@@ -741,7 +741,7 @@ const EMPREENDIMENTOS = [
     statusLabel: "Disponível",
     entrega: "Pronto",
     ri: [],
-    hero: "assets/gabro-predio.png",
+    hero: "assets/gabro-predio.jpg",
     galeria: [],
     outros: [
       {

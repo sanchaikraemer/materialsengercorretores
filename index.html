@@ -19,9 +19,29 @@
   <title>Construtora Senger — Portfólio Comercial</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    // v107 — no link enviado ao cliente (unidade, seleção ou empreendimento) a página
+    // abre direto na ficha: a foto do topo do portfólio nunca chega a aparecer. Sem
+    // esta marca aqui em cima o celular já teria começado a baixá-la — 65 KB à toa,
+    // porque o app só esconde o topo depois de os scripts rodarem.
+    (function () {
+      var busca = location.search, hash = location.hash;
+      if (busca.indexOf("cliente") > -1 && (hash.indexOf("#emp-") === 0 || /[?&](sel|lista)=/.test(busca))) {
+        document.documentElement.classList.add("sem-hero");
+      }
+    })();
+  </script>
+  <link rel="stylesheet" href="styles.css?v=107">
+  <!-- v107 — a folha do Google Fonts BLOQUEAVA a primeira pintura: o celular ficava na tela
+       branca esperando o servidor do Google responder antes de desenhar qualquer coisa.
+       Agora ela entra como "print" (o navegador nao espera) e vira "all" quando chega;
+       o texto aparece na hora com a fonte do sistema e troca sozinho depois. -->
+  <link rel="stylesheet" media="print" onload="this.media='all';this.onload=null"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Montserrat:wght@500;600;700&display=swap">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Montserrat:wght@500;600;700&display=swap">
+  </noscript>
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="styles.css?v=106">
 </head>
 <body>
   <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
@@ -29,7 +49,7 @@
   <header class="site-header" id="site-header">
     <div class="shell header-inner">
       <button class="brand-button" id="brand-home" aria-label="Voltar ao início">
-        <img src="assets/senger-logo.png" alt="Construtora Senger">
+        <img src="assets/senger-logo.png?v=107" alt="Construtora Senger" width="420" height="648" fetchpriority="high" decoding="async">
       </button>
       <span class="version-tag" id="header-version" title="Versão do site">—</span>
       <button class="corretor-tag" id="corretor-button" type="button" title="Seus dados nas mensagens e nos PDFs">Meu contato</button>
@@ -151,7 +171,7 @@
   <footer class="site-footer">
     <div class="shell footer-grid">
       <div>
-        <img class="footer-logo" src="assets/senger-logo-branco.png" alt="Construtora Senger">
+        <img class="footer-logo" src="assets/senger-logo-branco.png?v=107" alt="Construtora Senger" width="420" height="679" loading="lazy" decoding="async">
         <p>Solidez, confiança e futuro em empreendimentos residenciais, comerciais e loteamentos.</p>
       </div>
       <div>
@@ -192,7 +212,7 @@
        texto em cima, botao largo embaixo, "Agora nao" discreto. -->
   <div class="install-banner" id="install-banner" hidden>
     <div class="install-top">
-      <img src="icons/icon-192.png" alt="">
+      <img src="icons/icon-192.png" alt="" width="192" height="192" loading="lazy" decoding="async">
       <div>
         <strong>Instalar o app da Senger</strong>
         <span>Acesso em um toque, direto da tela inicial.</span>
@@ -257,7 +277,7 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="data.js?v=106"></script>
-  <script src="app.js?v=106"></script>
+  <script defer src="data.js?v=107"></script>
+  <script defer src="app.js?v=107"></script>
 </body>
 </html>
