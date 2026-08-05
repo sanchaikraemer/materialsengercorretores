@@ -757,14 +757,16 @@
           let units = (group.unidades || []).map((unit, unitIndex) => itemMap.get(`${emp.id}:unit:${groupIndex}:${unitIndex}`));
           if (focusKeys) units = units.filter((it) => it && focusKeys.has(it.key));
           if (!units.length) return "";
+          // v103 — a area da tipologia fica so no cabecalho. A coluna Area da tabela
+          // aparece apenas quando alguma unidade tem area diferente da do grupo.
+          const showArea = units.some((it) => hasOwnArea(it));
+          const showGarage = units.some((it) => normalizeText(it.garage) !== normalizeText(group.garagem || ""));
           return `
             <article class="unit-group">
-              <div class="unit-group-header">
-                <div><h3>${escapeHtml(group.tipo)}</h3><p>${escapeHtml([group.area, group.garagem, group.obs].filter(Boolean).join(" · "))}</p></div>
-              </div>
+              ${renderGroupHeader(group)}
               <table class="units-table">
-                <thead><tr><th>Unidade</th><th>Área</th><th>Garagem</th><th>Status</th><th>Valor</th><th></th></tr></thead>
-                <tbody>${units.map(renderUnitRow).join("")}</tbody>
+                <thead><tr><th>Unidade</th>${showArea ? "<th>Área</th>" : ""}${showGarage ? "<th>Garagem</th>" : ""}<th>Status</th><th>Valor</th><th></th></tr></thead>
+                <tbody>${units.map((item) => renderUnitRow(item, showArea, showGarage)).join("")}</tbody>
               </table>
               <div class="mobile-units">${units.map(renderMobileUnit).join("")}</div>
             </article>
@@ -774,14 +776,37 @@
     `;
   }
 
-  function renderUnitRow(item) {
+  // v103 — a unidade so tem area propria quando ela existe e e diferente da tipologia.
+  function hasOwnArea(item) {
+    if (!item || !item.area) return false;
+    const groupArea = item.group?.area || "";
+    return normalizeText(item.area) !== normalizeText(groupArea);
+  }
+
+  // v103 — modelo A: faixa colorida com o tipo em destaque e a area/garagem em etiquetas.
+  function renderGroupHeader(group) {
+    const chips = String(group.area || "")
+      .split("·")
+      .map((part) => part.trim())
+      .filter(Boolean);
+    if (group.garagem) chips.push(String(group.garagem).trim());
+    return `
+      <div class="unit-group-header">
+        <h3>${escapeHtml(group.tipo)}</h3>
+        ${chips.length ? `<div class="unit-group-chips">${chips.map((chip) => `<span>${escapeHtml(chip)}</span>`).join("")}</div>` : ""}
+        ${group.obs ? `<p class="unit-group-obs">${escapeHtml(group.obs)}</p>` : ""}
+      </div>
+    `;
+  }
+
+  function renderUnitRow(item, showArea = true, showGarage = true) {
     const selectable = isMarketable(item.status);
     const selected = state.selected.has(item.key);
     return `
       <tr data-unit-code="${escapeHtml(String(item.code))}">
         <td><strong>${escapeHtml(itemLabel(item))}</strong>${item.tags.length ? `<br><small>${escapeHtml(item.tags.join(" · "))}</small>` : ""}</td>
-        <td>${escapeHtml(item.area || "—")}</td>
-        <td>${escapeHtml(item.garage || "—")}</td>
+        ${showArea ? `<td>${hasOwnArea(item) ? escapeHtml(item.area) : "—"}</td>` : ""}
+        ${showGarage ? `<td>${escapeHtml(item.garage || "—")}</td>` : ""}
         <td><span class="status-pill status-${item.status}">${escapeHtml(STATUS_LABELS[item.status] || item.status)}</span></td>
         <td><strong class="price-value">${money(item.price)}</strong></td>
         <td><div class="unit-actions"><button class="unit-action" type="button" data-share-item="${item.key}">Compartilhar</button><button class="selection-control ${selected ? "selected" : ""}" type="button" data-select-item="${item.key}" ${selectable ? "" : "disabled"}>${selected ? "Selecionado" : "Selecionar"}</button></div></td>
@@ -794,11 +819,15 @@
     const selected = state.selected.has(item.key);
     return `
       <article class="mobile-unit-card" data-unit-code="${escapeHtml(String(item.code))}">
-        <div class="mobile-unit-head"><strong>${escapeHtml(itemLabel(item))}</strong><span class="status-pill status-${item.status}">${escapeHtml(STATUS_LABELS[item.status] || item.status)}</span></div>
-        <div class="mobile-unit-meta">
-          <div><span>Área</span><strong>${escapeHtml(item.area || "—")}</strong></div>
-          <div><span>Valor</span><strong class="price-value">${money(item.price)}</strong></div>
+        <div class="mobile-unit-line">
+          <div class="mobile-unit-id">
+            <strong>${escapeHtml(itemLabel(item))}</strong>
+            <span class="status-pill status-${item.status}">${escapeHtml(STATUS_LABELS[item.status] || item.status)}</span>
+          </div>
+          <strong class="price-value mobile-unit-price">${money(item.price)}</strong>
         </div>
+        ${hasOwnArea(item) ? `<p class="mobile-unit-area">Esta unidade: ${escapeHtml(item.area)}</p>` : ""}
+        ${item.tags.length ? `<p class="mobile-unit-tags">${escapeHtml(item.tags.join(" · "))}</p>` : ""}
         <div class="mobile-unit-actions"><button class="unit-action" type="button" data-share-item="${item.key}">Compartilhar</button><button class="selection-control ${selected ? "selected" : ""}" type="button" data-select-item="${item.key}" ${selectable ? "" : "disabled"}>${selected ? "Selecionado" : "Selecionar"}</button></div>
       </article>
     `;
@@ -1594,14 +1623,16 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
     const groupTables = (emp.grupos || []).map((group, groupIndex) => {
       const units = (group.unidades || []).map((unit, unitIndex) => itemMap.get(`${emp.id}:unit:${groupIndex}:${unitIndex}`)).filter(Boolean);
       if (!units.length) return "";
+      // v103 — no PDF a area do tipo tambem fica so na linha de resumo do grupo.
+      const showArea = units.some((item) => hasOwnArea(item));
       return `
         <div class="ps-group">
           <h3>${escapeHtml(group.tipo)}</h3>
           <p class="ps-group-note">${escapeHtml([group.area, group.garagem, group.obs].filter(Boolean).join(" · "))}</p>
           <table class="ps-table">
-            <thead><tr><th>Unidade</th><th>Área</th><th>Status</th><th>Valor</th></tr></thead>
+            <thead><tr><th>Unidade</th>${showArea ? "<th>Área</th>" : ""}<th>Status</th><th>Valor</th></tr></thead>
             <tbody>${units.map((item) => `
-              <tr><td>${escapeHtml(itemLabel(item))}</td><td>${escapeHtml(item.area || "—")}</td><td>${escapeHtml(STATUS_LABELS[item.status] || item.status)}</td><td>${money(item.price)}</td></tr>
+              <tr><td>${escapeHtml(itemLabel(item))}</td>${showArea ? `<td>${hasOwnArea(item) ? escapeHtml(item.area) : "—"}</td>` : ""}<td>${escapeHtml(STATUS_LABELS[item.status] || item.status)}</td><td>${money(item.price)}</td></tr>
             `).join("")}</tbody>
           </table>
         </div>

@@ -492,9 +492,13 @@ img { max-width: 100%; display: block; }
 .inventory-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 16px; }
 .inventory-toolbar p { margin: 0; color: var(--muted); font-size: 13px; }
 .unit-group { margin-bottom: 16px; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); }
-.unit-group-header { padding: 17px 19px; display: flex; align-items: start; justify-content: space-between; gap: 20px; background: #f8fafb; border-bottom: 1px solid var(--line); }
-.unit-group-header h3 { margin: 0; font-size: 14px; }
-.unit-group-header p { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
+/* v103 — modelo A: a tipologia ganha uma faixa na cor da marca e a area aparece
+   uma unica vez, em etiquetas. Os cartoes de unidade nao repetem mais essa area. */
+.unit-group-header { padding: 16px 19px; color: #fff; background: linear-gradient(135deg, var(--brand-dark), var(--brand)); }
+.unit-group-header h3 { margin: 0; font-size: 19px; line-height: 1.2; letter-spacing: -.01em; }
+.unit-group-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 11px; }
+.unit-group-chips span { padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,.2); font-size: 11.5px; font-weight: 600; }
+.unit-group-obs { margin: 10px 0 0; color: rgba(255,255,255,.86); font-size: 11.5px; line-height: 1.5; }
 .units-table { width: 100%; border-collapse: collapse; }
 .units-table th { padding: 11px 14px; color: var(--muted); background: #fbfcfc; border-bottom: 1px solid var(--line); font-size: 9.5px; text-align: left; letter-spacing: .08em; text-transform: uppercase; }
 .units-table td { padding: 13px 14px; border-bottom: 1px solid var(--line); font-size: 12.5px; vertical-align: middle; }
@@ -518,6 +522,13 @@ img { max-width: 100%; display: block; }
 .mobile-unit-card:first-child { border-top: 0; }
 .mobile-unit-head { display: flex; justify-content: space-between; gap: 10px; }
 .mobile-unit-head strong { font-size: 15px; }
+.mobile-unit-line { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.mobile-unit-id { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.mobile-unit-id strong { font-size: 16px; }
+.mobile-unit-price { font-size: 16px; font-weight: 800; color: var(--brand-dark); }
+.mobile-unit-area { display: inline-block; margin: 10px 0 0; padding: 5px 10px; border-radius: 8px; color: var(--brand-dark); background: var(--brand-soft); font-size: 11.5px; font-weight: 700; }
+.mobile-unit-tags { margin: 8px 0 0; color: var(--muted); font-size: 11.5px; }
+.mobile-unit-line ~ .mobile-unit-actions { margin-top: 13px; }
 .mobile-unit-note { margin: 6px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
 .mobile-unit-meta { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 13px 0; }
 .mobile-unit-meta div { padding: 10px; border-radius: 9px; background: var(--bg); }
@@ -824,6 +835,11 @@ tr.unit-highlight td:first-child { box-shadow: inset 4px 0 0 var(--brand); }
   .info-card, .gallery-showcase, .plant-viewer { break-inside: avoid; margin-bottom: 6mm; }
   .content-section { break-inside: auto; }
   .content-section h2, .content-section .section-heading, .unit-group-header { break-after: avoid; }
+  /* v103 — no papel a faixa colorida da tipologia nao sai; texto volta a ser escuro. */
+  .unit-group-header { color: #000; background: #fff !important; border-bottom: 1px solid #ccc; }
+  .unit-group-header h3 { font-size: 12pt; }
+  .unit-group-chips span { border: 1px solid #bbb; background: #fff; }
+  .unit-group-obs { color: #444; }
   .units-table { display: table; }
   .units-table thead { display: table-header-group; }
   .units-table tr { break-inside: avoid; }
