@@ -408,7 +408,6 @@
     return result.sort((a, b) => {
       if (state.sort === "menor-preco") return (minPrice(a) || Infinity) - (minPrice(b) || Infinity);
       if (state.sort === "maior-preco") return maxPrice(b) - maxPrice(a);
-      if (state.sort === "mais-opcoes") return marketableItems(b).length - marketableItems(a).length;
       if (state.sort === "nome") return a.nome.localeCompare(b.nome, "pt-BR");
       return Number(Boolean(b.destaque)) - Number(Boolean(a.destaque)) || EMPREENDIMENTOS.indexOf(a) - EMPREENDIMENTOS.indexOf(b);
     });
