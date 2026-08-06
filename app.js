@@ -302,8 +302,6 @@
   }
 
   function renderMetadata() {
-    const allItems = EMPREENDIMENTOS.flatMap(itemsFor);
-    const marketable = allItems.filter((item) => isMarketable(item.status));
     const cities = unique(EMPREENDIMENTOS.flatMap((emp) => emp.cidade.split(" · ")));
     const categories = unique(EMPREENDIMENTOS.map((emp) => emp.categoria));
 
@@ -317,13 +315,14 @@
     setText("header-cities", citiesLabel);
     document.getElementById("header-cities")?.setAttribute("title", citiesLabel);
 
-    // v100 — o cliente nao ve mais quantas opcoes existem, em lugar nenhum:
-    // nem "182 opcoes a venda" aqui no topo, nem "Opcoes ativas" no cartao e na
-    // ficha, nem a barra acima do quadro de unidades. Dizer o tamanho do estoque
-    // tira a urgencia da venda. Decisao do dono. O corretor continua vendo tudo.
+    // v107 — o tamanho do estoque NAO aparece mais em lugar nenhum deste site,
+    // nem para o cliente nem para o corretor: nem "182 opcoes a venda" aqui no
+    // topo, nem "Opcoes ativas" no cartao e na ficha, nem a barra acima do
+    // quadro de unidades, nem o "Opcoes" do PDF. Dizer quantas unidades sobraram
+    // tira a urgencia da venda. Decisao do dono: a contagem fica so no painel
+    // administrativo. (Comecou na v100, valendo so para o cliente.)
     const stats = [
       [EMPREENDIMENTOS.length, "empreendimentos"],
-      ...(CLIENT_MODE ? [] : [[marketable.length, "opções à venda"]]),
       [categories.length, "categorias"],
     ];
     document.getElementById("hero-stats").innerHTML = stats.map(([value, label]) => `
@@ -409,7 +408,6 @@
     return result.sort((a, b) => {
       if (state.sort === "menor-preco") return (minPrice(a) || Infinity) - (minPrice(b) || Infinity);
       if (state.sort === "maior-preco") return maxPrice(b) - maxPrice(a);
-      if (state.sort === "mais-opcoes") return marketableItems(b).length - marketableItems(a).length;
       if (state.sort === "nome") return a.nome.localeCompare(b.nome, "pt-BR");
       return Number(Boolean(b.destaque)) - Number(Boolean(a.destaque)) || EMPREENDIMENTOS.indexOf(a) - EMPREENDIMENTOS.indexOf(b);
     });
@@ -429,7 +427,6 @@
 
     const filtrando = state.picks.size > 0;
     grid.innerHTML = enterprises.map((emp) => {
-      const active = marketableItems(emp);
       const minimum = minPrice(emp);
       const statusClass = emp.status === "pronto" ? "pronto" : "obra";
       const typeLabel = CATEGORY_LABELS[emp.categoria] || emp.categoria;
@@ -446,7 +443,6 @@
               ${selUnits.length > 4 ? `<div class="card-unit-line"><strong>e mais ${selUnits.length - 4} no detalhe…</strong></div>` : ""}
             </div>` : `
             <div class="card-metrics">
-              ${CLIENT_MODE ? "" : `<div class="card-metric"><span>Opções ativas</span><strong>${active.length}</strong></div>`}
               <div class="card-metric card-price-panel">
                 <span class="card-price-icon" aria-hidden="true">
                   <svg viewBox="0 0 24 24" focusable="false"><path d="M4 21V8.5L12 4l8 4.5V21M8 21v-8h8v8M9 9h.01M12 9h.01M15 9h.01"/></svg>
@@ -584,7 +580,6 @@
 
     const media = mediaFor(emp);
     const local = LOCAIS[emp.id] || {};
-    const active = marketableItems(emp);
     const minimum = minPrice(emp);
     const statusClass = emp.status === "pronto" ? "pronto" : "obra";
     // Link do cliente com unidade (?cliente&u=501): a pagina mostra so essa
@@ -744,7 +739,6 @@
                 <div class="fact-card"><span>Unidades selecionadas</span><strong>${focusItems.length}</strong></div>
                 <div class="fact-card"><span>Valores</span><strong class="price-value">${focusRange}</strong></div>
               ` : `
-                ${CLIENT_MODE ? "" : `<div class="fact-card"><span>Opções ativas</span><strong>${active.length}</strong></div>`}
                 <div class="fact-card"><span>Preço inicial</span><strong class="price-value">${minimum ? money(minimum) : "Sob consulta"}</strong></div>
               `}
               <div class="fact-card"><span>Registro</span><strong>${escapeHtml((emp.ri || []).join(" · ") || "Não informado")}</strong></div>
@@ -811,7 +805,6 @@
     return `
       <section class="content-section" id="unidades">
         <div class="section-title-row"><h2>${focusItems ? (focusItems.length > 1 ? "Suas unidades" : "Sua unidade") : "Unidades e valores"}</h2><p>Selecione opções para encaminhar ao cliente</p></div>
-        ${CLIENT_MODE ? "" : `<div class="inventory-toolbar"><p>${marketableItems(emp).length} opções comercializáveis nesta tabela.</p></div>`}
         ${groups.map((group, groupIndex) => {
           let units = (group.unidades || []).map((unit, unitIndex) => itemMap.get(`${emp.id}:unit:${groupIndex}:${unitIndex}`));
           if (focusKeys) units = units.filter((it) => it && focusKeys.has(it.key));
@@ -912,7 +905,6 @@
     return `
       <section class="content-section" id="unidades">
         <div class="section-title-row"><h2>Lotes e valores</h2><p>Disponibilidade por quadra e lote</p></div>
-        ${CLIENT_MODE ? "" : `<div class="inventory-toolbar"><p>${marketableItems(emp).length} opções comercializáveis nesta tabela.</p></div>`}
         <table class="units-table">
           <thead><tr><th>Lote</th><th>Área</th><th>Rua</th><th>Status</th><th>Valor</th><th></th></tr></thead>
           <tbody>${items.map((item) => renderOpportunityRow(item, item.rua)).join("")}</tbody>
@@ -928,7 +920,6 @@
     return `
       <section class="content-section" id="unidades">
         <div class="section-title-row"><h2>Imóveis disponíveis</h2><p>Oportunidades complementares</p></div>
-        ${CLIENT_MODE ? "" : `<div class="inventory-toolbar"><p>${marketableItems(emp).length} opções comercializáveis nesta tabela.</p></div>`}
         <table class="units-table">
           <thead><tr><th>Imóvel</th><th>Área</th><th>Local</th><th>Status</th><th>Valor</th><th></th></tr></thead>
           <tbody>${items.map((item) => renderOpportunityRow(item, item.local, item.description)).join("")}</tbody>
@@ -1630,7 +1621,6 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
 
     const cards = enterprises.map((emp) => {
       const minimo = minPrice(emp);
-      const opcoes = marketableItems(emp).length;
       const prazo = semPonto(emp.entrega || emp.statusLabel || "");
       return `
         <article class="ps-card">
@@ -1647,7 +1637,6 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
               <div class="ps-fact-wide"><span>Entrega</span><strong>${escapeHtml(prazo || "Consultar")}</strong></div>
               <div class="ps-fact-row">
                 <div><span>A partir de</span><strong>${minimo ? money(minimo) : "Sob consulta"}</strong></div>
-                <div><span>Opções</span><strong>${opcoes}</strong></div>
               </div>
             </div>
           </div>
