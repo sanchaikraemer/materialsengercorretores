@@ -302,8 +302,6 @@
   }
 
   function renderMetadata() {
-    const allItems = EMPREENDIMENTOS.flatMap(itemsFor);
-    const marketable = allItems.filter((item) => isMarketable(item.status));
     const cities = unique(EMPREENDIMENTOS.flatMap((emp) => emp.cidade.split(" · ")));
     const categories = unique(EMPREENDIMENTOS.map((emp) => emp.categoria));
 
@@ -317,14 +315,14 @@
     setText("header-cities", citiesLabel);
     document.getElementById("header-cities")?.setAttribute("title", citiesLabel);
 
-    // v100 — o cliente nao ve mais quantas opcoes existem, em lugar nenhum:
-    // nem "182 opcoes a venda" aqui no topo, nem a barra acima do quadro de
-    // unidades. Dizer o tamanho do estoque tira a urgencia da venda. Decisao do dono.
-    // v107 — o quadrinho "Opcoes ativas" saiu do cartao e da ficha para TODO
-    // mundo, corretor incluido: no cartao sobra so "A partir de", em destaque.
+    // v107 — o tamanho do estoque NAO aparece mais em lugar nenhum deste site,
+    // nem para o cliente nem para o corretor: nem "182 opcoes a venda" aqui no
+    // topo, nem "Opcoes ativas" no cartao e na ficha, nem a barra acima do
+    // quadro de unidades, nem o "Opcoes" do PDF. Dizer quantas unidades sobraram
+    // tira a urgencia da venda. Decisao do dono: a contagem fica so no painel
+    // administrativo. (Comecou na v100, valendo so para o cliente.)
     const stats = [
       [EMPREENDIMENTOS.length, "empreendimentos"],
-      ...(CLIENT_MODE ? [] : [[marketable.length, "opções à venda"]]),
       [categories.length, "categorias"],
     ];
     document.getElementById("hero-stats").innerHTML = stats.map(([value, label]) => `
@@ -808,7 +806,6 @@
     return `
       <section class="content-section" id="unidades">
         <div class="section-title-row"><h2>${focusItems ? (focusItems.length > 1 ? "Suas unidades" : "Sua unidade") : "Unidades e valores"}</h2><p>Selecione opções para encaminhar ao cliente</p></div>
-        ${CLIENT_MODE ? "" : `<div class="inventory-toolbar"><p>${marketableItems(emp).length} opções comercializáveis nesta tabela.</p></div>`}
         ${groups.map((group, groupIndex) => {
           let units = (group.unidades || []).map((unit, unitIndex) => itemMap.get(`${emp.id}:unit:${groupIndex}:${unitIndex}`));
           if (focusKeys) units = units.filter((it) => it && focusKeys.has(it.key));
@@ -909,7 +906,6 @@
     return `
       <section class="content-section" id="unidades">
         <div class="section-title-row"><h2>Lotes e valores</h2><p>Disponibilidade por quadra e lote</p></div>
-        ${CLIENT_MODE ? "" : `<div class="inventory-toolbar"><p>${marketableItems(emp).length} opções comercializáveis nesta tabela.</p></div>`}
         <table class="units-table">
           <thead><tr><th>Lote</th><th>Área</th><th>Rua</th><th>Status</th><th>Valor</th><th></th></tr></thead>
           <tbody>${items.map((item) => renderOpportunityRow(item, item.rua)).join("")}</tbody>
@@ -925,7 +921,6 @@
     return `
       <section class="content-section" id="unidades">
         <div class="section-title-row"><h2>Imóveis disponíveis</h2><p>Oportunidades complementares</p></div>
-        ${CLIENT_MODE ? "" : `<div class="inventory-toolbar"><p>${marketableItems(emp).length} opções comercializáveis nesta tabela.</p></div>`}
         <table class="units-table">
           <thead><tr><th>Imóvel</th><th>Área</th><th>Local</th><th>Status</th><th>Valor</th><th></th></tr></thead>
           <tbody>${items.map((item) => renderOpportunityRow(item, item.local, item.description)).join("")}</tbody>
@@ -1627,7 +1622,6 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
 
     const cards = enterprises.map((emp) => {
       const minimo = minPrice(emp);
-      const opcoes = marketableItems(emp).length;
       const prazo = semPonto(emp.entrega || emp.statusLabel || "");
       return `
         <article class="ps-card">
@@ -1644,7 +1638,6 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
               <div class="ps-fact-wide"><span>Entrega</span><strong>${escapeHtml(prazo || "Consultar")}</strong></div>
               <div class="ps-fact-row">
                 <div><span>A partir de</span><strong>${minimo ? money(minimo) : "Sob consulta"}</strong></div>
-                <div><span>Opções</span><strong>${opcoes}</strong></div>
               </div>
             </div>
           </div>

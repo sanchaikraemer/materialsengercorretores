@@ -234,7 +234,8 @@ img { max-width: 100%; display: block; }
 .hero-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  max-width: 870px;
+  /* v107 — sao dois numeros agora (sem "opcoes a venda"): faixa mais curta. */
+  max-width: 580px;
   margin-top: 38px;
   border-top: 1px solid rgba(255,255,255,.22);
 }
@@ -491,8 +492,6 @@ img { max-width: 100%; display: block; }
 .plant-link.active { border-color: var(--brand); background: rgba(23,143,160,.1); }
 .plant-viewer-preview { position: sticky; top: 90px; min-width: 0; overflow: hidden; border-radius: var(--radius-md); background: #fff; border: 1px solid var(--line); height: 420px; }
 .plant-viewer-preview img { width: 100%; height: 100%; object-fit: contain; display: block; }
-.inventory-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 16px; }
-.inventory-toolbar p { margin: 0; color: var(--muted); font-size: 13px; }
 .unit-group { margin-bottom: 16px; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); }
 /* v103 — modelo A: a tipologia ganha uma faixa na cor da marca e a area aparece
    uma unica vez, em etiquetas. Os cartoes de unidade nao repetem mais essa area. */
@@ -657,7 +656,6 @@ img { max-width: 100%; display: block; }
   .plant-viewer-preview { position: static; height: 280px; order: -1; }
   .units-table { display: none; }
   .mobile-units { display: block; }
-  .inventory-toolbar { align-items: flex-start; flex-direction: column; }
   .footer-grid { grid-template-columns: 1fr; gap: 30px; }
   .selection-fab { right: 15px; bottom: 15px; }
 }
@@ -690,8 +688,7 @@ img { max-width: 100%; display: block; }
 .client-mode .corretor-tag,
 .client-mode .version-tag { display: none !important; }
 .client-mode .brand-button { pointer-events: none; }
-.client-mode #unidades .section-title-row p,
-.client-mode .inventory-toolbar { display: none !important; }
+.client-mode #unidades .section-title-row p { display: none !important; }
 
 /* v95 — link de SELECAO (?cliente&sel=...): o cartao da vitrine lista as unidades escolhidas
    com o valor de cada uma, no lugar das metricas do predio inteiro. */
@@ -802,7 +799,8 @@ tr.unit-highlight td:first-child { box-shadow: inset 4px 0 0 var(--brand); }
   .ps-tagline { margin: 1.2mm 0 0; color: #4a555e; font-size: 8pt; line-height: 1.35; }
   .ps-facts { margin-top: auto; padding-top: 1.6mm; border-top: .8pt solid #e4e8ea; }
   .ps-fact-wide { margin-bottom: 1.2mm; }
-  .ps-fact-row { display: grid; grid-template-columns: 1.5fr 1fr; gap: 2.5mm; }
+  /* v107 — sem a contagem de opcoes, o valor inicial ocupa a linha inteira. */
+  .ps-fact-row { display: grid; grid-template-columns: 1fr; gap: 2.5mm; }
   .ps-facts span { display: block; color: #77828a; font-size: 6.8pt; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
   .ps-facts strong { display: block; margin-top: .6mm; color: #202a32; font-size: 9pt; line-height: 1.25; }
 
