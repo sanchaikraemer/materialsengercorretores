@@ -586,7 +586,6 @@ const EMPREENDIMENTOS = [
         unidades: [
           { apto: "301B", preco: 470000, status: "alugado" },
           { apto: "601B", preco: 490000, status: "alugado" },
-          { apto: "701B", preco: 500000, status: "alugado" },
         ],
       },
       {
