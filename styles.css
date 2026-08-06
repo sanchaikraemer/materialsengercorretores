@@ -695,7 +695,7 @@ img { max-width: 100%; display: block; }
 .client-mode .corretor-tag,
 .client-mode .version-tag { display: none !important; }
 .client-mode .brand-button { pointer-events: none; }
-.client-mode #unidades .section-title-row p,
+.client-mode #unidades .section-title-row p:not(.delivery-line),
 .client-mode .inventory-toolbar { display: none !important; }
 
 /* v95 — link de SELECAO (?cliente&sel=...): o cartao da vitrine lista as unidades escolhidas
@@ -705,6 +705,48 @@ img { max-width: 100%; display: block; }
 .card-unit-line { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 14.5px; }
 .card-unit-line strong { color: var(--ink); }
 .card-unit-line .price-value { white-space: nowrap; }
+
+/* v107 — prazo de entrega em linha propria, colado no valor: no cartao da vitrine, no
+   topo da ficha e no titulo da tabela de unidades. Verde = pronto para morar; ambar =
+   ainda em obra ou pre-lancamento, as mesmas cores da etiqueta do topo do cartao. */
+.delivery-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 13px 0 0;
+  padding: 8px 11px;
+  border-radius: 10px;
+  background: rgba(168,112,31,.09);
+  border: 1px solid rgba(168,112,31,.26);
+  color: #7c5313;
+  font-size: 13px;
+  line-height: 1.3;
+}
+.delivery-line.pronto { background: rgba(20,133,101,.09); border-color: rgba(20,133,101,.26); color: #0d6a50; }
+.delivery-line svg { flex: none; width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.delivery-line strong { font-weight: 700; color: inherit; }
+
+/* No topo da ficha o fundo e a foto escura: a faixa vira etiqueta solida. */
+.detail-title-row .detail-delivery {
+  display: inline-flex;
+  max-width: max-content;
+  margin: 16px 0 0;
+  background: rgba(168,112,31,.92);
+  border-color: rgba(255,255,255,.2);
+  color: #fff;
+  font-size: 14px;
+}
+.detail-title-row .detail-delivery.pronto { background: rgba(20,133,101,.92); border-color: rgba(255,255,255,.2); color: #fff; }
+
+/* Ao lado de "Sua unidade" / "Unidades e valores" — no celular a faixa desce
+   para baixo do titulo, senao as duas coisas brigam pela mesma linha. */
+.section-title-row .section-delivery { margin: 0; }
+@media (max-width: 720px) {
+  .section-title-row.with-delivery { display: block; }
+  .section-title-row.with-delivery .section-delivery { margin-top: 11px; }
+}
+
+.fact-card.fact-entrega { background: rgba(23,143,160,.08); border: 1px solid rgba(23,143,160,.2); }
 
 /* v90 — link de LISTA (?cliente&lista=...): a home vira a vitrine do cliente. Os controles
    da equipe na home somem; o "voltar" do detalhe REAPARECE (na lista o cliente navega entre

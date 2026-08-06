@@ -39,6 +39,27 @@
       : "Entrada + saldo direto com a construtora";
   }
 
+  // v107 — o prazo de entrega e a primeira pergunta de quem recebe o link: "esta pronto
+  // ou e na planta?". Ate aqui ele so aparecia na etiqueta pequena do topo do cartao,
+  // do tamanho de "Residencial", e sumia de vez na pagina da unidade (o modo cliente
+  // escondia a linha inteira do subtitulo). Agora e uma linha propria, ao lado do valor.
+  // "Outros Imoveis" fica de fora: la cada imovel e um caso, nao ha obra com prazo.
+  function prazoDe(emp) {
+    if (!emp || emp.id === "outros") return "";
+    return String(emp.entrega || emp.statusLabel || "").trim().replace(/\.$/, "");
+  }
+
+  // Mesma marca visual das mensagens do WhatsApp, que ja abrem com 🗓️ e o prazo.
+  function deliveryLine(emp, extraClass = "") {
+    const prazo = prazoDe(emp);
+    if (!prazo) return "";
+    const pronto = emp.status === "pronto";
+    return `<p class="delivery-line${pronto ? " pronto" : ""}${extraClass ? ` ${extraClass}` : ""}">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 3v3.2M16 3v3.2M3.8 9.6h16.4M5.4 5.6h13.2A1.6 1.6 0 0 1 20.2 7.2v12A1.6 1.6 0 0 1 18.6 20.8H5.4A1.6 1.6 0 0 1 3.8 19.2v-12A1.6 1.6 0 0 1 5.4 5.6Z"/></svg>
+      <span><strong>${escapeHtml(prazo)}</strong></span>
+    </p>`;
+  }
+
   // v105 — assinatura do corretor. Fica salva no aparelho de quem usa e entra no fim
   // de toda mensagem e de todo PDF: o cliente que recebe sabe para quem ligar de volta.
   const CORRETOR_CAMPOS = ["nome", "fone", "creci"];
@@ -469,6 +490,7 @@
             <span class="card-kicker">${escapeHtml(emp.cidade)}</span>
             <h3 class="card-title">${escapeHtml(emp.nome)}</h3>
             <p class="card-tagline">${escapeHtml(emp.tagline || emp.entrega || "Consulte informações e disponibilidade.")}</p>
+            ${deliveryLine(emp, "card-delivery")}
             ${metricas}
           </div>
           <div class="card-footer">
@@ -703,6 +725,7 @@
               </div>
               <h1>${escapeHtml(emp.nome)}${focusItem ? ` — ${escapeHtml(itemLabel(focusItem))}` : ""}</h1>
               <p>${escapeHtml(emp.tagline || emp.entrega || "Consulte informações e disponibilidade.")}</p>
+              ${deliveryLine(emp, "detail-delivery")}
               <div class="detail-actions">
                 <button class="button button-primary" type="button" id="share-emp-prices">WhatsApp com preços</button>
                 <button class="button button-outline" type="button" id="share-emp-no-prices">WhatsApp sem preços</button>
@@ -736,7 +759,7 @@
             <p class="eyebrow dark">Resumo comercial</p>
             <h2>Informações principais</h2>
             <div class="fact-grid">
-              <div class="fact-card"><span>Etapa</span><strong>${escapeHtml(emp.entrega || emp.statusLabel || "—")}</strong></div>
+              <div class="fact-card fact-entrega"><span>Entrega</span><strong>${escapeHtml(emp.entrega || emp.statusLabel || "—")}</strong></div>
               ${focusItem ? `
                 <div class="fact-card"><span>Área</span><strong>${escapeHtml(focusItem.area || "—")}</strong></div>
                 <div class="fact-card"><span>Valor</span><strong class="price-value">${money(focusItem.price)}</strong></div>
@@ -798,6 +821,15 @@
     window.scrollTo({ top: 0, behavior: "auto" });
   }
 
+  // v107 — subtitulo das tabelas. Para a equipe, a instrucao de sempre; para o cliente,
+  // o prazo de entrega (a linha antiga era interna e ficava escondida no modo cliente,
+  // deixando a pagina da unidade sem nenhuma pista de quando o imovel fica pronto).
+  function sectionTitleRow(emp, titulo, textoEquipe) {
+    const prazo = CLIENT_MODE ? deliveryLine(emp, "section-delivery") : "";
+    const sub = CLIENT_MODE ? prazo : `<p>${escapeHtml(textoEquipe)}</p>`;
+    return `<div class="section-title-row${prazo ? " with-delivery" : ""}"><h2>${escapeHtml(titulo)}</h2>${sub}</div>`;
+  }
+
   function renderInventory(emp, focusItems = null) {
     if ((emp.grupos || []).length) return renderUnitGroups(emp, focusItems);
     if ((emp.terrenos || []).length) return renderLandInventory(emp, focusItems);
@@ -810,7 +842,7 @@
     const focusKeys = focusItems ? new Set(focusItems.map((f) => f.key)) : null;
     return `
       <section class="content-section" id="unidades">
-        <div class="section-title-row"><h2>${focusItems ? (focusItems.length > 1 ? "Suas unidades" : "Sua unidade") : "Unidades e valores"}</h2><p>Selecione opções para encaminhar ao cliente</p></div>
+        ${sectionTitleRow(emp, focusItems ? (focusItems.length > 1 ? "Suas unidades" : "Sua unidade") : "Unidades e valores", "Selecione opções para encaminhar ao cliente")}
         ${CLIENT_MODE ? "" : `<div class="inventory-toolbar"><p>${marketableItems(emp).length} opções comercializáveis nesta tabela.</p></div>`}
         ${groups.map((group, groupIndex) => {
           let units = (group.unidades || []).map((unit, unitIndex) => itemMap.get(`${emp.id}:unit:${groupIndex}:${unitIndex}`));
@@ -911,7 +943,7 @@
     const items = focusKeys ? itemsFor(emp).filter((it) => focusKeys.has(it.key)) : itemsFor(emp);
     return `
       <section class="content-section" id="unidades">
-        <div class="section-title-row"><h2>Lotes e valores</h2><p>Disponibilidade por quadra e lote</p></div>
+        ${sectionTitleRow(emp, "Lotes e valores", "Disponibilidade por quadra e lote")}
         ${CLIENT_MODE ? "" : `<div class="inventory-toolbar"><p>${marketableItems(emp).length} opções comercializáveis nesta tabela.</p></div>`}
         <table class="units-table">
           <thead><tr><th>Lote</th><th>Área</th><th>Rua</th><th>Status</th><th>Valor</th><th></th></tr></thead>
@@ -927,7 +959,7 @@
     const items = focusKeys ? itemsFor(emp).filter((it) => focusKeys.has(it.key)) : itemsFor(emp);
     return `
       <section class="content-section" id="unidades">
-        <div class="section-title-row"><h2>Imóveis disponíveis</h2><p>Oportunidades complementares</p></div>
+        ${sectionTitleRow(emp, "Imóveis disponíveis", "Oportunidades complementares")}
         ${CLIENT_MODE ? "" : `<div class="inventory-toolbar"><p>${marketableItems(emp).length} opções comercializáveis nesta tabela.</p></div>`}
         <table class="units-table">
           <thead><tr><th>Imóvel</th><th>Área</th><th>Local</th><th>Status</th><th>Valor</th><th></th></tr></thead>
@@ -1089,7 +1121,6 @@
     };
     blocos.forEach((bloco, i) => faixa(i, (xTopo) => {
       cover(bloco.img, Math.max(0, xTopo - 140), y0, passo + 280, BANNER);
-      const cx = xTopo + passo / 2 + SKEW / 2;
       const grad = ctx.createLinearGradient(0, y1 - 120, 0, y1);
       grad.addColorStop(0, "rgba(0,0,0,0)");
       grad.addColorStop(1, "rgba(0,0,0,.78)");
@@ -1099,7 +1130,21 @@
       ctx.textAlign = "center";
       ctx.font = `600 ${total > 4 ? 26 : 32}px ${SERIF}`;
       ctx.textBaseline = "bottom";
-      ctx.fillText(bloco.emp.nome, cx, y1 - 18, passo - 30);
+      // v107 — a etapa entra embaixo do nome, na cor de destaque: na previa do WhatsApp
+      // o cliente ja separa o que esta pronto do que ainda e obra. Aqui vale a etiqueta
+      // curta (statusLabel), que cabe na faixa; o texto longo fica para a pagina.
+      const etapa = bloco.emp.id === "outros" ? "" : String(bloco.emp.statusLabel || bloco.emp.entrega || "").trim();
+      // A faixa e inclinada: o meio dela muda conforme a altura. Centrar tudo no meio
+      // do bloco cortava o comeco das palavras na diagonal ("oulevard Residence") —
+      // cada linha agora e centrada na largura que a faixa tem NAQUELA altura.
+      const centroEm = (y) => xTopo + SKEW * ((y - y0) / BANNER) + passo / 2;
+      const yNome = y1 - (etapa ? 46 : 18);
+      ctx.fillText(bloco.emp.nome, centroEm(yNome), yNome, passo - 26);
+      if (etapa) {
+        ctx.fillStyle = BRONZE;
+        ctx.font = `700 ${total > 4 ? 19 : 22}px ${SANS}`;
+        ctx.fillText(etapa.toUpperCase(), centroEm(y1 - 16), y1 - 16, passo - 26);
+      }
     }));
     if (extras > 0) faixa(total - 1, (xTopo) => {
       ctx.fillStyle = "#1d242c";
@@ -1546,7 +1591,12 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
       ? pontePara(emps[0].id, `sel=${sel}`)
       : `${location.origin}${location.pathname}?cliente&sel=${sel}`;
     const linhas = [`*Construtora Senger — Seleção de ${items.length === 1 ? "imóvel" : "imóveis"}*`, ""];
-    items.forEach((item) => linhas.push(`• ${item.emp.nome} — ${itemLabel(item)}`));
+    // O prazo entra ja na lista da mensagem: o cliente sabe o que e obra e o que
+    // esta pronto antes mesmo de abrir o link.
+    items.forEach((item) => {
+      const prazo = prazoDe(item.emp);
+      linhas.push(`• ${item.emp.nome} — ${itemLabel(item)}${prazo ? ` · ${prazo}` : ""}`);
+    });
     linhas.push("", "👇 Clique no link abaixo para ver fotos, plantas, valores e todas as informações:", url);
     const text = linhas.join("\n");
     const title = "Seleção Construtora Senger";

@@ -27,9 +27,17 @@ const { EMPREENDIMENTOS } = new Function(
 const esc = (s) => String(s || "")
   .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-// Uma frase curta: a chamada do empreendimento, ou o prazo de entrega.
+// Uma frase curta: o prazo de entrega na frente (pronto para morar ou em obra e a
+// primeira pergunta de quem recebe o link) e, depois, a chamada do empreendimento.
+const semAcento = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+
 const resumo = (emp) => {
-  const base = emp.tagline || emp.entrega || "Fotos, plantas, valores e disponibilidade.";
+  const prazo = emp.id === "outros" ? "" : String(emp.entrega || emp.statusLabel || "").trim();
+  // A chamada de alguns empreendimentos ja termina em "pronto para morar": nesses,
+  // repetir o prazo na frente so encheria a previa com a mesma frase duas vezes.
+  const repetido = prazo && semAcento(emp.tagline).includes(semAcento(emp.statusLabel || prazo));
+  const base = [repetido ? "" : prazo, emp.tagline].filter(Boolean).join(" · ")
+    || "Fotos, plantas, valores e disponibilidade.";
   return base.length > 180 ? `${base.slice(0, 177)}…` : base;
 };
 

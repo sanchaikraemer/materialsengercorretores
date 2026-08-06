@@ -1,5 +1,5 @@
-const CACHE = "senger-portfolio-v106-20260805-filtro-2-ou-3-dormitorios";
-const CORE = ["./", "./index.html", "./styles.css?v=106", "./data.js?v=106", "./app.js?v=106", "./manifest.json"];
+const CACHE = "senger-portfolio-v107-20260806-prazo-de-entrega-no-link-do-cliente";
+const CORE = ["./", "./index.html", "./styles.css?v=107", "./data.js?v=107", "./app.js?v=107", "./manifest.json"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
