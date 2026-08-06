@@ -28,6 +28,55 @@
     return match ? `v${match[1]}` : "—";
   })();
 
+  // v105 — condicao de pagamento nao e mais texto solto por empreendimento. Sao duas,
+  // e quem manda e a etapa da obra: na planta, o saldo e direto com a construtora;
+  // pronto, o saldo e financiado no banco. "Outros Imoveis" fica de fora — la cada
+  // imovel tem a sua propria negociacao.
+  function condicoesDe(emp) {
+    if (!emp || emp.id === "outros") return "";
+    return emp.status === "pronto"
+      ? "Entrada + financiamento bancário"
+      : "Entrada + saldo direto com a construtora";
+  }
+
+  // v105 — assinatura do corretor. Fica salva no aparelho de quem usa e entra no fim
+  // de toda mensagem e de todo PDF: o cliente que recebe sabe para quem ligar de volta.
+  const CORRETOR_CAMPOS = ["nome", "fone", "creci"];
+
+  function corretorDados() {
+    const dados = {};
+    CORRETOR_CAMPOS.forEach((campo) => { dados[campo] = storage.get(`senger-corretor-${campo}`, "").trim(); });
+    return dados;
+  }
+
+  function assinaturaTexto() {
+    const { nome, fone, creci } = corretorDados();
+    if (!nome && !fone) return "";
+    const quem = [nome, creci].filter(Boolean).join(" · ");
+    return [quem, fone].filter(Boolean).join(" — ");
+  }
+
+  // v105 — dormitorios da tipologia, para o filtro do portfolio. "2 dormitorios (1 suite)"
+  // vale 2; quando o tipo so fala em suites ("3 suites + lavabo"), elas sao os dormitorios.
+  // Sala comercial nao tem dormitorio.
+  function dormitoriosDe(tipo = "") {
+    const texto = String(tipo);
+    const dormitorios = texto.match(/(\d+)\s*dormit/i);
+    if (dormitorios) return Number(dormitorios[1]);
+    const suites = texto.match(/(\d+)\s*su[ií]te/i);
+    return suites ? Number(suites[1]) : null;
+  }
+
+  function dormitoriosDoEmp(emp) {
+    const total = new Set();
+    (emp.grupos || []).forEach((group) => {
+      if (!(group.unidades || []).some((unit) => isMarketable(unit.status || "disponivel"))) return;
+      const quantos = dormitoriosDe(group.tipo);
+      if (quantos) total.add(quantos);
+    });
+    return total;
+  }
+
   const CATEGORY_LABELS = {
     todos: "Todos",
     residencial: "Residencial",
@@ -47,6 +96,7 @@
     query: "",
     city: "todos",
     stage: "todos",
+    rooms: "todos",
     price: "todos",
     sort: "destaque",
     selected: new Set(JSON.parse(storage.get("senger-selection", "[]"))),
@@ -245,15 +295,13 @@
     ].join(" ")).join(" ");
     return normalizeText([
       emp.nome, emp.cidade, emp.categoria, emp.statusLabel, emp.entrega,
-      emp.tagline, emp.localizacao, emp.condicoes,
+      emp.tagline, emp.localizacao, condicoesDe(emp),
       ...(emp.diferenciais || []).flatMap((d) => [d.titulo, d.desc]),
       inventory,
     ].join(" "));
   }
 
   function renderMetadata() {
-    const allItems = EMPREENDIMENTOS.flatMap(itemsFor);
-    const marketable = allItems.filter((item) => isMarketable(item.status));
     const cities = unique(EMPREENDIMENTOS.flatMap((emp) => emp.cidade.split(" · ")));
     const categories = unique(EMPREENDIMENTOS.map((emp) => emp.categoria));
 
@@ -267,13 +315,14 @@
     setText("header-cities", citiesLabel);
     document.getElementById("header-cities")?.setAttribute("title", citiesLabel);
 
-    // v100 — o cliente nao ve mais quantas opcoes existem, em lugar nenhum:
-    // nem "182 opcoes a venda" aqui no topo, nem "Opcoes ativas" no cartao e na
-    // ficha, nem a barra acima do quadro de unidades. Dizer o tamanho do estoque
-    // tira a urgencia da venda. Decisao do dono. O corretor continua vendo tudo.
+    // v107 — o tamanho do estoque NAO aparece mais em lugar nenhum deste site,
+    // nem para o cliente nem para o corretor: nem "182 opcoes a venda" aqui no
+    // topo, nem "Opcoes ativas" no cartao e na ficha, nem a barra acima do
+    // quadro de unidades, nem o "Opcoes" do PDF. Dizer quantas unidades sobraram
+    // tira a urgencia da venda. Decisao do dono: a contagem fica so no painel
+    // administrativo. (Comecou na v100, valendo so para o cliente.)
     const stats = [
       [EMPREENDIMENTOS.length, "empreendimentos"],
-      ...(CLIENT_MODE ? [] : [[marketable.length, "opções à venda"]]),
       [categories.length, "categorias"],
     ];
     document.getElementById("hero-stats").innerHTML = stats.map(([value, label]) => `
@@ -294,12 +343,18 @@
     const cities = unique(EMPREENDIMENTOS.flatMap((emp) => emp.cidade.split(" · "))).sort((a, b) => a.localeCompare(b, "pt-BR"));
     citySelect.innerHTML = `<option value="todos">Todas as cidades</option>${cities.map((city) => `<option value="${escapeHtml(city)}">${escapeHtml(city)}</option>`).join("")}`;
 
+    // v106 — o filtro tem duas opcoes fixas, 2 e 3 dormitorios. Decisao do dono: o
+    // corretor pergunta "quantos dormitorios", nao "quantas suites".
+    const roomsSelect = document.getElementById("rooms-filter");
+    roomsSelect.innerHTML = `<option value="todos">Qualquer número</option><option value="2">2 dormitórios</option><option value="3">3 dormitórios</option>`;
+
     document.getElementById("search-input").addEventListener("input", (event) => {
       state.query = event.target.value.trim();
       renderPortfolio();
     });
     citySelect.addEventListener("change", (event) => { state.city = event.target.value; renderPortfolio(); });
     document.getElementById("stage-filter").addEventListener("change", (event) => { state.stage = event.target.value; renderPortfolio(); });
+    roomsSelect.addEventListener("change", (event) => { state.rooms = event.target.value; renderPortfolio(); });
     document.getElementById("price-filter").addEventListener("change", (event) => { state.price = event.target.value; renderPortfolio(); });
     document.getElementById("sort-filter").addEventListener("change", (event) => { state.sort = event.target.value; renderPortfolio(); });
     document.getElementById("clear-filters").addEventListener("click", clearFilters);
@@ -317,11 +372,13 @@
     state.query = "";
     state.city = "todos";
     state.stage = "todos";
+    state.rooms = "todos";
     state.price = "todos";
     state.sort = "destaque";
     document.getElementById("search-input").value = "";
     document.getElementById("city-filter").value = "todos";
     document.getElementById("stage-filter").value = "todos";
+    document.getElementById("rooms-filter").value = "todos";
     document.getElementById("price-filter").value = "todos";
     document.getElementById("sort-filter").value = "destaque";
     renderPortfolio();
@@ -341,6 +398,7 @@
       if (CLIENT_LIST_IDS && !CLIENT_LIST_IDS.includes(emp.id)) return false;
       if (state.city !== "todos" && !emp.cidade.split(" · ").includes(state.city)) return false;
       if (state.stage !== "todos" && emp.status !== state.stage) return false;
+      if (state.rooms !== "todos" && !dormitoriosDoEmp(emp).has(Number(state.rooms))) return false;
       if (marketableItems(emp).length === 0) return false;
       if (!priceRangeMatches(emp)) return false;
       if (query && !portfolioSearchText(emp).includes(query)) return false;
@@ -350,7 +408,6 @@
     return result.sort((a, b) => {
       if (state.sort === "menor-preco") return (minPrice(a) || Infinity) - (minPrice(b) || Infinity);
       if (state.sort === "maior-preco") return maxPrice(b) - maxPrice(a);
-      if (state.sort === "mais-opcoes") return marketableItems(b).length - marketableItems(a).length;
       if (state.sort === "nome") return a.nome.localeCompare(b.nome, "pt-BR");
       return Number(Boolean(b.destaque)) - Number(Boolean(a.destaque)) || EMPREENDIMENTOS.indexOf(a) - EMPREENDIMENTOS.indexOf(b);
     });
@@ -370,7 +427,6 @@
 
     const filtrando = state.picks.size > 0;
     grid.innerHTML = enterprises.map((emp) => {
-      const active = marketableItems(emp);
       const minimum = minPrice(emp);
       const statusClass = emp.status === "pronto" ? "pronto" : "obra";
       const typeLabel = CATEGORY_LABELS[emp.categoria] || emp.categoria;
@@ -387,7 +443,6 @@
               ${selUnits.length > 4 ? `<div class="card-unit-line"><strong>e mais ${selUnits.length - 4} no detalhe…</strong></div>` : ""}
             </div>` : `
             <div class="card-metrics">
-              ${CLIENT_MODE ? "" : `<div class="card-metric"><span>Opções ativas</span><strong>${active.length}</strong></div>`}
               <div class="card-metric card-price-panel">
                 <span class="card-price-icon" aria-hidden="true">
                   <svg viewBox="0 0 24 24" focusable="false"><path d="M4 21V8.5L12 4l8 4.5V21M8 21v-8h8v8M9 9h.01M12 9h.01M15 9h.01"/></svg>
@@ -525,7 +580,6 @@
 
     const media = mediaFor(emp);
     const local = LOCAIS[emp.id] || {};
-    const active = marketableItems(emp);
     const minimum = minPrice(emp);
     const statusClass = emp.status === "pronto" ? "pronto" : "obra";
     // Link do cliente com unidade (?cliente&u=501): a pagina mostra so essa
@@ -664,7 +718,7 @@
             <p class="eyebrow dark">Apresentação</p>
             <h2>Sobre o empreendimento</h2>
             <p>${escapeHtml(emp.localizacao || emp.tagline || "Consulte a equipe comercial para mais informações.")}</p>
-            ${emp.condicoes ? `<div class="condition-note"><strong>Condições:</strong> ${escapeHtml(emp.condicoes)}</div>` : ""}
+            ${condicoesDe(emp) ? `<div class="condition-note"><strong>Pagamento:</strong> ${escapeHtml(condicoesDe(emp))}</div>` : ""}
             ${(emp.diferenciais || []).length ? `
               <div class="info-differentials">
                 ${emp.diferenciais.map((item) => `
@@ -685,7 +739,6 @@
                 <div class="fact-card"><span>Unidades selecionadas</span><strong>${focusItems.length}</strong></div>
                 <div class="fact-card"><span>Valores</span><strong class="price-value">${focusRange}</strong></div>
               ` : `
-                ${CLIENT_MODE ? "" : `<div class="fact-card"><span>Opções ativas</span><strong>${active.length}</strong></div>`}
                 <div class="fact-card"><span>Preço inicial</span><strong class="price-value">${minimum ? money(minimum) : "Sob consulta"}</strong></div>
               `}
               <div class="fact-card"><span>Registro</span><strong>${escapeHtml((emp.ri || []).join(" · ") || "Não informado")}</strong></div>
@@ -752,19 +805,20 @@
     return `
       <section class="content-section" id="unidades">
         <div class="section-title-row"><h2>${focusItems ? (focusItems.length > 1 ? "Suas unidades" : "Sua unidade") : "Unidades e valores"}</h2><p>Selecione opções para encaminhar ao cliente</p></div>
-        ${CLIENT_MODE ? "" : `<div class="inventory-toolbar"><p>${marketableItems(emp).length} opções comercializáveis nesta tabela.</p></div>`}
         ${groups.map((group, groupIndex) => {
           let units = (group.unidades || []).map((unit, unitIndex) => itemMap.get(`${emp.id}:unit:${groupIndex}:${unitIndex}`));
           if (focusKeys) units = units.filter((it) => it && focusKeys.has(it.key));
           if (!units.length) return "";
+          // v103 — a area da tipologia fica so no cabecalho. A coluna Area da tabela
+          // aparece apenas quando alguma unidade tem area diferente da do grupo.
+          const showArea = true;
+          const showGarage = units.some((it) => normalizeText(it.garage) !== normalizeText(group.garagem || ""));
           return `
             <article class="unit-group">
-              <div class="unit-group-header">
-                <div><h3>${escapeHtml(group.tipo)}</h3><p>${escapeHtml([group.area, group.garagem, group.obs].filter(Boolean).join(" · "))}</p></div>
-              </div>
+              ${renderGroupHeader(group)}
               <table class="units-table">
-                <thead><tr><th>Unidade</th><th>Área</th><th>Garagem</th><th>Status</th><th>Valor</th><th></th></tr></thead>
-                <tbody>${units.map(renderUnitRow).join("")}</tbody>
+                <thead><tr><th>Unidade</th>${showArea ? "<th>Área</th>" : ""}${showGarage ? "<th>Garagem</th>" : ""}<th>Status</th><th>Valor</th><th></th></tr></thead>
+                <tbody>${units.map((item) => renderUnitRow(item, showArea, showGarage)).join("")}</tbody>
               </table>
               <div class="mobile-units">${units.map(renderMobileUnit).join("")}</div>
             </article>
@@ -774,14 +828,49 @@
     `;
   }
 
-  function renderUnitRow(item) {
+  // v103 — a unidade so tem area propria quando ela existe e e diferente da tipologia.
+  function hasOwnArea(item) {
+    if (!item || !item.area) return false;
+    const groupArea = item.group?.area || "";
+    return normalizeText(item.area) !== normalizeText(groupArea);
+  }
+
+  // v103 — "Casa Suspensa" nao e uma etiqueta comum: e a unidade da mesma tipologia
+  // com area aberta maior (antes chamada de terraco). Fica no grupo dos iguais, so
+  // apresentada de forma diferente.
+  const CASA_SUSPENSA = "Casa Suspensa";
+  const isCasaSuspensa = (tag) => normalizeText(tag) === normalizeText(CASA_SUSPENSA);
+  const casaSuspensaTag = (item) => (item.tags || []).some(isCasaSuspensa);
+  const otherTags = (item) => (item.tags || []).filter((tag) => !isCasaSuspensa(tag));
+
+  // v103 — modelo A: faixa colorida com o tipo em destaque e a area/garagem em etiquetas.
+  function renderGroupHeader(group) {
+    const chips = String(group.area || "")
+      .split("·")
+      .map((part) => part.trim())
+      .filter(Boolean);
+    if (group.garagem) chips.push(String(group.garagem).trim());
+    return `
+      <div class="unit-group-header">
+        <h3>${escapeHtml(group.tipo)}</h3>
+        ${chips.length ? `<div class="unit-group-chips">${chips.map((chip) => `<span>${escapeHtml(chip)}</span>`).join("")}</div>` : ""}
+        ${group.obs ? `<p class="unit-group-obs">${escapeHtml(group.obs)}</p>` : ""}
+      </div>
+    `;
+  }
+
+  function renderUnitRow(item, showArea = true, showGarage = true) {
     const selectable = isMarketable(item.status);
     const selected = state.selected.has(item.key);
     return `
       <tr data-unit-code="${escapeHtml(String(item.code))}">
-        <td><strong>${escapeHtml(itemLabel(item))}</strong>${item.tags.length ? `<br><small>${escapeHtml(item.tags.join(" · "))}</small>` : ""}</td>
-        <td>${escapeHtml(item.area || "—")}</td>
-        <td>${escapeHtml(item.garage || "—")}</td>
+        <td>
+          <strong>${escapeHtml(itemLabel(item))}</strong>
+          ${casaSuspensaTag(item) ? `<br><span class="casa-suspensa-tag">${CASA_SUSPENSA}</span>` : ""}
+          ${otherTags(item).length ? `<br><small>${escapeHtml(otherTags(item).join(" · "))}</small>` : ""}
+        </td>
+        ${showArea ? `<td${hasOwnArea(item) ? ` class="unit-own-area"` : ""}>${escapeHtml(item.area || "—")}</td>` : ""}
+        ${showGarage ? `<td>${escapeHtml(item.garage || "—")}</td>` : ""}
         <td><span class="status-pill status-${item.status}">${escapeHtml(STATUS_LABELS[item.status] || item.status)}</span></td>
         <td><strong class="price-value">${money(item.price)}</strong></td>
         <td><div class="unit-actions"><button class="unit-action" type="button" data-share-item="${item.key}">Compartilhar</button><button class="selection-control ${selected ? "selected" : ""}" type="button" data-select-item="${item.key}" ${selectable ? "" : "disabled"}>${selected ? "Selecionado" : "Selecionar"}</button></div></td>
@@ -794,11 +883,17 @@
     const selected = state.selected.has(item.key);
     return `
       <article class="mobile-unit-card" data-unit-code="${escapeHtml(String(item.code))}">
-        <div class="mobile-unit-head"><strong>${escapeHtml(itemLabel(item))}</strong><span class="status-pill status-${item.status}">${escapeHtml(STATUS_LABELS[item.status] || item.status)}</span></div>
-        <div class="mobile-unit-meta">
-          <div><span>Área</span><strong>${escapeHtml(item.area || "—")}</strong></div>
-          <div><span>Valor</span><strong class="price-value">${money(item.price)}</strong></div>
+        <div class="mobile-unit-line">
+          <div class="mobile-unit-id">
+            <strong>${escapeHtml(itemLabel(item))}</strong>
+            <span class="status-pill status-${item.status}">${escapeHtml(STATUS_LABELS[item.status] || item.status)}</span>
+          </div>
+          <strong class="price-value mobile-unit-price">${money(item.price)}</strong>
         </div>
+        ${casaSuspensaTag(item)
+          ? `<p class="mobile-unit-casa"><span>${CASA_SUSPENSA}</span>${hasOwnArea(item) ? escapeHtml(item.area) : ""}</p>`
+          : hasOwnArea(item) ? `<p class="mobile-unit-area">Esta unidade: ${escapeHtml(item.area)}</p>` : ""}
+        ${otherTags(item).length ? `<p class="mobile-unit-tags">${escapeHtml(otherTags(item).join(" · "))}</p>` : ""}
         <div class="mobile-unit-actions"><button class="unit-action" type="button" data-share-item="${item.key}">Compartilhar</button><button class="selection-control ${selected ? "selected" : ""}" type="button" data-select-item="${item.key}" ${selectable ? "" : "disabled"}>${selected ? "Selecionado" : "Selecionar"}</button></div>
       </article>
     `;
@@ -810,7 +905,6 @@
     return `
       <section class="content-section" id="unidades">
         <div class="section-title-row"><h2>Lotes e valores</h2><p>Disponibilidade por quadra e lote</p></div>
-        ${CLIENT_MODE ? "" : `<div class="inventory-toolbar"><p>${marketableItems(emp).length} opções comercializáveis nesta tabela.</p></div>`}
         <table class="units-table">
           <thead><tr><th>Lote</th><th>Área</th><th>Rua</th><th>Status</th><th>Valor</th><th></th></tr></thead>
           <tbody>${items.map((item) => renderOpportunityRow(item, item.rua)).join("")}</tbody>
@@ -826,7 +920,6 @@
     return `
       <section class="content-section" id="unidades">
         <div class="section-title-row"><h2>Imóveis disponíveis</h2><p>Oportunidades complementares</p></div>
-        ${CLIENT_MODE ? "" : `<div class="inventory-toolbar"><p>${marketableItems(emp).length} opções comercializáveis nesta tabela.</p></div>`}
         <table class="units-table">
           <thead><tr><th>Imóvel</th><th>Área</th><th>Local</th><th>Status</th><th>Valor</th><th></th></tr></thead>
           <tbody>${items.map((item) => renderOpportunityRow(item, item.local, item.description)).join("")}</tbody>
@@ -889,6 +982,7 @@
       lines.push("Consulte valores e condições.");
     }
     if (emp.entrega) lines.push(`Entrega: ${semPonto(emp.entrega)}`);
+    if (condicoesDe(emp)) lines.push(`Pagamento: ${condicoesDe(emp)}`);
     lines.push("", `Tabela ${META.mesTabela || ""}. Valores e disponibilidade sujeitos a alteração.`);
     return lines.filter((line, index, array) => line !== "" || array[index - 1] !== "").join("\n");
   }
@@ -1081,7 +1175,8 @@
 
   function itemBullets(item) {
     const bullets = [];
-    const etiquetas = (item.tags || []).map((t) => t.toLowerCase());
+    // "Casa Suspensa" e nome de produto: mantem as maiusculas na mensagem.
+    const etiquetas = (item.tags || []).map((t) => (isCasaSuspensa(t) ? CASA_SUSPENSA : t.toLowerCase()));
     // A linha do prazo de entrega ja diz se e novo, pronto ou pre-lancamento:
     // aqui so entram os status que mudam a oferta (reservado, vendido, alugado).
     const cond = item.status !== "disponivel" ? (STATUS_LABELS[item.status] || item.status).toLowerCase() : "";
@@ -1125,7 +1220,7 @@
     if (includePrice) lines.push(`💰 *${money(item.price)}*`);
     else lines.push("💰 Valor sob consulta.");
 
-    if (emp.condicoes) lines.push(semPonto(emp.condicoes) + ".");
+    if (condicoesDe(emp)) lines.push(`${condicoesDe(emp)}.`);
     if (item.notes) lines.push(semPonto(item.notes) + ".");
     lines.push("", `Tabela ${META.mesTabela || ""}. Valores e disponibilidade sujeitos a alteração.`);
     return lines.join("\n");
@@ -1137,7 +1232,9 @@
     const textarea = document.getElementById("share-modal-text");
     const list = document.getElementById("share-modal-photos");
     const hint = document.getElementById("share-modal-hint");
-    textarea.value = text;
+    // Toda mensagem sai assinada por quem esta enviando (quando ele preencheu seus dados).
+    const assinatura = assinaturaTexto();
+    textarea.value = assinatura ? `${text}\n\n👤 ${assinatura}` : text;
     document.getElementById("share-modal-copy").textContent = "Copiar mensagem";
 
     list.innerHTML = photos.map((photo, index) => `
@@ -1517,13 +1614,13 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
 
   // Folha exclusiva do PDF: capa de cada empreendimento, prazo de entrega e valor inicial.
   function buildPrintSheet(enterprises) {
-    const contato = [META.contato?.telefones?.[0], META.contato?.instagram, META.contato?.site].filter(Boolean).join(" · ");
+    // O PDF sai assinado por quem gerou; sem dados preenchidos, vale o contato da empresa.
+    const contato = [assinaturaTexto() || META.contato?.telefones?.[0], META.contato?.instagram, META.contato?.site].filter(Boolean).join(" · ");
     const cidades = unique(enterprises.flatMap((emp) => emp.cidade.split(" · ")))
       .map((city) => city.replace("/RS", "")).join(" · ");
 
     const cards = enterprises.map((emp) => {
       const minimo = minPrice(emp);
-      const opcoes = marketableItems(emp).length;
       const prazo = semPonto(emp.entrega || emp.statusLabel || "");
       return `
         <article class="ps-card">
@@ -1540,7 +1637,6 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
               <div class="ps-fact-wide"><span>Entrega</span><strong>${escapeHtml(prazo || "Consultar")}</strong></div>
               <div class="ps-fact-row">
                 <div><span>A partir de</span><strong>${minimo ? money(minimo) : "Sob consulta"}</strong></div>
-                <div><span>Opções</span><strong>${opcoes}</strong></div>
               </div>
             </div>
           </div>
@@ -1572,7 +1668,8 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
   // Folha A4 de um empreendimento: fotos lado a lado (2 por linha) e
   // plantas em tamanho grande, uma por linha — pensado para leitura em PDF.
   function buildEnterprisePrintSheet(emp) {
-    const contato = [META.contato?.telefones?.[0], META.contato?.instagram, META.contato?.site].filter(Boolean).join(" · ");
+    // O PDF sai assinado por quem gerou; sem dados preenchidos, vale o contato da empresa.
+    const contato = [assinaturaTexto() || META.contato?.telefones?.[0], META.contato?.instagram, META.contato?.site].filter(Boolean).join(" · ");
     const prazo = semPonto(emp.entrega || emp.statusLabel || "");
     const minimo = minPrice(emp);
     const media = mediaFor(emp);
@@ -1594,14 +1691,15 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
     const groupTables = (emp.grupos || []).map((group, groupIndex) => {
       const units = (group.unidades || []).map((unit, unitIndex) => itemMap.get(`${emp.id}:unit:${groupIndex}:${unitIndex}`)).filter(Boolean);
       if (!units.length) return "";
+      const showArea = true;
       return `
         <div class="ps-group">
           <h3>${escapeHtml(group.tipo)}</h3>
           <p class="ps-group-note">${escapeHtml([group.area, group.garagem, group.obs].filter(Boolean).join(" · "))}</p>
           <table class="ps-table">
-            <thead><tr><th>Unidade</th><th>Área</th><th>Status</th><th>Valor</th></tr></thead>
+            <thead><tr><th>Unidade</th>${showArea ? "<th>Área</th>" : ""}<th>Status</th><th>Valor</th></tr></thead>
             <tbody>${units.map((item) => `
-              <tr><td>${escapeHtml(itemLabel(item))}</td><td>${escapeHtml(item.area || "—")}</td><td>${escapeHtml(STATUS_LABELS[item.status] || item.status)}</td><td>${money(item.price)}</td></tr>
+              <tr><td>${escapeHtml(itemLabel(item))}${casaSuspensaTag(item) ? ` <b>· ${CASA_SUSPENSA}</b>` : ""}</td>${showArea ? `<td>${escapeHtml(item.area || "—")}</td>` : ""}<td>${escapeHtml(STATUS_LABELS[item.status] || item.status)}</td><td>${money(item.price)}</td></tr>
             `).join("")}</tbody>
           </table>
         </div>
@@ -1631,6 +1729,7 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
           <p class="ps-eyebrow">${escapeHtml(emp.cidade)} · ${escapeHtml(CATEGORY_LABELS[emp.categoria] || emp.categoria)}</p>
           <h1>${escapeHtml(emp.nome)}</h1>
           <p class="ps-meta">${escapeHtml(prazo)}${minimo ? ` · A partir de ${money(minimo)}` : ""} · Tabela ${escapeHtml(META.mesTabela || "")}</p>
+          ${condicoesDe(emp) ? `<p class="ps-meta">Pagamento: ${escapeHtml(condicoesDe(emp))}</p>` : ""}
           <p class="ps-contact">${contato ? `${escapeHtml(contato)} — ` : ""}Valores e disponibilidade sujeitos a alteração sem aviso prévio. Imagens meramente ilustrativas.</p>
         </div>
       </header>
@@ -1793,6 +1892,7 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
 
     document.querySelectorAll("[data-close-share]").forEach((button) => button.addEventListener("click", closeShareModal));
     document.querySelectorAll("[data-close-choice]").forEach((button) => button.addEventListener("click", closeSendChoice));
+    bindCorretorEvents();
     document.getElementById("share-modal-copy").addEventListener("click", copyShareModalText);
     document.getElementById("share-modal-open").addEventListener("click", () => window.open("https://web.whatsapp.com/", "_blank", "noopener"));
 
@@ -1801,6 +1901,54 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") { closeDrawer(); closeShareModal(); }
     });
+  }
+
+  // v105 — tela "Meu contato": nome, WhatsApp e CRECI de quem esta usando o app.
+  function bindCorretorEvents() {
+    const modal = document.getElementById("corretor-modal");
+    const botao = document.getElementById("corretor-button");
+    const campos = {};
+    CORRETOR_CAMPOS.forEach((campo) => { campos[campo] = document.getElementById(`corretor-${campo}`); });
+
+    const atualizarBotao = () => {
+      const { nome } = corretorDados();
+      botao.textContent = nome ? nome.split(" ")[0] : "Meu contato";
+      botao.classList.toggle("preenchido", Boolean(assinaturaTexto()));
+    };
+    const atualizarPreview = () => {
+      const preview = [campos.nome.value.trim(), campos.creci.value.trim()].filter(Boolean).join(" · ");
+      const linha = [preview, campos.fone.value.trim()].filter(Boolean).join(" — ");
+      document.getElementById("corretor-preview").textContent = linha ? `Vai sair assim: 👤 ${linha}` : "";
+    };
+    const abrir = () => {
+      const dados = corretorDados();
+      CORRETOR_CAMPOS.forEach((campo) => { campos[campo].value = dados[campo]; });
+      atualizarPreview();
+      modal.classList.add("open");
+      modal.setAttribute("aria-hidden", "false");
+      campos.nome.focus();
+    };
+    const fechar = () => {
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden", "true");
+    };
+
+    botao.addEventListener("click", abrir);
+    modal.querySelectorAll("[data-close-corretor]").forEach((el) => el.addEventListener("click", fechar));
+    CORRETOR_CAMPOS.forEach((campo) => campos[campo].addEventListener("input", atualizarPreview));
+    document.getElementById("corretor-save").addEventListener("click", () => {
+      CORRETOR_CAMPOS.forEach((campo) => storage.set(`senger-corretor-${campo}`, campos[campo].value.trim()));
+      atualizarBotao();
+      fechar();
+      showToast(assinaturaTexto() ? "Seus dados vão nas próximas mensagens." : "Dados apagados.");
+    });
+    document.getElementById("corretor-clear").addEventListener("click", () => {
+      CORRETOR_CAMPOS.forEach((campo) => { storage.set(`senger-corretor-${campo}`, ""); campos[campo].value = ""; });
+      atualizarPreview();
+      atualizarBotao();
+      showToast("Dados apagados.");
+    });
+    atualizarBotao();
   }
 
   function registerServiceWorker() {

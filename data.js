@@ -17,7 +17,7 @@ const META = {
 };
 
 // status de unidade: "disponivel" | "alugado" | "reservado" | "vendido"
-// tags livres por unidade: "Decorado", "Mobiliado", "Terraço", etc.
+// tags livres por unidade: "Decorado", "Mobiliado", "Casa Suspensa", etc.
 
 const EMPREENDIMENTOS = [
 
@@ -76,10 +76,10 @@ const EMPREENDIMENTOS = [
         garagem: "Box opcional (consultar)",
         obs: "Plantas exclusivas — pavimentos 4 e 13. Valor sem box de garagem.",
         unidades: [
-          { apto: "401", preco: 1490000, status: "disponivel", areaUnit: "358 m² global · 258 m² privativo", tags: ["Terraço"], planta: "ren-planta-401" },
-          { apto: "402", preco: 1490000, status: "disponivel", areaUnit: "385 m² global · 280 m² privativo", tags: ["Terraço"], planta: "ren-planta-402" },
-          { apto: "1301", preco: 1590000, status: "disponivel", areaUnit: "306 m² global · 208 m² privativo", tags: ["Terraço"], planta: "ren-planta-1301" },
-          { apto: "1302", preco: 1590000, status: "disponivel", areaUnit: "306 m² global · 208 m² privativo", tags: ["Terraço"], planta: "ren-planta-1302" },
+          { apto: "401", preco: 1490000, status: "disponivel", areaUnit: "358 m² global · 258 m² privativo", planta: "ren-planta-401" },
+          { apto: "402", preco: 1490000, status: "disponivel", areaUnit: "385 m² global · 280 m² privativo", planta: "ren-planta-402" },
+          { apto: "1301", preco: 1590000, status: "disponivel", areaUnit: "306 m² global · 208 m² privativo", planta: "ren-planta-1301" },
+          { apto: "1302", preco: 1590000, status: "disponivel", areaUnit: "306 m² global · 208 m² privativo", planta: "ren-planta-1302" },
         ],
       },
       {
@@ -153,7 +153,7 @@ const EMPREENDIMENTOS = [
         planta: "ren-planta-504",
         obs: "Unidade 504 — lateral direita. Valor sem box de garagem.",
         unidades: [
-          { apto: "504", preco: 880000, status: "disponivel", tags: ["Terraço"] },
+          { apto: "504", preco: 880000, status: "disponivel" },
         ],
       },
       {
@@ -213,7 +213,7 @@ const EMPREENDIMENTOS = [
         area: "99 m² global · 73 m² privativo",
         garagem: "01 box",
         unidades: [
-          { apto: "404", preco: 730000, status: "disponivel", tags: ["Terraço"], areaUnit: "135 m² global · 104 m² privativo" },
+          { apto: "404", preco: 730000, status: "disponivel", tags: ["Casa Suspensa"], areaUnit: "135 m² global · 104 m² privativo" },
           { apto: "504", preco: 690000, status: "disponivel" },
           { apto: "604", preco: 700000, status: "disponivel" },
           { apto: "704", preco: 710000, status: "disponivel" },
@@ -237,7 +237,7 @@ const EMPREENDIMENTOS = [
         area: "118 m² global · 87 m² privativo",
         garagem: "01 box",
         unidades: [
-          { apto: "402", preco: 850000, status: "disponivel", tags: ["Terraço"], areaUnit: "173 m² global · 133 m² privativo" },
+          { apto: "402", preco: 850000, status: "disponivel", tags: ["Casa Suspensa"], areaUnit: "173 m² global · 133 m² privativo" },
           { apto: "502", preco: 800000, status: "disponivel" },
         ],
       },
@@ -269,7 +269,6 @@ const EMPREENDIMENTOS = [
     hero: "assets/po-render-3.jpg",
     destaque: true,
     tagline: "Não é só um moderno centro clínico — é o futuro da área da saúde de Carazinho.",
-    condicoes: "Entrada + saldo direto com a construtora.",
     localizacao: "Rua Cipriano da Luz — em frente à Praça do Hospital de Clínicas de Carazinho.",
     diferenciais: [
       { titulo: "Rooftop", desc: "Conforto e vista privilegiada que transformam a espera do paciente em uma experiência única." },
@@ -400,7 +399,6 @@ const EMPREENDIMENTOS = [
         tipo: "3 suítes + lavabo",
         area: "212 m² global · 149 m² privativo",
         garagem: "Box duplo",
-        obs: "Terraço: 246 m² global · 177 m² privativo.",
         unidades: [
           { apto: "602", preco: 1440000, status: "disponivel" },
           { apto: "702", preco: 1460000, status: "disponivel" },
@@ -414,7 +412,7 @@ const EMPREENDIMENTOS = [
         area: "131 m² global · 93 m² privativo",
         garagem: "01 box de garagem",
         unidades: [
-          { apto: "304", preco: 870000, status: "disponivel", tags: ["Terraço"], areaUnit: "165 m² global · 121 m² privativo" },
+          { apto: "304", preco: 870000, status: "disponivel", tags: ["Casa Suspensa"], areaUnit: "165 m² global · 121 m² privativo" },
           { apto: "404", preco: 850000, status: "disponivel" },
           { apto: "504", preco: 860000, status: "disponivel" },
           { apto: "704", preco: 880000, status: "disponivel" },
@@ -631,7 +629,6 @@ const EMPREENDIMENTOS = [
     logo: "assets/nvr3-logo.jpg",
     destaque: true,
     tagline: "Lotes prontos para construir, no novo loteamento Nova Vila Rica III.",
-    condicoes: "Entrada de 20% + saldo direto com a construtora. Construção após quitação ou financiamento bancário.",
     localizacao: "Carazinho/RS — Ruas Laranjeira, Figueira, Jatobá, J. Kennedy e H. T. Schutz.",
     galeria: [
       { src: "assets/nvr3-mapa.jpg", legenda: "Mapa de lotes e disponibilidade" },

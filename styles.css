@@ -234,7 +234,8 @@ img { max-width: 100%; display: block; }
 .hero-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  max-width: 870px;
+  /* v107 — sao dois numeros agora (sem "opcoes a venda"): faixa mais curta. */
+  max-width: 580px;
   margin-top: 38px;
   border-top: 1px solid rgba(255,255,255,.22);
 }
@@ -281,16 +282,19 @@ img { max-width: 100%; display: block; }
 .search-field input { width: 100%; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 14px; }
 .search-field input::placeholder { color: #89949b; }
 .button-filter-toggle { display: none; }
+/* v107 — no computador os cinco campos ficam lado a lado, todos com o mesmo
+   rotulo em cima e a mesma altura. Antes "Ordenar" e "Limpar filtros" caiam
+   espremidos numa segunda linha estreita, e o painel parecia desalinhado. */
 .filters-body {
   display: grid;
-  grid-template-columns: repeat(3, minmax(150px, 1fr)) minmax(300px, 1.35fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   align-items: end;
-  gap: 13px;
+  gap: 14px 12px;
   margin-top: 15px;
 }
 .filter-group { display: grid; gap: 7px; min-width: 0; }
 .filter-label { color: var(--muted); font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-.filter-group select, .sort-control select {
+.filter-group select {
   width: 100%;
   min-height: 43px;
   padding: 8px 36px 8px 12px;
@@ -301,25 +305,21 @@ img { max-width: 100%; display: block; }
   color: var(--ink);
   font-size: 12.5px;
 }
-.filter-group select:focus, .sort-control select:focus, .search-field:focus-within { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(23,143,160,.11); }
-.filter-actions {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-  justify-content: stretch;
-  column-gap: 12px;
-  row-gap: 8px;
-  min-width: 0;
-  width: 100%;
+.filter-group select:focus, .search-field:focus-within { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(23,143,160,.11); }
+.filter-footer {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 13px;
+  border-top: 1px solid var(--line);
 }
-.filter-actions .sort-control { grid-column: 1 / -1; justify-self: stretch; min-width: 0; }
-.filter-actions .text-button { grid-column: 1 / -1; justify-self: end; align-self: center; white-space: nowrap; }
+.filter-footer .text-button { white-space: nowrap; }
 
 .results-bar { min-height: 42px; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 8px 0; }
 .results-bar p { margin: 0; color: var(--muted); font-size: 13px; }
 .results-bar p strong { color: var(--ink); }
-.sort-control { display: flex; align-items: center; justify-content: flex-end; gap: 9px; min-width: 0; color: var(--muted); font-size: 12px; font-weight: 600; }
-.sort-control select { min-height: 36px; width: min(164px, 100%); min-width: 0; border-radius: 999px; }
 
 .portfolio-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
 .portfolio-card {
@@ -382,7 +382,8 @@ img { max-width: 100%; display: block; }
 .card-kicker { color: var(--brand); font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
 .card-title { margin: 7px 0 7px; font-family: var(--font-display); font-size: 23px; line-height: 1.13; letter-spacing: -.025em; font-weight: 600; }
 .card-tagline { min-height: 43px; margin: 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
-.card-metrics { display: grid; grid-template-columns: .72fr 1.28fr; gap: 10px; margin-top: 18px; }
+/* v107 — sem o quadrinho "Opcoes ativas", o painel de preco ocupa a faixa toda. */
+.card-metrics { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 18px; }
 .card-metric { padding: 11px 12px; border-radius: 11px; background: var(--bg); }
 .card-metric span { display: block; color: var(--muted); font-size: 9.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
 .card-metric strong { display: block; margin-top: 4px; font-size: 13px; }
@@ -462,6 +463,8 @@ img { max-width: 100%; display: block; }
 .info-card p { color: var(--muted); line-height: 1.7; }
 .fact-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 18px; }
 .fact-card { padding: 14px; border-radius: 12px; background: var(--bg); }
+/* Numero impar de quadros (v107, sem "Opcoes ativas"): o ultimo ocupa a linha toda. */
+.fact-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
 .fact-card span { display: block; color: var(--muted); font-size: 9.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .fact-card strong { display: block; margin-top: 5px; font-size: 13.5px; }
 .condition-note { margin-top: 16px; padding: 14px 16px; border-left: 3px solid var(--brand); border-radius: 0 10px 10px 0; background: var(--brand-soft); color: #315860; font-size: 13px; line-height: 1.55; }
@@ -489,12 +492,14 @@ img { max-width: 100%; display: block; }
 .plant-link.active { border-color: var(--brand); background: rgba(23,143,160,.1); }
 .plant-viewer-preview { position: sticky; top: 90px; min-width: 0; overflow: hidden; border-radius: var(--radius-md); background: #fff; border: 1px solid var(--line); height: 420px; }
 .plant-viewer-preview img { width: 100%; height: 100%; object-fit: contain; display: block; }
-.inventory-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 16px; }
-.inventory-toolbar p { margin: 0; color: var(--muted); font-size: 13px; }
 .unit-group { margin-bottom: 16px; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); }
-.unit-group-header { padding: 17px 19px; display: flex; align-items: start; justify-content: space-between; gap: 20px; background: #f8fafb; border-bottom: 1px solid var(--line); }
-.unit-group-header h3 { margin: 0; font-size: 14px; }
-.unit-group-header p { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
+/* v103 — modelo A: a tipologia ganha uma faixa na cor da marca e a area aparece
+   uma unica vez, em etiquetas. Os cartoes de unidade nao repetem mais essa area. */
+.unit-group-header { padding: 16px 19px; color: #fff; background: linear-gradient(135deg, var(--brand-dark), var(--brand)); }
+.unit-group-header h3 { margin: 0; font-size: 19px; line-height: 1.2; letter-spacing: -.01em; }
+.unit-group-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 11px; }
+.unit-group-chips span { padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,.2); font-size: 11.5px; font-weight: 600; }
+.unit-group-obs { margin: 10px 0 0; color: rgba(255,255,255,.86); font-size: 11.5px; line-height: 1.5; }
 .units-table { width: 100%; border-collapse: collapse; }
 .units-table th { padding: 11px 14px; color: var(--muted); background: #fbfcfc; border-bottom: 1px solid var(--line); font-size: 9.5px; text-align: left; letter-spacing: .08em; text-transform: uppercase; }
 .units-table td { padding: 13px 14px; border-bottom: 1px solid var(--line); font-size: 12.5px; vertical-align: middle; }
@@ -518,6 +523,17 @@ img { max-width: 100%; display: block; }
 .mobile-unit-card:first-child { border-top: 0; }
 .mobile-unit-head { display: flex; justify-content: space-between; gap: 10px; }
 .mobile-unit-head strong { font-size: 15px; }
+.mobile-unit-line { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.mobile-unit-id { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.mobile-unit-id strong { font-size: 16px; }
+.mobile-unit-price { font-size: 16px; font-weight: 800; color: var(--brand-dark); }
+.mobile-unit-area { display: inline-block; margin: 10px 0 0; padding: 5px 10px; border-radius: 8px; color: var(--brand-dark); background: var(--brand-soft); font-size: 11.5px; font-weight: 700; }
+.mobile-unit-tags { margin: 8px 0 0; color: var(--muted); font-size: 11.5px; }
+/* v103 — Casa Suspensa: mesma tipologia, area aberta maior. Recebe faixa propria. */
+.mobile-unit-casa { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 10px 0 0; padding: 8px 10px; border: 1px solid rgba(168,112,31,.35); border-radius: 9px; background: rgba(168,112,31,.09); color: var(--warning); font-size: 11.5px; font-weight: 700; }
+.mobile-unit-casa span { padding: 3px 8px; border-radius: 999px; background: var(--warning); color: #fff; font-size: 10px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+.casa-suspensa-tag { display: inline-block; margin-top: 5px; padding: 3px 8px; border-radius: 999px; background: rgba(168,112,31,.13); color: var(--warning); font-size: 9.5px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+.mobile-unit-line ~ .mobile-unit-actions { margin-top: 13px; }
 .mobile-unit-note { margin: 6px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
 .mobile-unit-meta { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 13px 0; }
 .mobile-unit-meta div { padding: 10px; border-radius: 9px; background: var(--bg); }
@@ -594,7 +610,6 @@ img { max-width: 100%; display: block; }
 @media (max-width: 1080px) {
   .header-summary { display: none; }
   .filters-body { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .filter-actions { grid-column: 1 / -1; width: 100%; grid-template-columns: minmax(0, 1fr) auto; }
   .portfolio-grid { grid-template-columns: repeat(2, 1fr); }
   .detail-summary-grid { grid-template-columns: 1fr; }
 }
@@ -620,13 +635,8 @@ img { max-width: 100%; display: block; }
   .button-filter-toggle { display: inline-flex; }
   .filters-body { display: none; grid-template-columns: 1fr; }
   .filters-body.open { display: grid; }
-  .filter-actions { grid-column: auto; grid-template-columns: 1fr; justify-content: stretch; }
-  .filter-actions .sort-control, .filter-actions .text-button { grid-column: auto; }
-  .filter-actions .sort-control { justify-self: stretch; }
-  .filter-actions .text-button { justify-self: start; }
+  .filter-footer { justify-content: flex-start; padding-top: 10px; }
   .results-bar { align-items: flex-start; flex-direction: column; padding: 16px 0; }
-  .sort-control { width: 100%; justify-content: space-between; }
-  .sort-control select { width: 190px; }
   .portfolio-grid { grid-template-columns: 1fr; }
   .card-media { height: 230px; }
   /* v102 — topo compacto tambem no celular (modelo B). */
@@ -646,7 +656,6 @@ img { max-width: 100%; display: block; }
   .plant-viewer-preview { position: static; height: 280px; order: -1; }
   .units-table { display: none; }
   .mobile-units { display: block; }
-  .inventory-toolbar { align-items: flex-start; flex-direction: column; }
   .footer-grid { grid-template-columns: 1fr; gap: 30px; }
   .selection-fab { right: 15px; bottom: 15px; }
 }
@@ -655,7 +664,6 @@ img { max-width: 100%; display: block; }
   .hero-actions { display: grid; }
   .hero-actions .button { width: 100%; }
   .hero-stats { gap: 0 8px; }
-  .card-metrics { grid-template-columns: 1fr; }
   .detail-actions { gap: 8px; }
   .detail-actions .button { padding-inline: 6px; font-size: 10.5px; }
 }
@@ -677,10 +685,10 @@ img { max-width: 100%; display: block; }
 .client-mode .unit-actions,
 .client-mode .mobile-unit-actions,
 .client-mode .header-summary,
+.client-mode .corretor-tag,
 .client-mode .version-tag { display: none !important; }
 .client-mode .brand-button { pointer-events: none; }
-.client-mode #unidades .section-title-row p,
-.client-mode .inventory-toolbar { display: none !important; }
+.client-mode #unidades .section-title-row p { display: none !important; }
 
 /* v95 — link de SELECAO (?cliente&sel=...): o cartao da vitrine lista as unidades escolhidas
    com o valor de cada uma, no lugar das metricas do predio inteiro. */
@@ -791,7 +799,8 @@ tr.unit-highlight td:first-child { box-shadow: inset 4px 0 0 var(--brand); }
   .ps-tagline { margin: 1.2mm 0 0; color: #4a555e; font-size: 8pt; line-height: 1.35; }
   .ps-facts { margin-top: auto; padding-top: 1.6mm; border-top: .8pt solid #e4e8ea; }
   .ps-fact-wide { margin-bottom: 1.2mm; }
-  .ps-fact-row { display: grid; grid-template-columns: 1.5fr 1fr; gap: 2.5mm; }
+  /* v107 — sem a contagem de opcoes, o valor inicial ocupa a linha inteira. */
+  .ps-fact-row { display: grid; grid-template-columns: 1fr; gap: 2.5mm; }
   .ps-facts span { display: block; color: #77828a; font-size: 6.8pt; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
   .ps-facts strong { display: block; margin-top: .6mm; color: #202a32; font-size: 9pt; line-height: 1.25; }
 
@@ -824,6 +833,11 @@ tr.unit-highlight td:first-child { box-shadow: inset 4px 0 0 var(--brand); }
   .info-card, .gallery-showcase, .plant-viewer { break-inside: avoid; margin-bottom: 6mm; }
   .content-section { break-inside: auto; }
   .content-section h2, .content-section .section-heading, .unit-group-header { break-after: avoid; }
+  /* v103 — no papel a faixa colorida da tipologia nao sai; texto volta a ser escuro. */
+  .unit-group-header { color: #000; background: #fff !important; border-bottom: 1px solid #ccc; }
+  .unit-group-header h3 { font-size: 12pt; }
+  .unit-group-chips span { border: 1px solid #bbb; background: #fff; }
+  .unit-group-obs { color: #444; }
   .units-table { display: table; }
   .units-table thead { display: table-header-group; }
   .units-table tr { break-inside: avoid; }
@@ -833,3 +847,39 @@ tr.unit-highlight td:first-child { box-shadow: inset 4px 0 0 var(--brand); }
 /* Ajuste final da marca no cabeçalho */
 .brand-button img { height: 43px; max-width: 190px; object-fit: contain; }
 @media (max-width: 760px) { .brand-button img { height: 31px; max-width: 132px; } }
+/* v103 — a coluna Area aparece em todos os grupos, preenchida em toda linha:
+   a area do tipo, ou a da propria unidade quando ela e diferente (em destaque). */
+.units-table td.unit-own-area { color: var(--warning); font-weight: 700; }
+.units-table { table-layout: fixed; }
+.units-table th:nth-child(1), .units-table td:nth-child(1) { width: 22%; }
+.units-table th:nth-child(2), .units-table td:nth-child(2) { width: 26%; }
+.units-table th:nth-child(3), .units-table td:nth-child(3) { width: 13%; }
+.units-table th:nth-child(4), .units-table td:nth-child(4) { width: 14%; }
+
+/* v105 — "Meu contato": os dados do corretor que assinam mensagens e PDFs. */
+.corretor-tag {
+  flex: 0 0 auto;
+  padding: 5px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 700;
+}
+.corretor-tag:hover { border-color: var(--brand); color: var(--brand-dark); }
+.corretor-tag.preenchido { border-color: transparent; background: var(--brand); color: #fff; }
+.corretor-field { display: block; margin-top: 12px; }
+.corretor-field span { display: block; margin-bottom: 5px; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.corretor-field input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 13px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: #fff;
+  font-size: 14px;
+}
+.corretor-field input:focus-visible { outline: 3px solid rgba(23,143,160,.3); outline-offset: 1px; }
+.corretor-preview { margin: 14px 0 0; padding: 10px 12px; border-radius: 10px; background: var(--brand-soft); color: var(--brand-dark); font-size: 12.5px; font-weight: 600; min-height: 20px; }
+.corretor-preview:empty { display: none; }

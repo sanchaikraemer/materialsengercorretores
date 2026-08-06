@@ -21,7 +21,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="styles.css?v=102">
+  <link rel="stylesheet" href="styles.css?v=107">
 </head>
 <body>
   <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
@@ -32,6 +32,7 @@
         <img src="assets/senger-logo.png" alt="Construtora Senger">
       </button>
       <span class="version-tag" id="header-version" title="Versão do site">—</span>
+      <button class="corretor-tag" id="corretor-button" type="button" title="Seus dados nas mensagens e nos PDFs">Meu contato</button>
       <div class="header-summary" aria-label="Resumo da tabela">
         <div class="header-chip"><span>Tabela</span><strong id="header-month">—</strong></div>
         <div class="header-chip"><span>INCC</span><strong id="header-incc">—</strong></div>
@@ -95,6 +96,10 @@
               </select>
             </label>
             <label class="filter-group">
+              <span class="filter-label">Dormitórios</span>
+              <select id="rooms-filter"></select>
+            </label>
+            <label class="filter-group">
               <span class="filter-label">Faixa de valor</span>
               <select id="price-filter">
                 <option value="todos">Qualquer valor</option>
@@ -104,16 +109,16 @@
                 <option value="1000000-inf">Acima de R$ 1 milhão</option>
               </select>
             </label>
-            <div class="filter-actions">
-              <label class="sort-control">Ordenar
-                <select id="sort-filter">
-                  <option value="destaque">Destaques</option>
-                  <option value="menor-preco">Menor preço</option>
-                  <option value="maior-preco">Maior preço</option>
-                  <option value="mais-opcoes">Mais opções</option>
-                  <option value="nome">Nome</option>
-                </select>
-              </label>
+            <label class="filter-group">
+              <span class="filter-label">Ordenar por</span>
+              <select id="sort-filter">
+                <option value="destaque">Destaques</option>
+                <option value="menor-preco">Menor preço</option>
+                <option value="maior-preco">Maior preço</option>
+                <option value="nome">Nome</option>
+              </select>
+            </label>
+            <div class="filter-footer">
               <button class="text-button" id="clear-filters" type="button">Limpar filtros</button>
             </div>
           </div>
@@ -213,6 +218,26 @@
     </div>
   </div>
 
+  <!-- Dados de quem esta usando o app: assinam as mensagens e os PDFs enviados. -->
+  <div class="share-modal" id="corretor-modal" aria-hidden="true">
+    <div class="share-modal-backdrop" data-close-corretor></div>
+    <div class="share-modal-panel send-choice-panel">
+      <div class="drawer-header">
+        <div><span class="eyebrow dark">Seus dados</span><h2>Assinatura das mensagens</h2></div>
+        <button class="icon-button" type="button" data-close-corretor aria-label="Fechar">×</button>
+      </div>
+      <p class="share-modal-hint">Fica salvo neste aparelho e entra no fim de toda mensagem e de todo PDF que você enviar ao cliente.</p>
+      <label class="corretor-field"><span>Nome</span><input id="corretor-nome" type="text" placeholder="Seu nome" autocomplete="name"></label>
+      <label class="corretor-field"><span>WhatsApp</span><input id="corretor-fone" type="tel" placeholder="(54) 99999-9999" autocomplete="tel"></label>
+      <label class="corretor-field"><span>CRECI (opcional)</span><input id="corretor-creci" type="text" placeholder="CRECI 00000"></label>
+      <p class="corretor-preview" id="corretor-preview"></p>
+      <div class="share-modal-actions">
+        <button class="button button-primary" type="button" id="corretor-save">Salvar</button>
+        <button class="button button-outline" type="button" id="corretor-clear">Apagar dados</button>
+      </div>
+    </div>
+  </div>
+
   <div class="share-modal" id="share-modal" aria-hidden="true">
     <div class="share-modal-backdrop" data-close-share></div>
     <div class="share-modal-panel">
@@ -232,7 +257,7 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="data.js?v=102"></script>
-  <script src="app.js?v=102"></script>
+  <script src="data.js?v=107"></script>
+  <script src="app.js?v=107"></script>
 </body>
 </html>
