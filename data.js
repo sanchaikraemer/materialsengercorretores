@@ -202,7 +202,7 @@ const EMPREENDIMENTOS = [
       { src: "assets/evo-10.jpg", legenda: "Suíte master" },
       { src: "assets/evo-11.jpg", legenda: "Dormitório" },
       { src: "assets/evo-2.jpg", legenda: "Vista aérea" },
-      { src: "assets/evo-3.jpg", legenda: "Andamento da obra — mar/2025" },
+      { src: "assets/evo-3.jpeg", legenda: "Andamento da obra" },
       { src: "assets/evo-p2.jpg", legenda: "Planta — 2 dormitórios (1 ou 2 suítes)" },
       { src: "assets/evo-p3.jpg", legenda: "Planta — 3 dormitórios (3 suítes)" },
     ],
