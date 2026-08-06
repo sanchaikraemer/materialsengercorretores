@@ -21,7 +21,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="styles.css?v=106">
+  <link rel="stylesheet" href="styles.css?v=107">
 </head>
 <body>
   <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
@@ -109,16 +109,17 @@
                 <option value="1000000-inf">Acima de R$ 1 milhão</option>
               </select>
             </label>
-            <div class="filter-actions">
-              <label class="sort-control">Ordenar
-                <select id="sort-filter">
-                  <option value="destaque">Destaques</option>
-                  <option value="menor-preco">Menor preço</option>
-                  <option value="maior-preco">Maior preço</option>
-                  <option value="mais-opcoes">Mais opções</option>
-                  <option value="nome">Nome</option>
-                </select>
-              </label>
+            <label class="filter-group">
+              <span class="filter-label">Ordenar por</span>
+              <select id="sort-filter">
+                <option value="destaque">Destaques</option>
+                <option value="menor-preco">Menor preço</option>
+                <option value="maior-preco">Maior preço</option>
+                <option value="mais-opcoes">Mais opções</option>
+                <option value="nome">Nome</option>
+              </select>
+            </label>
+            <div class="filter-footer">
               <button class="text-button" id="clear-filters" type="button">Limpar filtros</button>
             </div>
           </div>
@@ -257,7 +258,7 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="data.js?v=106"></script>
-  <script src="app.js?v=106"></script>
+  <script src="data.js?v=107"></script>
+  <script src="app.js?v=107"></script>
 </body>
 </html>

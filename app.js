@@ -318,9 +318,10 @@
     document.getElementById("header-cities")?.setAttribute("title", citiesLabel);
 
     // v100 — o cliente nao ve mais quantas opcoes existem, em lugar nenhum:
-    // nem "182 opcoes a venda" aqui no topo, nem "Opcoes ativas" no cartao e na
-    // ficha, nem a barra acima do quadro de unidades. Dizer o tamanho do estoque
-    // tira a urgencia da venda. Decisao do dono. O corretor continua vendo tudo.
+    // nem "182 opcoes a venda" aqui no topo, nem a barra acima do quadro de
+    // unidades. Dizer o tamanho do estoque tira a urgencia da venda. Decisao do dono.
+    // v107 — o quadrinho "Opcoes ativas" saiu do cartao e da ficha para TODO
+    // mundo, corretor incluido: no cartao sobra so "A partir de", em destaque.
     const stats = [
       [EMPREENDIMENTOS.length, "empreendimentos"],
       ...(CLIENT_MODE ? [] : [[marketable.length, "opções à venda"]]),
@@ -429,7 +430,6 @@
 
     const filtrando = state.picks.size > 0;
     grid.innerHTML = enterprises.map((emp) => {
-      const active = marketableItems(emp);
       const minimum = minPrice(emp);
       const statusClass = emp.status === "pronto" ? "pronto" : "obra";
       const typeLabel = CATEGORY_LABELS[emp.categoria] || emp.categoria;
@@ -446,7 +446,6 @@
               ${selUnits.length > 4 ? `<div class="card-unit-line"><strong>e mais ${selUnits.length - 4} no detalhe…</strong></div>` : ""}
             </div>` : `
             <div class="card-metrics">
-              ${CLIENT_MODE ? "" : `<div class="card-metric"><span>Opções ativas</span><strong>${active.length}</strong></div>`}
               <div class="card-metric card-price-panel">
                 <span class="card-price-icon" aria-hidden="true">
                   <svg viewBox="0 0 24 24" focusable="false"><path d="M4 21V8.5L12 4l8 4.5V21M8 21v-8h8v8M9 9h.01M12 9h.01M15 9h.01"/></svg>
@@ -584,7 +583,6 @@
 
     const media = mediaFor(emp);
     const local = LOCAIS[emp.id] || {};
-    const active = marketableItems(emp);
     const minimum = minPrice(emp);
     const statusClass = emp.status === "pronto" ? "pronto" : "obra";
     // Link do cliente com unidade (?cliente&u=501): a pagina mostra so essa
@@ -744,7 +742,6 @@
                 <div class="fact-card"><span>Unidades selecionadas</span><strong>${focusItems.length}</strong></div>
                 <div class="fact-card"><span>Valores</span><strong class="price-value">${focusRange}</strong></div>
               ` : `
-                ${CLIENT_MODE ? "" : `<div class="fact-card"><span>Opções ativas</span><strong>${active.length}</strong></div>`}
                 <div class="fact-card"><span>Preço inicial</span><strong class="price-value">${minimum ? money(minimum) : "Sob consulta"}</strong></div>
               `}
               <div class="fact-card"><span>Registro</span><strong>${escapeHtml((emp.ri || []).join(" · ") || "Não informado")}</strong></div>
