@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Painel Administrativo — Senger Corretores</title>
+  <link rel="icon" href="../icons/favicon.ico" sizes="any">
+  <style>
+    :root {
+      --fundo: #101725;
+      --cartao: #1a2436;
+      --borda: #2c3a52;
+      --texto: #e8edf5;
+      --texto-suave: #9fb0c8;
+      --dourado: #c9a15c;
+      --verde: #3ecf8e;
+      --vermelho: #ff6b6b;
+      --amarelo: #f5c542;
+      --azul: #5aa9ff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--fundo);
+      color: var(--texto);
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+    }
+    .tela { display: none; }
+    .tela.ativa { display: block; }
+
+    /* ---------- Login / Token ---------- */
+    .centro {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .caixa {
+      background: var(--cartao);
+      border: 1px solid var(--borda);
+      border-radius: 14px;
+      padding: 32px;
+      width: 100%;
+      max-width: 460px;
+    }
+    .caixa h1 { font-size: 1.3rem; margin-bottom: 6px; }
+    .caixa .sub { color: var(--texto-suave); font-size: .9rem; margin-bottom: 20px; }
+    .caixa label { display: block; font-size: .85rem; color: var(--texto-suave); margin: 14px 0 6px; }
+    .caixa input, .caixa select {
+      width: 100%;
+      padding: 11px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--borda);
+      background: var(--fundo);
+      color: var(--texto);
+      font-size: 1rem;
+    }
+    .caixa input:focus { outline: 2px solid var(--dourado); border-color: transparent; }
+    .botao {
+      display: inline-block;
+      margin-top: 18px;
+      padding: 11px 22px;
+      border: none;
+      border-radius: 8px;
+      background: var(--dourado);
+      color: #14181f;
+      font-weight: 700;
+      font-size: .95rem;
+      cursor: pointer;
+    }
+    .botao:hover { filter: brightness(1.1); }
+    .botao.secundario { background: transparent; border: 1px solid var(--borda); color: var(--texto-suave); }
+    .botao.perigo { background: var(--vermelho); color: #fff; }
+    .botao:disabled { opacity: .5; cursor: not-allowed; }
+    .erro { color: var(--vermelho); font-size: .85rem; margin-top: 10px; display: none; }
+    .erro.visivel { display: block; }
+    .passos { margin: 16px 0 0 18px; color: var(--texto-suave); font-size: .88rem; line-height: 1.7; }
+    .passos a { color: var(--azul); }
+    .nota { background: rgba(90,169,255,.08); border: 1px solid rgba(90,169,255,.25); border-radius: 8px; padding: 10px 12px; font-size: .82rem; color: var(--texto-suave); margin-top: 14px; }
+
+    /* ---------- Painel ---------- */
+    header.topo {
+      background: var(--cartao);
+      border-bottom: 1px solid var(--borda);
+      padding: 14px 22px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    header.topo h1 { font-size: 1.05rem; }
+    header.topo .info { color: var(--texto-suave); font-size: .82rem; }
+    header.topo .direita { margin-left: auto; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .pendentes {
+      background: var(--amarelo);
+      color: #14181f;
+      font-weight: 700;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: .82rem;
+      display: none;
+    }
+    .pendentes.visivel { display: inline-block; }
+
+    main { max-width: 1100px; margin: 0 auto; padding: 22px; }
+    section.bloco {
+      background: var(--cartao);
+      border: 1px solid var(--borda);
+      border-radius: 14px;
+      padding: 22px;
+      margin-bottom: 22px;
+    }
+    section.bloco h2 { font-size: 1.05rem; margin-bottom: 4px; }
+    section.bloco .descricao { color: var(--texto-suave); font-size: .85rem; margin-bottom: 16px; }
+
+    /* dashboard */
+    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+    .card {
+      background: var(--fundo);
+      border: 1px solid var(--borda);
+      border-radius: 10px;
+      padding: 14px;
+    }
+    .card h3 { font-size: .92rem; margin-bottom: 8px; }
+    .card .linha { display: flex; justify-content: space-between; font-size: .82rem; padding: 2px 0; color: var(--texto-suave); }
+    .card .linha strong { color: var(--texto); }
+    .st-disponivel { color: var(--verde) !important; }
+    .st-reservado { color: var(--amarelo) !important; }
+    .st-vendido { color: var(--vermelho) !important; }
+    .st-alugado { color: var(--azul) !important; }
+
+    /* incc */
+    .form-incc { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; align-items: end; }
+    .form-incc label { display: block; font-size: .82rem; color: var(--texto-suave); margin-bottom: 6px; }
+    .form-incc input, .form-incc select {
+      width: 100%;
+      padding: 10px 11px;
+      border-radius: 8px;
+      border: 1px solid var(--borda);
+      background: var(--fundo);
+      color: var(--texto);
+      font-size: .95rem;
+    }
+    .previa { margin-top: 18px; display: none; }
+    .previa.visivel { display: block; }
+    .previa .resumo { font-size: .88rem; margin-bottom: 10px; color: var(--texto-suave); }
+    .tabela-previa { max-height: 320px; overflow: auto; border: 1px solid var(--borda); border-radius: 8px; }
+
+    /* tabelas */
+    table { width: 100%; border-collapse: collapse; font-size: .86rem; }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--borda); }
+    th { color: var(--texto-suave); font-weight: 600; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; position: sticky; top: 0; background: var(--cartao); }
+    td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    tr.mudou td { background: rgba(245,197,66,.08); }
+    select.status {
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--borda);
+      background: var(--fundo);
+      color: var(--texto);
+      font-size: .84rem;
+    }
+    .grupo-titulo { color: var(--dourado); font-size: .82rem; font-weight: 700; padding: 12px 10px 6px; }
+    details.emp { border: 1px solid var(--borda); border-radius: 10px; margin-bottom: 12px; background: var(--fundo); }
+    details.emp summary {
+      cursor: pointer;
+      padding: 14px 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      list-style: none;
+    }
+    details.emp summary::-webkit-details-marker { display: none; }
+    details.emp summary .contagem { color: var(--texto-suave); font-weight: 400; font-size: .8rem; margin-left: auto; }
+    details.emp .conteudo { padding: 0 10px 12px; overflow-x: auto; }
+
+    /* aviso flutuante */
+    #aviso {
+      position: fixed;
+      bottom: 22px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--cartao);
+      border: 1px solid var(--borda);
+      border-radius: 10px;
+      padding: 13px 20px;
+      font-size: .9rem;
+      display: none;
+      z-index: 50;
+      max-width: 90vw;
+      box-shadow: 0 8px 30px rgba(0,0,0,.5);
+    }
+    #aviso.visivel { display: block; }
+    #aviso.ok { border-color: var(--verde); }
+    #aviso.falha { border-color: var(--vermelho); }
+
+    .carregando { text-align: center; padding: 60px 20px; color: var(--texto-suave); }
+    @media (max-width: 640px) {
+      header.topo { padding: 12px 14px; }
+      main { padding: 14px; }
+      section.bloco { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============ TELA: LOGIN ============ -->
+  <div class="tela ativa centro" id="tela-login">
+    <div class="caixa">
+      <h1>Painel Administrativo</h1>
+      <p class="sub">Senger Corretores — acesso restrito</p>
+      <label for="campo-senha">Senha</label>
+      <input type="password" id="campo-senha" autocomplete="current-password" autofocus>
+      <p class="erro" id="erro-senha">Senha incorreta.</p>
+      <button class="botao" id="botao-entrar">Entrar</button>
+    </div>
+  </div>
+
+  <!-- ============ TELA: CONFIGURAR TOKEN ============ -->
+  <div class="tela centro" id="tela-token">
+    <div class="caixa">
+      <h1>Conectar ao GitHub</h1>
+      <p class="sub">Para o painel conseguir salvar as alterações no site, ele precisa de uma chave de acesso (token) do GitHub. Isso é feito uma única vez neste aparelho.</p>
+      <ol class="passos">
+        <li>Entre no GitHub com a conta <strong>sanchaikraemer</strong>.</li>
+        <li>Abra <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a>.</li>
+        <li>Em <em>Token name</em>, escreva <strong>Painel Senger</strong>. Em <em>Expiration</em>, escolha 1 ano.</li>
+        <li>Em <em>Repository access</em>, marque <em>Only select repositories</em> e escolha <strong>materialsengercorretores</strong>.</li>
+        <li>Em <em>Permissions → Repository permissions → Contents</em>, escolha <strong>Read and write</strong>.</li>
+        <li>Clique em <em>Generate token</em>, copie o código (começa com <code>github_pat_</code>) e cole abaixo.</li>
+      </ol>
+      <label for="campo-token">Token do GitHub</label>
+      <input type="password" id="campo-token" placeholder="github_pat_...">
+      <p class="erro" id="erro-token"></p>
+      <div class="nota">A chave fica guardada apenas neste aparelho (navegador). Se trocar de celular ou computador, basta gerar outra.</div>
+      <button class="botao" id="botao-token">Salvar e continuar</button>
+    </div>
+  </div>
+
+  <!-- ============ TELA: PAINEL ============ -->
+  <div class="tela" id="tela-painel">
+    <header class="topo">
+      <h1>Painel Senger</h1>
+      <span class="info" id="info-versao">—</span>
+      <div class="direita">
+        <span class="pendentes" id="badge-pendentes"></span>
+        <button class="botao" id="botao-publicar" disabled>Publicar no site</button>
+        <button class="botao secundario" id="botao-descartar" style="display:none">Descartar</button>
+        <button class="botao secundario" id="botao-sair">Sair</button>
+      </div>
+    </header>
+
+    <main>
+      <div class="carregando" id="carregando">Carregando os dados do site…</div>
+
+      <div id="conteudo" style="display:none">
+
+        <!-- Dashboard -->
+        <section class="bloco">
+          <h2>Estoque por empreendimento</h2>
+          <p class="descricao">A contagem que não aparece no site — só aqui no painel.</p>
+          <div class="cards" id="dashboard"></div>
+        </section>
+
+        <!-- INCC -->
+        <section class="bloco">
+          <h2>Correção pelo INCC</h2>
+          <p class="descricao">Informe o novo índice e a variação do mês. A variação é aplicada a todos os preços do sistema de uma vez. Nada muda no site até você clicar em “Publicar no site”.</p>
+          <div class="form-incc">
+            <div>
+              <label for="incc-valor">Novo INCC (R$)</label>
+              <input id="incc-valor" placeholder="3.398,85">
+            </div>
+            <div>
+              <label for="incc-variacao">Variação do mês (%)</label>
+              <input id="incc-variacao" placeholder="0,62" inputmode="decimal">
+            </div>
+            <div>
+              <label for="incc-mes">Mês da tabela</label>
+              <input id="incc-mes" placeholder="Setembro / 2026">
+            </div>
+            <div>
+              <label for="incc-data">Data da tabela</label>
+              <input id="incc-data" placeholder="10/08/2026">
+            </div>
+            <div>
+              <label for="incc-arredondar">Arredondar preços para</label>
+              <select id="incc-arredondar">
+                <option value="1000">R$ 1.000 mais próximo</option>
+                <option value="100">R$ 100 mais próximo</option>
+                <option value="1">Valor exato (sem arredondar)</option>
+              </select>
+            </div>
+            <div>
+              <button class="botao" id="botao-previa">Pré-visualizar</button>
+            </div>
+          </div>
+          <div class="previa" id="previa-incc">
+            <p class="resumo" id="previa-resumo"></p>
+            <div class="tabela-previa">
+              <table>
+                <thead><tr><th>Empreendimento</th><th>Unidade</th><th style="text-align:right">Preço atual</th><th style="text-align:right">Preço novo</th></tr></thead>
+                <tbody id="previa-corpo"></tbody>
+              </table>
+            </div>
+            <button class="botao" id="botao-aplicar-incc">Aplicar correção</button>
+            <button class="botao secundario" id="botao-cancelar-incc">Cancelar</button>
+          </div>
+        </section>
+
+        <!-- Unidades -->
+        <section class="bloco">
+          <h2>Disponibilidade das unidades</h2>
+          <p class="descricao">Marque como <strong>Vendido</strong> para tirar a unidade da oferta (o cliente não consegue mais selecioná-la). Volte para <strong>Disponível</strong> se a venda for cancelada. Reservado também sai da oferta; Alugado continua aparecendo.</p>
+          <div id="lista-emps"></div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <div id="aviso"></div>
+
+<script>
+(() => {
+  "use strict";
+
+  const REPO = "sanchaikraemer/materialsengercorretores";
+  const BRANCH = "main";
+  const API = `https://api.github.com/repos/${REPO}/contents/`;
+  // Senha de acesso ao painel (guardada como hash SHA-256, nunca em texto puro).
+  const SENHA_HASH = "c03a8ce2924c14ff8b026f6f5a6ac792980d0b7bc66e317495d3ae06ed7bd874";
+
+  const STATUS_OPCOES = [
+    ["disponivel", "Disponível"],
+    ["reservado", "Reservado"],
+    ["vendido", "Vendido"],
+    ["alugado", "Alugado"],
+  ];
+  const STATUS_LABEL = Object.fromEntries(STATUS_OPCOES);
+
+  const estado = {
+    token: localStorage.getItem("senger-admin-token") || "",
+    arquivos: {},      // path -> { text, sha }
+    dados: null,       // { META, EMPREENDIMENTOS } avaliados do data.js
+    versao: 0,         // número atual do "?v=" do index.html
+    ops: [],           // alterações pendentes, aplicadas só no "Publicar"
+  };
+
+  const $ = (id) => document.getElementById(id);
+
+  // ---------------- utilidades ----------------
+
+  async function sha256(texto) {
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(texto));
+    return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+  }
+
+  function base64ParaTexto(b64) {
+    const bin = atob(b64.replace(/\n/g, ""));
+    const bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
+    return new TextDecoder().decode(bytes);
+  }
+
+  function textoParaBase64(texto) {
+    const bytes = new TextEncoder().encode(texto);
+    let bin = "";
+    bytes.forEach((b) => { bin += String.fromCharCode(b); });
+    return btoa(bin);
+  }
+
+  function moeda(n) {
+    return "R$ " + Number(n).toLocaleString("pt-BR");
+  }
+
+  function escapeRegex(s) {
+    return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
+  function aviso(msg, tipo) {
+    const el = $("aviso");
+    el.textContent = msg;
+    el.className = "visivel " + (tipo || "");
+    clearTimeout(aviso._t);
+    aviso._t = setTimeout(() => { el.className = ""; }, tipo === "falha" ? 9000 : 4500);
+  }
+
+  function mostrarTela(id) {
+    document.querySelectorAll(".tela").forEach((t) => t.classList.remove("ativa"));
+    $(id).classList.add("ativa");
+  }
+
+  // ---------------- GitHub API ----------------
+
+  async function ghBuscar(path) {
+    const resp = await fetch(API + path + "?ref=" + BRANCH, {
+      headers: { Authorization: "Bearer " + estado.token, Accept: "application/vnd.github+json" },
+      cache: "no-store",
+    });
+    if (!resp.ok) throw new Error(`Não consegui ler ${path} (HTTP ${resp.status}).`);
+    const json = await resp.json();
+    return { text: base64ParaTexto(json.content), sha: json.sha };
+  }
+
+  async function ghGravar(path, texto, sha, mensagem) {
+    const resp = await fetch(API + path, {
+      method: "PUT",
+      headers: { Authorization: "Bearer " + estado.token, Accept: "application/vnd.github+json" },
+      body: JSON.stringify({ message: mensagem, content: textoParaBase64(texto), sha, branch: BRANCH }),
+    });
+    if (!resp.ok) {
+      const corpo = await resp.json().catch(() => ({}));
+      throw new Error(`Falha ao gravar ${path} (HTTP ${resp.status}): ${corpo.message || ""}`);
+    }
+    return (await resp.json()).content.sha;
+  }
+
+  // ---------------- dados ----------------
+
+  function avaliarDataJs(texto) {
+    // O data.js define const META/EMPREENDIMENTOS; avaliamos o texto para ler os objetos.
+    return new Function(texto + "\n;return { META, EMPREENDIMENTOS };")();
+  }
+
+  async function carregarTudo() {
+    $("carregando").style.display = "block";
+    $("conteudo").style.display = "none";
+    const [dataJs, indexHtml, swJs] = await Promise.all([
+      ghBuscar("data.js"), ghBuscar("index.html"), ghBuscar("sw.js"),
+    ]);
+    estado.arquivos = { "data.js": dataJs, "index.html": indexHtml, "sw.js": swJs };
+    estado.dados = avaliarDataJs(dataJs.text);
+    const m = indexHtml.text.match(/data\.js\?v=(\d+)/);
+    estado.versao = m ? Number(m[1]) : 0;
+    estado.ops = [];
+    renderTudo();
+    $("carregando").style.display = "none";
+    $("conteudo").style.display = "block";
+  }
+
+  // Itens editáveis de um empreendimento, nas três formas que o data.js usa.
+  function itensDoEmp(emp) {
+    const itens = [];
+    const vistosApto = {};
+    (emp.grupos || []).forEach((grupo) => {
+      (grupo.unidades || []).forEach((u) => {
+        const ocorrencia = vistosApto[u.apto] || 0;
+        vistosApto[u.apto] = ocorrencia + 1;
+        itens.push({ tipo: "unidade", grupo: grupo.tipo, rotulo: "Apto " + u.apto, apto: u.apto, ocorrencia, preco: u.preco, status: u.status || "disponivel" });
+      });
+    });
+    (emp.terrenos || []).forEach((t) => {
+      itens.push({ tipo: "terreno", grupo: t.lote || "Terrenos", rotulo: `Quadra ${t.quadra} · Lote ${t.numero}`, quadra: t.quadra, numero: t.numero, preco: t.preco, status: t.status || "disponivel" });
+    });
+    (emp.outros || []).forEach((o) => {
+      itens.push({ tipo: "outro", grupo: "", rotulo: o.nome, nome: o.nome, preco: o.preco, status: o.status || "disponivel" });
+    });
+    return itens;
+  }
+
+  function chaveDoItem(empId, item) {
+    if (item.tipo === "unidade") return `${empId}:u:${item.apto}:${item.ocorrencia}`;
+    if (item.tipo === "terreno") return `${empId}:t:${item.quadra}:${item.numero}`;
+    return `${empId}:o:${item.nome}`;
+  }
+
+  function opDeStatus(chave) {
+    return estado.ops.find((op) => op.tipoOp === "status" && op.chave === chave);
+  }
+
+  function statusAtual(empId, item) {
+    const op = opDeStatus(chaveDoItem(empId, item));
+    return op ? op.novoStatus : item.status;
+  }
+
+  // ---------------- render ----------------
+
+  function renderTudo() {
+    const meta = estado.dados.META;
+    $("info-versao").textContent = `v${estado.versao} · ${meta.mesTabela} · INCC ${meta.incc.valor} (${meta.incc.variacao})`;
+    renderDashboard();
+    renderEmps();
+    renderPendentes();
+  }
+
+  function renderDashboard() {
+    const alvo = $("dashboard");
+    alvo.innerHTML = estado.dados.EMPREENDIMENTOS.map((emp) => {
+      const itens = itensDoEmp(emp);
+      if (!itens.length) return "";
+      const contagem = {};
+      itens.forEach((i) => {
+        const s = statusAtual(emp.id, i);
+        contagem[s] = (contagem[s] || 0) + 1;
+      });
+      const linhas = STATUS_OPCOES
+        .filter(([s]) => contagem[s])
+        .map(([s, label]) => `<div class="linha"><span class="st-${s}">${label}</span><strong>${contagem[s]}</strong></div>`)
+        .join("");
+      return `<div class="card"><h3>${escapeHtml(emp.nome)}</h3>${linhas}<div class="linha" style="border-top:1px solid var(--borda);margin-top:6px;padding-top:6px"><span>Total</span><strong>${itens.length}</strong></div></div>`;
+    }).join("");
+  }
+
+  function renderEmps() {
+    const alvo = $("lista-emps");
+    alvo.innerHTML = estado.dados.EMPREENDIMENTOS.map((emp) => {
+      const itens = itensDoEmp(emp);
+      if (!itens.length) return "";
+      const disponiveis = itens.filter((i) => statusAtual(emp.id, i) === "disponivel").length;
+      let linhas = "";
+      let grupoAtual = null;
+      itens.forEach((item) => {
+        if (item.grupo !== grupoAtual) {
+          grupoAtual = item.grupo;
+          if (grupoAtual) linhas += `<tr><td colspan="3" class="grupo-titulo">${escapeHtml(grupoAtual)}</td></tr>`;
+        }
+        const chave = chaveDoItem(emp.id, item);
+        const status = statusAtual(emp.id, item);
+        const mudou = Boolean(opDeStatus(chave));
+        const opcoes = STATUS_OPCOES.map(([v, l]) => `<option value="${v}"${v === status ? " selected" : ""}>${l}</option>`).join("");
+        linhas += `<tr${mudou ? ' class="mudou"' : ""}>
+          <td>${escapeHtml(item.rotulo)}</td>
+          <td class="num">${moeda(item.preco)}</td>
+          <td><select class="status" data-chave="${escapeHtml(chave)}" data-original="${item.status}">${opcoes}</select></td>
+        </tr>`;
+      });
+      return `<details class="emp">
+        <summary>${escapeHtml(emp.nome)} <span class="contagem">${disponiveis} de ${itens.length} disponíveis</span></summary>
+        <div class="conteudo"><table>
+          <thead><tr><th>Unidade</th><th style="text-align:right">Preço</th><th>Status</th></tr></thead>
+          <tbody>${linhas}</tbody>
+        </table></div>
+      </details>`;
+    }).join("");
+
+    alvo.querySelectorAll("select.status").forEach((sel) => {
+      sel.addEventListener("change", () => {
+        const chave = sel.dataset.chave;
+        const original = sel.dataset.original;
+        estado.ops = estado.ops.filter((op) => !(op.tipoOp === "status" && op.chave === chave));
+        if (sel.value !== original) {
+          const [empId] = chave.split(":");
+          estado.ops.push({ tipoOp: "status", chave, empId, novoStatus: sel.value, rotulo: sel.closest("tr").firstElementChild.textContent });
+        }
+        sel.closest("tr").classList.toggle("mudou", sel.value !== original);
+        renderDashboard();
+        renderPendentes();
+      });
+    });
+  }
+
+  function renderPendentes() {
+    const n = estado.ops.length;
+    const badge = $("badge-pendentes");
+    badge.textContent = n === 1 ? "1 alteração pendente" : `${n} alterações pendentes`;
+    badge.classList.toggle("visivel", n > 0);
+    $("botao-publicar").disabled = n === 0;
+    $("botao-descartar").style.display = n > 0 ? "inline-block" : "none";
+  }
+
+  // ---------------- INCC ----------------
+
+  function lerVariacao() {
+    const bruto = $("incc-variacao").value.trim().replace("%", "").replace(",", ".");
+    const pct = Number(bruto);
+    return Number.isFinite(pct) && bruto !== "" ? pct : null;
+  }
+
+  function novoPreco(preco, pct, arredondar) {
+    const passo = Number(arredondar);
+    return Math.round((preco * (1 + pct / 100)) / passo) * passo;
+  }
+
+  $("botao-previa").addEventListener("click", () => {
+    const pct = lerVariacao();
+    if (pct === null) { aviso("Informe a variação do mês (ex.: 0,62).", "falha"); return; }
+    const arredondar = $("incc-arredondar").value;
+    let linhas = "";
+    let total = 0;
+    estado.dados.EMPREENDIMENTOS.forEach((emp) => {
+      itensDoEmp(emp).forEach((item) => {
+        if (!item.preco) return;
+        total += 1;
+        linhas += `<tr><td>${escapeHtml(emp.nome)}</td><td>${escapeHtml(item.rotulo)}</td>
+          <td class="num">${moeda(item.preco)}</td><td class="num"><strong>${moeda(novoPreco(item.preco, pct, arredondar))}</strong></td></tr>`;
+      });
+    });
+    $("previa-corpo").innerHTML = linhas;
+    $("previa-resumo").textContent = `Variação de ${pct.toLocaleString("pt-BR")}% aplicada a ${total} preços. Confira alguns valores antes de aplicar.`;
+    $("previa-incc").classList.add("visivel");
+  });
+
+  $("botao-cancelar-incc").addEventListener("click", () => {
+    $("previa-incc").classList.remove("visivel");
+  });
+
+  $("botao-aplicar-incc").addEventListener("click", () => {
+    const pct = lerVariacao();
+    if (pct === null) return;
+    estado.ops = estado.ops.filter((op) => op.tipoOp !== "incc");
+    estado.ops.push({
+      tipoOp: "incc",
+      pct,
+      arredondar: $("incc-arredondar").value,
+      valor: $("incc-valor").value.trim(),
+      mes: $("incc-mes").value.trim(),
+      data: $("incc-data").value.trim(),
+    });
+    $("previa-incc").classList.remove("visivel");
+    aviso("Correção do INCC anotada. Clique em “Publicar no site” para valer.", "ok");
+    renderPendentes();
+  });
+
+  // ---------------- edição textual do data.js ----------------
+  // As mudanças são feitas no texto do arquivo (e não regravando o objeto inteiro)
+  // para preservar comentários e formatação do data.js.
+
+  function blocoDoEmp(texto, empId) {
+    const inicio = texto.search(new RegExp(`id:\\s*"${escapeRegex(empId)}"`));
+    if (inicio === -1) throw new Error(`Empreendimento "${empId}" não encontrado no data.js.`);
+    const resto = texto.slice(inicio + 4);
+    const prox = resto.search(/\n\s*id:\s*"/);
+    return { inicio, fim: prox === -1 ? texto.length : inicio + 4 + prox };
+  }
+
+  function trocarNoBloco(texto, empId, editar) {
+    const { inicio, fim } = blocoDoEmp(texto, empId);
+    return texto.slice(0, inicio) + editar(texto.slice(inicio, fim)) + texto.slice(fim);
+  }
+
+  function aplicarStatus(texto, op) {
+    const partes = op.chave.split(":");
+    const empId = partes[0];
+    return trocarNoBloco(texto, empId, (bloco) => {
+      if (partes[1] === "u") {
+        const apto = partes[2];
+        const ocorrencia = Number(partes[3]);
+        const re = new RegExp(`^.*apto:\\s*"${escapeRegex(apto)}".*$`, "gm");
+        const linhas = bloco.match(re) || [];
+        if (!linhas[ocorrencia]) throw new Error(`Apto ${apto} não encontrado em ${empId}.`);
+        const linha = linhas[ocorrencia];
+        const nova = linha.replace(/status:\s*"[a-z]+"/, `status: "${op.novoStatus}"`);
+        if (nova === linha) throw new Error(`Não achei o status do apto ${apto} em ${empId}.`);
+        let vista = -1;
+        return bloco.replace(re, (m) => { vista += 1; return vista === ocorrencia ? nova : m; });
+      }
+      if (partes[1] === "t") {
+        const [quadra, numero] = [partes[2], partes[3]];
+        const re = new RegExp(`^.*quadra:\\s*"${escapeRegex(quadra)}",\\s*numero:\\s*"${escapeRegex(numero)}".*$`, "m");
+        const achou = bloco.match(re);
+        if (!achou) throw new Error(`Terreno ${quadra}/${numero} não encontrado em ${empId}.`);
+        const linha = achou[0];
+        const nova = /status:/.test(linha)
+          ? linha.replace(/status:\s*"[a-z]+"/, `status: "${op.novoStatus}"`)
+          : linha.replace(/\s*\},?\s*$/, (fimLinha) => `, status: "${op.novoStatus}"` + fimLinha);
+        return bloco.replace(re, nova);
+      }
+      // "outro": objeto de várias linhas, localizado pelo nome; o status vem depois.
+      const nome = partes.slice(2).join(":");
+      const posNome = bloco.search(new RegExp(`nome:\\s*"${escapeRegex(nome)}"`));
+      if (posNome === -1) throw new Error(`Imóvel "${nome}" não encontrado em ${empId}.`);
+      const depois = bloco.slice(posNome);
+      const limite = depois.search(/\n\s*\},/);
+      const trecho = depois.slice(0, limite === -1 ? undefined : limite);
+      if (!/status:\s*"[a-z]+"/.test(trecho)) throw new Error(`Não achei o status de "${nome}".`);
+      const trechoNovo = trecho.replace(/status:\s*"[a-z]+"/, `status: "${op.novoStatus}"`);
+      return bloco.slice(0, posNome) + trechoNovo + bloco.slice(posNome + trecho.length);
+    });
+  }
+
+  function aplicarIncc(texto, op) {
+    // Os preços só existem dentro de EMPREENDIMENTOS; o regex \bpreco: não pega "precoPrefixo".
+    const inicio = texto.indexOf("const EMPREENDIMENTOS");
+    let saida = texto.slice(0, inicio) + texto.slice(inicio).replace(/(\bpreco:\s*)(\d+)/g,
+      (m, prefixo, valor) => prefixo + novoPreco(Number(valor), op.pct, op.arredondar));
+
+    const variacaoTexto = (op.pct >= 0 ? "+" : "") + op.pct.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) + "%";
+    if (op.valor) {
+      const valorTexto = op.valor.replace(/^R\$\s*/, "");
+      saida = saida.replace(/incc:\s*\{[^}]*\}/, `incc: { valor: "R$ ${valorTexto}", variacao: "${variacaoTexto}" }`);
+    } else {
+      saida = saida.replace(/(incc:\s*\{[^}]*variacao:\s*")[^"]*(")/, `$1${variacaoTexto}$2`);
+    }
+    if (op.mes) saida = saida.replace(/mesTabela:\s*"[^"]*"/, `mesTabela: "${op.mes}"`);
+    if (op.data) saida = saida.replace(/dataTabela:\s*"[^"]*"/, `dataTabela: "${op.data}"`);
+    return saida;
+  }
+
+  function mensagemDoCommit(novaVersao) {
+    const partes = [];
+    const incc = estado.ops.find((op) => op.tipoOp === "incc");
+    if (incc) partes.push(`correção INCC ${incc.pct.toLocaleString("pt-BR")}%`);
+    const status = estado.ops.filter((op) => op.tipoOp === "status");
+    if (status.length === 1) partes.push(`${status[0].rotulo.trim()} → ${STATUS_LABEL[status[0].novoStatus].toLowerCase()}`);
+    else if (status.length > 1) partes.push(`${status.length} unidades com status alterado`);
+    return `v${novaVersao}: ${partes.join(" · ")} (painel administrativo)`;
+  }
+
+  // ---------------- publicar ----------------
+
+  async function publicar() {
+    const botao = $("botao-publicar");
+    botao.disabled = true;
+    botao.textContent = "Publicando…";
+    try {
+      // Busca o data.js de novo na hora de publicar: se alguém alterou o site nesse
+      // meio-tempo, as mudanças do painel entram por cima da versão mais recente.
+      const dataJs = await ghBuscar("data.js");
+      let texto = dataJs.text;
+      const incc = estado.ops.find((op) => op.tipoOp === "incc");
+      if (incc) texto = aplicarIncc(texto, incc);
+      estado.ops.filter((op) => op.tipoOp === "status").forEach((op) => { texto = aplicarStatus(texto, op); });
+
+      // Confere se o arquivo continua válido antes de gravar qualquer coisa.
+      const conferido = avaliarDataJs(texto);
+      if (conferido.EMPREENDIMENTOS.length !== estado.dados.EMPREENDIMENTOS.length) {
+        throw new Error("A conferência falhou: o número de empreendimentos mudou. Nada foi gravado.");
+      }
+
+      // Sobe a versão do cache para os corretores receberem a atualização.
+      const [indexHtml, swJs] = await Promise.all([ghBuscar("index.html"), ghBuscar("sw.js")]);
+      const m = indexHtml.text.match(/data\.js\?v=(\d+)/);
+      const novaVersao = (m ? Number(m[1]) : estado.versao) + 1;
+      const dia = new Date();
+      const carimbo = `${dia.getFullYear()}${String(dia.getMonth() + 1).padStart(2, "0")}${String(dia.getDate()).padStart(2, "0")}`;
+      const novoIndex = indexHtml.text.replace(/v=\d+/g, `v=${novaVersao}`);
+      const novoSw = swJs.text
+        .replace(/const CACHE = "[^"]*"/, `const CACHE = "senger-portfolio-v${novaVersao}-${carimbo}-painel"`)
+        .replace(/v=\d+/g, `v=${novaVersao}`);
+
+      const mensagem = mensagemDoCommit(novaVersao);
+      await ghGravar("data.js", texto, dataJs.sha, mensagem);
+      await ghGravar("index.html", novoIndex, indexHtml.sha, mensagem);
+      await ghGravar("sw.js", novoSw, swJs.sha, mensagem);
+
+      aviso(`Publicado! O site sobe para a v${novaVersao} em 1–2 minutos.`, "ok");
+      await carregarTudo();
+    } catch (erro) {
+      aviso("Não consegui publicar: " + erro.message, "falha");
+    } finally {
+      botao.disabled = estado.ops.length === 0;
+      botao.textContent = "Publicar no site";
+    }
+  }
+
+  // ---------------- eventos ----------------
+
+  async function entrar() {
+    const senha = $("campo-senha").value;
+    if (await sha256(senha) !== SENHA_HASH) {
+      $("erro-senha").classList.add("visivel");
+      return;
+    }
+    sessionStorage.setItem("senger-admin-ok", "1");
+    $("erro-senha").classList.remove("visivel");
+    iniciarPainel();
+  }
+
+  $("botao-entrar").addEventListener("click", entrar);
+  $("campo-senha").addEventListener("keydown", (e) => { if (e.key === "Enter") entrar(); });
+
+  $("botao-token").addEventListener("click", async () => {
+    const token = $("campo-token").value.trim();
+    const erro = $("erro-token");
+    erro.classList.remove("visivel");
+    if (!token) { erro.textContent = "Cole o token gerado no GitHub."; erro.classList.add("visivel"); return; }
+    estado.token = token;
+    try {
+      await ghBuscar("data.js");
+      localStorage.setItem("senger-admin-token", token);
+      iniciarPainel();
+    } catch (e) {
+      estado.token = "";
+      erro.textContent = "O GitHub recusou esse token. Confira se ele tem acesso ao repositório materialsengercorretores com permissão Contents: Read and write.";
+      erro.classList.add("visivel");
+    }
+  });
+
+  $("botao-sair").addEventListener("click", () => {
+    sessionStorage.removeItem("senger-admin-ok");
+    mostrarTela("tela-login");
+    $("campo-senha").value = "";
+  });
+
+  $("botao-descartar").addEventListener("click", () => {
+    estado.ops = [];
+    renderTudo();
+    aviso("Alterações descartadas.", "ok");
+  });
+
+  $("botao-publicar").addEventListener("click", publicar);
+
+  // Aviso antes de fechar a aba com mudanças não publicadas.
+  window.addEventListener("beforeunload", (e) => {
+    if (estado.ops.length) { e.preventDefault(); e.returnValue = ""; }
+  });
+
+  async function iniciarPainel() {
+    if (!estado.token) { mostrarTela("tela-token"); return; }
+    mostrarTela("tela-painel");
+    try {
+      await carregarTudo();
+    } catch (e) {
+      // Token expirado ou revogado: volta para a tela de configuração.
+      localStorage.removeItem("senger-admin-token");
+      estado.token = "";
+      mostrarTela("tela-token");
+      $("erro-token").textContent = "A chave guardada neste aparelho não funciona mais (" + e.message + "). Gere uma nova.";
+      $("erro-token").classList.add("visivel");
+    }
+  }
+
+  if (sessionStorage.getItem("senger-admin-ok") === "1") iniciarPainel();
+})();
+</script>
+</body>
+</html>
