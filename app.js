@@ -185,12 +185,20 @@
     return item.nome;
   }
 
+  // v113 — unidade vendida sai da lista do site: o cliente nao ve, nao conta e nao
+  // entra em PDF nem em mensagem. Ela continua no data.js para o painel
+  // administrativo saber o tamanho real do estoque e para a venda poder ser
+  // desfeita (basta voltar o status para "disponivel"). Decisao do dono, na mesma
+  // linha da v107: o que sobrou do estoque nao se mostra para o cliente.
+  const vendida = (status) => (status || "disponivel") === "vendido";
+
   function buildInventory() {
     EMPREENDIMENTOS.forEach((emp) => {
       const items = [];
 
       (emp.grupos || []).forEach((group, groupIndex) => {
         (group.unidades || []).forEach((unit, unitIndex) => {
+          if (vendida(unit.status)) return;
           const item = {
             key: `${emp.id}:unit:${groupIndex}:${unitIndex}`,
             kind: "unit",
@@ -213,6 +221,7 @@
       });
 
       (emp.terrenos || []).forEach((land, index) => {
+        if (vendida(land.status)) return;
         const item = {
           key: `${emp.id}:land:${index}`,
           kind: "land",
@@ -234,6 +243,7 @@
       });
 
       (emp.outros || []).forEach((other, index) => {
+        if (vendida(other.status)) return;
         const item = {
           key: `${emp.id}:other:${index}`,
           kind: "other",
@@ -806,8 +816,9 @@
       <section class="content-section" id="unidades">
         <div class="section-title-row"><h2>${focusItems ? (focusItems.length > 1 ? "Suas unidades" : "Sua unidade") : "Unidades e valores"}</h2><p>Selecione opções para encaminhar ao cliente</p></div>
         ${groups.map((group, groupIndex) => {
-          let units = (group.unidades || []).map((unit, unitIndex) => itemMap.get(`${emp.id}:unit:${groupIndex}:${unitIndex}`));
-          if (focusKeys) units = units.filter((it) => it && focusKeys.has(it.key));
+          // filter(Boolean) tira as vendidas: elas ficam no data.js mas fora do itemMap.
+          let units = (group.unidades || []).map((unit, unitIndex) => itemMap.get(`${emp.id}:unit:${groupIndex}:${unitIndex}`)).filter(Boolean);
+          if (focusKeys) units = units.filter((it) => focusKeys.has(it.key));
           if (!units.length) return "";
           // v103 — a area da tipologia fica so no cabecalho. A coluna Area da tabela
           // aparece apenas quando alguma unidade tem area diferente da do grupo.
