@@ -188,14 +188,37 @@
     th { color: var(--texto-suave); font-weight: 600; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; position: sticky; top: 0; background: var(--cartao); }
     td.num { text-align: right; font-variant-numeric: tabular-nums; }
     tr.mudou td { background: rgba(168,112,31,.09); }
+    /* O status se le pela cor, sem precisar ler a palavra: verde disponivel,
+       vermelho vendido, laranja reservado, azul alugado. A mesma cor pinta a
+       bolinha, o texto e a faixa da esquerda da linha. */
     select.status {
       padding: 6px 8px;
       border-radius: 6px;
-      border: 1px solid var(--borda);
-      background: var(--fundo);
-      color: var(--texto);
+      border: 1px solid currentColor;
+      background: var(--cartao);
       font-size: .84rem;
+      font-weight: 600;
+      color: var(--texto);
     }
+    .status-celula { display: flex; align-items: center; gap: 8px; }
+    .bolinha {
+      width: 11px; height: 11px;
+      border-radius: 50%;
+      background: currentColor;
+      flex: none;
+    }
+    .st-disponivel { color: var(--verde); }
+    .st-vendido { color: var(--vermelho); }
+    .st-reservado { color: var(--amarelo); }
+    .st-alugado { color: var(--azul); }
+    tr.linha-vendido td:first-child { box-shadow: inset 3px 0 0 var(--vermelho); }
+    tr.linha-reservado td:first-child { box-shadow: inset 3px 0 0 var(--amarelo); }
+    tr.linha-alugado td:first-child { box-shadow: inset 3px 0 0 var(--azul); }
+    tr.linha-disponivel td:first-child { box-shadow: inset 3px 0 0 var(--verde); }
+    tr.linha-vendido td:nth-child(-n+2) { opacity: .6; }
+    /* legenda das cores */
+    .legenda { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; font-size: .82rem; color: var(--texto-suave); }
+    .legenda span { display: flex; align-items: center; gap: 6px; }
     .grupo-titulo { color: var(--dourado); font-size: .82rem; font-weight: 700; padding: 12px 10px 6px; }
     details.emp { border: 1px solid var(--borda); border-radius: 10px; margin-bottom: 12px; background: var(--fundo); }
     details.emp summary {
@@ -355,7 +378,13 @@
         <!-- Unidades -->
         <section class="bloco">
           <h2>Disponibilidade das unidades</h2>
-          <p class="descricao">Marque como <strong>Vendido</strong> para tirar a unidade da oferta (o cliente não consegue mais selecioná-la). Volte para <strong>Disponível</strong> se a venda for cancelada. Reservado também sai da oferta; Alugado continua aparecendo.</p>
+          <p class="descricao">Marque como <strong>Vendido</strong> para a unidade sumir da lista do site, dos PDFs e das mensagens. Volte para <strong>Disponível</strong> se a venda for cancelada e ela reaparece. Reservado também sai da oferta; Alugado continua aparecendo.</p>
+          <div class="legenda">
+            <span class="st-disponivel"><span class="bolinha"></span>Disponível</span>
+            <span class="st-vendido"><span class="bolinha"></span>Vendido</span>
+            <span class="st-reservado"><span class="bolinha"></span>Reservado</span>
+            <span class="st-alugado"><span class="bolinha"></span>Alugado</span>
+          </div>
           <div id="lista-emps"></div>
         </section>
 
@@ -607,10 +636,13 @@
         const status = statusAtual(emp.id, item);
         const mudou = Boolean(opDeStatus(chave));
         const opcoes = STATUS_OPCOES.map(([v, l]) => `<option value="${v}"${v === status ? " selected" : ""}>${l}</option>`).join("");
-        linhas += `<tr${mudou ? ' class="mudou"' : ""}>
+        linhas += `<tr class="linha-${status}${mudou ? " mudou" : ""}">
           <td>${escapeHtml(item.rotulo)}</td>
           <td class="num">${moeda(item.preco)}</td>
-          <td><select class="status" data-chave="${escapeHtml(chave)}" data-original="${item.status}">${opcoes}</select></td>
+          <td><div class="status-celula st-${status}">
+            <span class="bolinha"></span>
+            <select class="status st-${status}" data-chave="${escapeHtml(chave)}" data-original="${item.status}">${opcoes}</select>
+          </div></td>
         </tr>`;
       });
       return `<details class="emp">
@@ -631,7 +663,18 @@
           const [empId] = chave.split(":");
           estado.ops.push({ tipoOp: "status", chave, empId, novoStatus: sel.value, rotulo: sel.closest("tr").firstElementChild.textContent });
         }
-        sel.closest("tr").classList.toggle("mudou", sel.value !== original);
+        // a cor acompanha a escolha na hora, sem precisar redesenhar a lista toda
+        const linha = sel.closest("tr");
+        const celula = sel.closest(".status-celula");
+        STATUS_OPCOES.forEach(([v]) => {
+          linha.classList.remove(`linha-${v}`);
+          celula.classList.remove(`st-${v}`);
+          sel.classList.remove(`st-${v}`);
+        });
+        linha.classList.add(`linha-${sel.value}`);
+        celula.classList.add(`st-${sel.value}`);
+        sel.classList.add(`st-${sel.value}`);
+        linha.classList.toggle("mudou", sel.value !== original);
         renderDashboard();
         renderPendentes();
       });
