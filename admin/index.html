@@ -33,13 +33,16 @@
       min-height: 100vh;
     }
     h1, h2, h3 { font-family: "Montserrat", system-ui, sans-serif; }
+    /* Uma tela por vez. O display fica junto de .ativa porque uma regra
+       posterior (como era o display:flex do .centro) venceria o display:none
+       do .tela — foi o que deixava a tela do token aparecendo sob o login. */
     .tela { display: none; }
     .tela.ativa { display: block; }
+    .tela.centro.ativa { display: flex; }
 
     /* ---------- Login / Token ---------- */
     .centro {
       min-height: 100vh;
-      display: flex;
       align-items: center;
       justify-content: center;
       padding: 24px;
