@@ -6,26 +6,33 @@
   <meta name="robots" content="noindex, nofollow">
   <title>Painel Administrativo — Senger Corretores</title>
   <link rel="icon" href="../icons/favicon.ico" sizes="any">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    /* Paleta e fontes iguais às do site (styles.css) */
     :root {
-      --fundo: #101725;
-      --cartao: #1a2436;
-      --borda: #2c3a52;
-      --texto: #e8edf5;
-      --texto-suave: #9fb0c8;
-      --dourado: #c9a15c;
-      --verde: #3ecf8e;
-      --vermelho: #ff6b6b;
-      --amarelo: #f5c542;
-      --azul: #5aa9ff;
+      --fundo: #f4f6f7;
+      --cartao: #ffffff;
+      --borda: rgba(32, 42, 50, .13);
+      --texto: #202a32;
+      --texto-suave: #66727b;
+      --dourado: #178fa0;
+      --dourado-escuro: #107687;
+      --verde: #148565;
+      --vermelho: #9d4949;
+      --amarelo: #a8701f;
+      --azul: #107687;
+      --sombra: 0 14px 38px rgba(24, 33, 41, .12);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background: var(--fundo);
       color: var(--texto);
-      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
       min-height: 100vh;
     }
+    h1, h2, h3 { font-family: "Montserrat", system-ui, sans-serif; }
     .tela { display: none; }
     .tela.ativa { display: block; }
 
@@ -44,6 +51,7 @@
       padding: 32px;
       width: 100%;
       max-width: 460px;
+      box-shadow: var(--sombra);
     }
     .caixa h1 { font-size: 1.3rem; margin-bottom: 6px; }
     .caixa .sub { color: var(--texto-suave); font-size: .9rem; margin-bottom: 20px; }
@@ -65,12 +73,13 @@
       border: none;
       border-radius: 8px;
       background: var(--dourado);
-      color: #14181f;
+      color: #ffffff;
       font-weight: 700;
       font-size: .95rem;
       cursor: pointer;
+      box-shadow: 0 10px 24px rgba(23, 143, 160, .24);
     }
-    .botao:hover { filter: brightness(1.1); }
+    .botao:hover { background: var(--dourado-escuro); }
     .botao.secundario { background: transparent; border: 1px solid var(--borda); color: var(--texto-suave); }
     .botao.perigo { background: var(--vermelho); color: #fff; }
     .botao:disabled { opacity: .5; cursor: not-allowed; }
@@ -78,7 +87,26 @@
     .erro.visivel { display: block; }
     .passos { margin: 16px 0 0 18px; color: var(--texto-suave); font-size: .88rem; line-height: 1.7; }
     .passos a { color: var(--azul); }
-    .nota { background: rgba(90,169,255,.08); border: 1px solid rgba(90,169,255,.25); border-radius: 8px; padding: 10px 12px; font-size: .82rem; color: var(--texto-suave); margin-top: 14px; }
+    .nota { background: #e6f2f4; border: 1px solid rgba(23,143,160,.35); border-radius: 8px; padding: 10px 12px; font-size: .82rem; color: var(--dourado-escuro); margin-top: 14px; }
+
+    /* campo de senha com botão de mostrar/ocultar */
+    .campo-senha { position: relative; }
+    .campo-senha input { padding-right: 46px; }
+    .olho {
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      border: none;
+      background: none;
+      cursor: pointer;
+      padding: 6px;
+      color: var(--texto-suave);
+      display: flex;
+      align-items: center;
+    }
+    .olho:hover { color: var(--texto); }
+    .olho svg { width: 22px; height: 22px; }
 
     /* ---------- Painel ---------- */
     header.topo {
@@ -98,7 +126,7 @@
     header.topo .direita { margin-left: auto; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
     .pendentes {
       background: var(--amarelo);
-      color: #14181f;
+      color: #ffffff;
       font-weight: 700;
       border-radius: 20px;
       padding: 4px 12px;
@@ -156,7 +184,7 @@
     th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--borda); }
     th { color: var(--texto-suave); font-weight: 600; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; position: sticky; top: 0; background: var(--cartao); }
     td.num { text-align: right; font-variant-numeric: tabular-nums; }
-    tr.mudou td { background: rgba(245,197,66,.08); }
+    tr.mudou td { background: rgba(168,112,31,.09); }
     select.status {
       padding: 6px 8px;
       border-radius: 6px;
@@ -195,7 +223,7 @@
       display: none;
       z-index: 50;
       max-width: 90vw;
-      box-shadow: 0 8px 30px rgba(0,0,0,.5);
+      box-shadow: var(--sombra);
     }
     #aviso.visivel { display: block; }
     #aviso.ok { border-color: var(--verde); }
@@ -217,8 +245,11 @@
       <h1>Painel Administrativo</h1>
       <p class="sub">Senger Corretores — acesso restrito</p>
       <label for="campo-senha">Senha</label>
-      <input type="password" id="campo-senha" autocomplete="current-password" autofocus>
-      <p class="erro" id="erro-senha">Senha incorreta.</p>
+      <div class="campo-senha">
+        <input type="password" id="campo-senha" autocomplete="off" autofocus>
+        <button type="button" class="olho" data-alvo="campo-senha" aria-label="Mostrar senha"></button>
+      </div>
+      <p class="erro" id="erro-senha">Senha incorreta. Toque no olho para conferir o que foi digitado.</p>
       <button class="botao" id="botao-entrar">Entrar</button>
     </div>
   </div>
@@ -237,7 +268,10 @@
         <li>Clique em <em>Generate token</em>, copie o código (começa com <code>github_pat_</code>) e cole abaixo.</li>
       </ol>
       <label for="campo-token">Token do GitHub</label>
-      <input type="password" id="campo-token" placeholder="github_pat_...">
+      <div class="campo-senha">
+        <input type="password" id="campo-token" placeholder="github_pat_..." autocomplete="off">
+        <button type="button" class="olho" data-alvo="campo-token" aria-label="Mostrar token"></button>
+      </div>
       <p class="erro" id="erro-token"></p>
       <div class="nota">A chave fica guardada apenas neste aparelho (navegador). Se trocar de celular ou computador, basta gerar outra.</div>
       <button class="botao" id="botao-token">Salvar e continuar</button>
@@ -756,8 +790,23 @@
 
   // ---------------- eventos ----------------
 
+  // Botões de mostrar/ocultar senha (olho). Espaços colados por engano são comuns
+  // no celular, por isso a senha é comparada sem espaços nas pontas.
+  const OLHO_ABERTO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+  const OLHO_FECHADO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+  document.querySelectorAll(".olho").forEach((botao) => {
+    botao.innerHTML = OLHO_ABERTO;
+    botao.addEventListener("click", () => {
+      const campo = $(botao.dataset.alvo);
+      const mostrar = campo.type === "password";
+      campo.type = mostrar ? "text" : "password";
+      botao.innerHTML = mostrar ? OLHO_FECHADO : OLHO_ABERTO;
+      campo.focus();
+    });
+  });
+
   async function entrar() {
-    const senha = $("campo-senha").value;
+    const senha = $("campo-senha").value.trim();
     if (await sha256(senha) !== SENHA_HASH) {
       $("erro-senha").classList.add("visivel");
       return;
