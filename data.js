@@ -319,7 +319,7 @@ const EMPREENDIMENTOS = [
         area: "115 m² global · 65 m² privativo",
         garagem: "01 vaga de garagem",
         unidades: [
-          { apto: "801", preco: 850000, status: "vendido" },
+          { apto: "801", preco: 850000, status: "disponivel" },
         ],
       },
       {
