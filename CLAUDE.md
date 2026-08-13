@@ -38,6 +38,12 @@ Evolutti existem só no painel: o `app.js` não lê esse campo.
 Status válidos: `disponivel`, `vendido`, `alugado`. **Não existe "reservado"** —
 a construtora não reserva unidades.
 
+O estoque cadastrado é o prédio inteiro, não só o que está à venda: unidade
+vendida fica no `data.js` com `status: "vendido"` e **sem `preco`** (o valor de
+tabela não vale mais). O site esconde as vendidas e omite o grupo que ficar sem
+nenhuma disponível; se a venda for desfeita, o preço aparece como "Sob consulta"
+até alguém informar o novo valor.
+
 ## Metragens no site
 
 Sempre **truncadas**, nunca arredondadas para cima: 99,6188 m² vira "99 m²", e
