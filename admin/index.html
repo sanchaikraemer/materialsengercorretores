@@ -189,7 +189,7 @@
     td.num { text-align: right; font-variant-numeric: tabular-nums; }
     tr.mudou td { background: rgba(168,112,31,.09); }
     /* O status se le pela cor, sem precisar ler a palavra: verde disponivel,
-       vermelho vendido, laranja reservado, azul alugado. A mesma cor pinta a
+       vermelho vendido, azul alugado. A mesma cor pinta a
        bolinha, o texto e a faixa da esquerda da linha. */
     select.status {
       padding: 6px 8px;
@@ -220,14 +220,34 @@
     .legenda { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; font-size: .82rem; color: var(--texto-suave); }
     .legenda span { display: flex; align-items: center; gap: 6px; }
     .grupo-titulo { color: var(--dourado); font-size: .82rem; font-weight: 700; padding: 12px 10px 6px; }
-    /* Titulo da tabela de box, dentro do bloco do empreendimento. */
-    .titulo-box {
-      display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px;
-      margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--borda);
-      font-size: .95rem; font-weight: 700;
+    /* Abas de situacao: cada empreendimento mostra um status por vez. */
+    .abas { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 0 6px; }
+    .abas button {
+      border: 1px solid var(--borda); background: var(--cartao); color: var(--texto-suave);
+      border-radius: 999px; padding: 7px 14px; font: inherit; font-size: .82rem;
+      cursor: pointer; display: flex; align-items: center; gap: 7px;
     }
-    .titulo-box .contagem { color: var(--texto-suave); font-weight: 400; font-size: .8rem; }
-    .titulo-box + .descricao { margin-top: 2px; margin-bottom: 10px; }
+    .abas button:hover { border-color: var(--dourado); color: var(--texto); }
+    .abas button .quantos { font-weight: 700; }
+    .abas button.ativa { background: var(--dourado); border-color: var(--dourado); color: #fff; }
+    .abas button.ativa .quantos { color: #fff; }
+    tr.vazio td { color: var(--texto-suave); font-size: .85rem; padding: 14px 10px; }
+
+    /* Bloco recolhivel dos box, dentro do empreendimento. Comeca fechado. */
+    details.caixa-box { margin-top: 18px; border-top: 1px solid var(--borda); }
+    details.caixa-box > summary {
+      display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px;
+      padding: 14px 2px 10px; cursor: pointer; font-weight: 700; font-size: .95rem;
+      list-style: none;
+    }
+    details.caixa-box > summary::-webkit-details-marker { display: none; }
+    details.caixa-box > summary::before {
+      content: "›"; display: inline-block; font-size: 1.15rem; line-height: 1;
+      color: var(--dourado); transition: transform .15s; transform: rotate(0deg);
+    }
+    details.caixa-box[open] > summary::before { transform: rotate(90deg); }
+    details.caixa-box > summary .contagem { color: var(--texto-suave); font-weight: 400; font-size: .8rem; }
+    details.caixa-box .descricao { margin: 0 0 10px; }
     details.emp { border: 1px solid var(--borda); border-radius: 10px; margin-bottom: 12px; background: var(--fundo); }
     details.emp summary {
       cursor: pointer;
@@ -386,11 +406,10 @@
         <!-- Unidades -->
         <section class="bloco">
           <h2>Disponibilidade das unidades</h2>
-          <p class="descricao">Marque como <strong>Vendido</strong> para a unidade sumir da lista do site, dos PDFs e das mensagens. Volte para <strong>Disponível</strong> se a venda for cancelada e ela reaparece. Reservado também sai da oferta; Alugado continua aparecendo.</p>
+          <p class="descricao">Marque como <strong>Vendido</strong> para a unidade sumir da lista do site, dos PDFs e das mensagens. Volte para <strong>Disponível</strong> se a venda for cancelada e ela reaparece. Alugado continua aparecendo. Use as abas de cada empreendimento para ver uma situação por vez.</p>
           <div class="legenda">
             <span class="st-disponivel"><span class="bolinha"></span>Disponível</span>
             <span class="st-vendido"><span class="bolinha"></span>Vendido</span>
-            <span class="st-reservado"><span class="bolinha"></span>Reservado</span>
             <span class="st-alugado"><span class="bolinha"></span>Alugado</span>
           </div>
           <div id="lista-emps"></div>
@@ -412,11 +431,12 @@
   // Senha de acesso ao painel (guardada como hash SHA-256, nunca em texto puro).
   const SENHA_HASH = "c03a8ce2924c14ff8b026f6f5a6ac792980d0b7bc66e317495d3ae06ed7bd874";
 
+  // Sem "reservado": a construtora nao reserva unidades.
+  // Cada linha e [valor, singular (seletor), plural (aba)].
   const STATUS_OPCOES = [
-    ["disponivel", "Disponível"],
-    ["reservado", "Reservado"],
-    ["vendido", "Vendido"],
-    ["alugado", "Alugado"],
+    ["disponivel", "Disponível", "Disponíveis"],
+    ["vendido", "Vendido", "Vendidos"],
+    ["alugado", "Alugado", "Alugados"],
   ];
   const STATUS_LABEL = Object.fromEntries(STATUS_OPCOES);
 
@@ -662,37 +682,116 @@
       itens.forEach((item) => {
         if (item.grupo !== grupoAtual) {
           grupoAtual = item.grupo;
-          if (grupoAtual) linhas += `<tr><td colspan="3" class="grupo-titulo">${escapeHtml(grupoAtual)}</td></tr>`;
+          if (grupoAtual) linhas += `<tr class="linha-grupo"><td colspan="3" class="grupo-titulo">${escapeHtml(grupoAtual)}</td></tr>`;
         }
-        const chave = chaveDoItem(emp.id, item);
-        const status = statusAtual(emp.id, item);
-        const mudou = Boolean(opDeStatus(chave));
-        const opcoes = STATUS_OPCOES.map(([v, l]) => `<option value="${v}"${v === status ? " selected" : ""}>${l}</option>`).join("");
-        linhas += `<tr class="linha-${status}${mudou ? " mudou" : ""}">
-          <td>${escapeHtml(item.rotulo)}</td>
-          <td class="num">${moeda(item.preco)}</td>
-          <td><div class="status-celula st-${status}">
-            <span class="bolinha"></span>
-            <select class="status st-${status}" data-chave="${escapeHtml(chave)}" data-original="${item.status}">${opcoes}</select>
-          </div></td>
-        </tr>`;
+        linhas += linhaDeStatus(emp.id, item, [
+          escapeHtml(item.rotulo),
+          `<span class="num">${moeda(item.preco)}</span>`,
+        ]);
       });
+      linhas += `<tr class="vazio"><td colspan="3">Nenhuma unidade nesta situação.</td></tr>`;
       // Os box do empreendimento vem logo abaixo das unidades, dentro do mesmo bloco.
       const tabelaBox = renderTabelaBoxes(emp);
       const boxes = boxesDoEmp(emp);
       const boxLivres = boxes.filter((b) => statusAtual(emp.id, b) === "disponivel").length;
       const resumo = `${disponiveis} de ${itens.length} disponíveis`
         + (boxes.length ? ` · ${boxLivres} de ${boxes.length} box` : "");
-      return `<details class="emp">
+      return `<details class="emp" data-emp="${escapeHtml(emp.id)}" data-filtro="disponivel">
         <summary>${escapeHtml(emp.nome)} <span class="contagem">${resumo}</span></summary>
-        <div class="conteudo"><table>
-          <thead><tr><th>Unidade</th><th style="text-align:right">Preço</th><th>Status</th></tr></thead>
-          <tbody>${linhas}</tbody>
-        </table>${tabelaBox}</div>
+        <div class="conteudo">
+          <div class="abas">${abasDeStatus()}</div>
+          <table>
+            <thead><tr><th>Unidade</th><th style="text-align:right">Preço</th><th>Status</th></tr></thead>
+            <tbody>${linhas}</tbody>
+          </table>${tabelaBox}
+        </div>
       </details>`;
     }).join("");
 
     ligarSelectsDeStatus(alvo);
+    ligarAbas(alvo);
+    alvo.querySelectorAll("details.emp").forEach(aplicarFiltro);
+  }
+
+  // Uma linha de tabela com o seletor de status. As colunas da frente mudam
+  // conforme o tipo de item; o miolo do status e sempre igual.
+  function linhaDeStatus(empId, item, colunas) {
+    const chave = chaveDoItem(empId, item);
+    const status = statusAtual(empId, item);
+    const mudou = Boolean(opDeStatus(chave));
+    const opcoes = STATUS_OPCOES.map(([v, l]) => `<option value="${v}"${v === status ? " selected" : ""}>${l}</option>`).join("");
+    return `<tr class="linha-${status}${mudou ? " mudou" : ""}" data-status="${status}">
+      ${colunas.map((c) => `<td>${c}</td>`).join("")}
+      <td><div class="status-celula st-${status}">
+        <span class="bolinha"></span>
+        <select class="status st-${status}" data-chave="${escapeHtml(chave)}" data-original="${item.status}">${opcoes}</select>
+      </div></td>
+    </tr>`;
+  }
+
+  function abasDeStatus() {
+    return STATUS_OPCOES.map(([v, , plural], i) =>
+      `<button type="button" data-filtro="${v}"${i === 0 ? ' class="ativa"' : ""}>${plural} <span class="quantos"></span></button>`
+    ).join("") + `<button type="button" data-filtro="todos">Todos <span class="quantos"></span></button>`;
+  }
+
+  function ligarAbas(alvo) {
+    alvo.querySelectorAll(".abas button").forEach((botao) => {
+      botao.addEventListener("click", () => {
+        const det = botao.closest("details.emp");
+        det.dataset.filtro = botao.dataset.filtro;
+        det.querySelectorAll(".abas button").forEach((b) => b.classList.toggle("ativa", b === botao));
+        aplicarFiltro(det);
+      });
+    });
+  }
+
+  // Mostra so as linhas da situacao escolhida. Linhas que o usuario acabou de
+  // alterar (.mudou) continuam visiveis, senao elas sumiriam sob o dedo dele.
+  function aplicarFiltro(det) {
+    const filtro = det.dataset.filtro || "disponivel";
+    // Unidades e box sao contados em separado: somar os dois num numero so
+    // faria a aba dizer 29 com 14 apartamentos na tela.
+    const contagem = {};
+    const contagemBox = {};
+    det.querySelectorAll("tbody tr[data-status]").forEach((tr) => {
+      const s = tr.dataset.status;
+      const alvo = tr.closest("details.caixa-box") ? contagemBox : contagem;
+      alvo[s] = (alvo[s] || 0) + 1;
+      tr.hidden = !(filtro === "todos" || s === filtro || tr.classList.contains("mudou"));
+    });
+    // Titulo de tipologia some quando nenhuma unidade dele aparece.
+    det.querySelectorAll("tr.linha-grupo").forEach((tr) => {
+      let visiveis = 0;
+      for (let s = tr.nextElementSibling; s && !s.classList.contains("linha-grupo"); s = s.nextElementSibling) {
+        if (s.dataset.status && !s.hidden) visiveis += 1;
+      }
+      tr.hidden = visiveis === 0;
+    });
+    det.querySelectorAll("table").forEach((tabela) => {
+      const vazio = tabela.querySelector("tr.vazio");
+      if (vazio) vazio.hidden = Boolean(tabela.querySelector("tbody tr[data-status]:not([hidden])"));
+    });
+    det.querySelectorAll(".abas button").forEach((b) => {
+      const f = b.dataset.filtro;
+      const n = f === "todos"
+        ? Object.values(contagem).reduce((a, v) => a + v, 0)
+        : (contagem[f] || 0);
+      b.querySelector(".quantos").textContent = n;
+    });
+    // O titulo dos box acompanha a aba escolhida.
+    const caixa = det.querySelector("details.caixa-box .contagem");
+    if (caixa) {
+      const total = Object.values(contagemBox).reduce((a, v) => a + v, 0);
+      const livres = contagemBox.disponivel || 0;
+      const duplos = det.querySelectorAll("details.caixa-box tbody tr[data-status='disponivel']").length
+        && [...det.querySelectorAll("details.caixa-box tbody tr[data-status='disponivel']")]
+          .filter((tr) => tr.children[1].textContent.startsWith("Duplo")).length;
+      caixa.textContent = filtro === "todos"
+        ? `${total} no total · ${livres} disponíveis`
+        : `${contagemBox[filtro] || 0} de ${total} ${(STATUS_OPCOES.find(([v]) => v === filtro) || [])[2].toLowerCase()}`
+          + (filtro === "disponivel" ? ` · ${livres - duplos} simples e ${duplos} duplos` : "");
+    }
   }
 
   // Tabela de box de garagem de um empreendimento. Fica dentro do bloco do
@@ -704,29 +803,22 @@
     const livres = boxes.filter((b) => statusAtual(emp.id, b) === "disponivel");
     const duplos = livres.filter((b) => b.vagas === 2).length;
     const linhas = boxes.map((item) => {
-      const chave = chaveDoItem(emp.id, item);
-      const status = statusAtual(emp.id, item);
-      const mudou = Boolean(opDeStatus(chave));
-      const opcoes = STATUS_OPCOES.map(([v, l]) => `<option value="${v}"${v === status ? " selected" : ""}>${l}</option>`).join("");
       const obs = item.obs ? ` <span class="contagem">${escapeHtml(item.obs)}</span>` : "";
-      const tipo = item.vagas === 2 ? "Duplo — 2 vagas" : "Simples — 1 vaga";
-      return `<tr class="linha-${status}${mudou ? " mudou" : ""}">
-        <td>${escapeHtml(item.rotulo)}${obs}</td>
-        <td>${tipo}</td>
-        <td class="num">${metro(item.areaPriv)}</td>
-        <td class="num">${metro(item.areaGlobal)}</td>
-        <td><div class="status-celula st-${status}">
-          <span class="bolinha"></span>
-          <select class="status st-${status}" data-chave="${escapeHtml(chave)}" data-original="${item.status}">${opcoes}</select>
-        </div></td>
-      </tr>`;
-    }).join("");
-    return `<p class="titulo-box">Box de garagem <span class="contagem">${livres.length} de ${boxes.length} disponíveis · ${livres.length - duplos} simples e ${duplos} duplos</span></p>
+      return linhaDeStatus(emp.id, item, [
+        escapeHtml(item.rotulo) + obs,
+        item.vagas === 2 ? "Duplo — 2 vagas" : "Simples — 1 vaga",
+        `<span class="num">${metro(item.areaPriv)}</span>`,
+        `<span class="num">${metro(item.areaGlobal)}</span>`,
+      ]);
+    }).join("") + `<tr class="vazio"><td colspan="5">Nenhum box nesta situação.</td></tr>`;
+    return `<details class="caixa-box">
+      <summary>Box de garagem <span class="contagem">${livres.length} de ${boxes.length} disponíveis · ${livres.length - duplos} simples e ${duplos} duplos</span></summary>
       <p class="descricao">Controle interno: os box não aparecem no site, nos PDFs nem nas mensagens.</p>
       <table>
         <thead><tr><th>Box</th><th>Tipo</th><th style="text-align:right">Área privativa</th><th style="text-align:right">Área global</th><th>Status</th></tr></thead>
         <tbody>${linhas}</tbody>
-      </table>`;
+      </table>
+    </details>`;
   }
 
   // Usado pela lista de unidades e pela lista de box: os dois gravam a mesma
@@ -753,6 +845,8 @@
         celula.classList.add(`st-${sel.value}`);
         sel.classList.add(`st-${sel.value}`);
         linha.classList.toggle("mudou", sel.value !== original);
+        linha.dataset.status = sel.value;
+        aplicarFiltro(sel.closest("details.emp"));
         renderDashboard();
         renderPendentes();
       });
