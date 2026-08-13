@@ -157,6 +157,19 @@
       border-radius: 10px;
       padding: 14px;
     }
+    /* O cartao e um botao: clicar nele abre o empreendimento logo abaixo. */
+    button.card {
+      font: inherit; color: inherit; text-align: left; cursor: pointer;
+      width: 100%; height: 100%; display: flex; flex-direction: column;
+    }
+    button.card:hover { border-color: var(--dourado); }
+    button.card:focus-visible { outline: 2px solid var(--dourado); outline-offset: 2px; }
+    button.card.ativo { border-color: var(--dourado); box-shadow: inset 0 0 0 1px var(--dourado); }
+    button.card .abrir {
+      display: block; margin-top: auto; padding-top: 12px; color: var(--dourado);
+      font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+    }
+    .vazio-emp { margin: 0; }
     .card h3 { font-size: .92rem; margin-bottom: 8px; }
     .card .linha { display: flex; justify-content: space-between; font-size: .82rem; padding: 2px 0; color: var(--texto-suave); }
     .card .linha strong { color: var(--texto); }
@@ -398,9 +411,10 @@
         </section>
 
         <!-- Unidades -->
-        <section class="bloco">
+        <section class="bloco" id="bloco-unidades">
           <h2>Disponibilidade das unidades</h2>
-          <p class="descricao">Marque como <strong>Vendido</strong> para a unidade sumir da lista do site, dos PDFs e das mensagens. Volte para <strong>Disponível</strong> se a venda for cancelada e ela reaparece. Alugado continua aparecendo. Use as abas de cada empreendimento para ver uma situação por vez.</p>
+          <p class="descricao">Marque como <strong>Vendido</strong> para a unidade sumir da lista do site, dos PDFs e das mensagens. Volte para <strong>Disponível</strong> se a venda for cancelada e ela reaparece. Alugado continua aparecendo. Use as abas para ver uma situação por vez.</p>
+          <p class="descricao vazio-emp" id="nenhum-emp">Toque em um empreendimento acima para ver as unidades.</p>
           <div class="legenda">
             <span class="st-disponivel"><span class="bolinha"></span>Disponível</span>
             <span class="st-vendido"><span class="bolinha"></span>Vendido</span>
@@ -440,6 +454,7 @@
     dados: null,       // { META, EMPREENDIMENTOS } avaliados do data.js
     versao: 0,         // número atual do "?v=" do index.html
     ops: [],           // alterações pendentes, aplicadas só no "Publicar"
+    empAberto: null,   // id do empreendimento escolhido no cartão
   };
 
   const $ = (id) => document.getElementById(id);
@@ -661,8 +676,38 @@
         ? `<div class="linha" style="border-top:1px solid var(--borda);margin-top:6px;padding-top:6px"><span class="st-disponivel">Box disponíveis</span><strong>${boxLivres.length} de ${boxes.length}</strong></div>
            <div class="linha"><span>Simples · duplos</span><strong>${boxLivres.length - boxDuplos} · ${boxDuplos}</strong></div>`
         : "";
-      return `<div class="card"><h3>${escapeHtml(emp.nome)}</h3>${linhas}<div class="linha" style="border-top:1px solid var(--borda);margin-top:6px;padding-top:6px"><span>Total</span><strong>${itens.length}</strong></div>${linhaBox}</div>`;
+      const ativo = estado.empAberto === emp.id;
+      return `<button type="button" class="card${ativo ? " ativo" : ""}" data-emp="${escapeHtml(emp.id)}" aria-expanded="${ativo}">
+        <h3>${escapeHtml(emp.nome)}</h3>${linhas}
+        <div class="linha" style="border-top:1px solid var(--borda);margin-top:6px;padding-top:6px"><span>Total</span><strong>${itens.length}</strong></div>${linhaBox}
+        <span class="abrir">${ativo ? "Fechar" : "Abrir"}</span>
+      </button>`;
     }).join("");
+
+    // O cartao e a porta de entrada do empreendimento: clicou, abre a lista.
+    alvo.querySelectorAll(".card").forEach((card) => {
+      card.addEventListener("click", () => {
+        const id = card.dataset.emp;
+        estado.empAberto = estado.empAberto === id ? null : id;
+        renderDashboard();
+        mostrarEmpAberto(true);
+      });
+    });
+  }
+
+  // Só o empreendimento escolhido no cartão fica na tela.
+  function mostrarEmpAberto(rolar) {
+    const bloco = $("bloco-unidades");
+    const nenhum = $("nenhum-emp");
+    let visivel = null;
+    $("lista-emps").querySelectorAll("details.emp").forEach((det) => {
+      const mostra = det.dataset.emp === estado.empAberto;
+      det.hidden = !mostra;
+      if (mostra) { det.open = true; visivel = det; }
+    });
+    nenhum.hidden = Boolean(visivel);
+    bloco.querySelector(".legenda").hidden = !visivel;
+    if (visivel && rolar) bloco.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   function renderEmps() {
@@ -710,6 +755,7 @@
     ligarSelectsDeStatus(alvo);
     ligarAbas(alvo);
     alvo.querySelectorAll("details.emp").forEach(aplicarFiltro);
+    mostrarEmpAberto(false);
   }
 
   // Uma linha de tabela com o seletor de status. As colunas da frente mudam
