@@ -595,6 +595,7 @@
       tipo: "box",
       box: b.box,
       rotulo: "Box " + b.box,
+      vagas: b.vagas || 1,
       areaPriv: b.areaPriv,
       areaGlobal: b.areaGlobal,
       obs: b.obs || "",
@@ -645,9 +646,11 @@
         .join("");
       // Os box entram como linha separada para nao se misturarem com as unidades.
       const boxes = boxesDoEmp(emp);
-      const boxDisp = boxes.filter((b) => statusAtual(emp.id, b) === "disponivel").length;
+      const boxLivres = boxes.filter((b) => statusAtual(emp.id, b) === "disponivel");
+      const boxDuplos = boxLivres.filter((b) => b.vagas === 2).length;
       const linhaBox = boxes.length
-        ? `<div class="linha" style="border-top:1px solid var(--borda);margin-top:6px;padding-top:6px"><span class="st-disponivel">Box disponíveis</span><strong>${boxDisp} de ${boxes.length}</strong></div>`
+        ? `<div class="linha" style="border-top:1px solid var(--borda);margin-top:6px;padding-top:6px"><span class="st-disponivel">Box disponíveis</span><strong>${boxLivres.length} de ${boxes.length}</strong></div>
+           <div class="linha"><span>Simples · duplos</span><strong>${boxLivres.length - boxDuplos} · ${boxDuplos}</strong></div>`
         : "";
       return `<div class="card"><h3>${escapeHtml(emp.nome)}</h3>${linhas}<div class="linha" style="border-top:1px solid var(--borda);margin-top:6px;padding-top:6px"><span>Total</span><strong>${itens.length}</strong></div>${linhaBox}</div>`;
     }).join("");
@@ -727,15 +730,20 @@
     const html = estado.dados.EMPREENDIMENTOS.map((emp) => {
       const boxes = boxesDoEmp(emp);
       if (!boxes.length) return "";
-      const disponiveis = boxes.filter((b) => statusAtual(emp.id, b) === "disponivel").length;
+      const livres = boxes.filter((b) => statusAtual(emp.id, b) === "disponivel");
+      const duplosLivres = livres.filter((b) => b.vagas === 2).length;
+      const resumo = `${livres.length} de ${boxes.length} disponíveis`
+        + (livres.length ? ` · ${livres.length - duplosLivres} simples e ${duplosLivres} duplos` : "");
       const linhas = boxes.map((item) => {
         const chave = chaveDoItem(emp.id, item);
         const status = statusAtual(emp.id, item);
         const mudou = Boolean(opDeStatus(chave));
         const opcoes = STATUS_OPCOES.map(([v, l]) => `<option value="${v}"${v === status ? " selected" : ""}>${l}</option>`).join("");
         const obs = item.obs ? ` <span class="contagem">${escapeHtml(item.obs)}</span>` : "";
+        const tipo = item.vagas === 2 ? "Duplo — 2 vagas" : "Simples — 1 vaga";
         return `<tr class="linha-${status}${mudou ? " mudou" : ""}">
           <td>${escapeHtml(item.rotulo)}${obs}</td>
+          <td>${tipo}</td>
           <td class="num">${metro(item.areaPriv)}</td>
           <td class="num">${metro(item.areaGlobal)}</td>
           <td><div class="status-celula st-${status}">
@@ -745,9 +753,9 @@
         </tr>`;
       }).join("");
       return `<details class="emp" open>
-        <summary>${escapeHtml(emp.nome)} <span class="contagem">${disponiveis} de ${boxes.length} disponíveis</span></summary>
+        <summary>${escapeHtml(emp.nome)} <span class="contagem">${resumo}</span></summary>
         <div class="conteudo"><table>
-          <thead><tr><th>Box</th><th style="text-align:right">Área privativa</th><th style="text-align:right">Área global</th><th>Status</th></tr></thead>
+          <thead><tr><th>Box</th><th>Tipo</th><th style="text-align:right">Área privativa</th><th style="text-align:right">Área global</th><th>Status</th></tr></thead>
           <tbody>${linhas}</tbody>
         </table></div>
       </details>`;
