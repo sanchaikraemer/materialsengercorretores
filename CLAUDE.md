@@ -8,6 +8,12 @@ um painel administrativo que o dono usa pelo celular.
 - **Publique sempre ao terminar, sem perguntar.** Ao final de uma tarefa: commit
   na branch de trabalho, abre o pull request e faz o merge na `main`. Não pare
   para pedir autorização de publicação.
+- **Toda alteração sobe a versão.** Antes de publicar, incremente o número em
+  `index.html` (todos os `?v=`) e em `sw.js` (o `CACHE` e os `?v=` do `CORE`),
+  com a data do dia no nome do cache:
+  `const CACHE = "senger-portfolio-v117-20260813"`. Vale para qualquer mudança,
+  inclusive as que só afetam o painel — o número é o registro do que está no ar,
+  e é por ele que o dono confere se recebeu a atualização.
 - Ele acompanha pelo resultado na tela, não pelo código. Explique o que mudou em
   linguagem de leigo, sem jargão de programação.
 
@@ -45,8 +51,9 @@ Sempre **truncadas**, nunca arredondadas para cima: 99,6188 m² vira "99 m²", e
   o dono clica em "Publicar no site".
 - A gravação é **edição textual** do `data.js`, não regravação do objeto, para
   preservar comentários e formatação. Ver `aplicarStatus`.
-- Ao publicar, a versão do cache (`?v=` no `index.html` e o `CACHE` do `sw.js`)
-  sobe sozinha.
+- Ao publicar pelo painel, a versão do cache (`?v=` no `index.html` e o `CACHE`
+  do `sw.js`) sobe sozinha — ele lê o número atual e soma 1. Alteração feita
+  direto no repositório precisa subir o número à mão, antes do merge.
 - Cada empreendimento tem abas Disponíveis / Vendidos / Alugados / Todos, que
   filtram unidades e box juntos.
 
