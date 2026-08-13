@@ -185,6 +185,7 @@
     .card .linha { display: flex; justify-content: space-between; gap: 10px; font-size: .82rem; padding: 2px 0; color: var(--texto-suave); }
     .card .linha strong { color: var(--texto); text-align: right; white-space: nowrap; }
     .card .linha small { font-size: .92em; font-weight: 400; opacity: .85; }
+    .card .linha.sub { font-size: .75rem; padding: 1px 0 2px; }
     .st-disponivel { color: var(--verde) !important; }
     .st-reservado { color: var(--amarelo) !important; }
     .st-vendido { color: var(--vermelho) !important; }
@@ -692,7 +693,9 @@
       const boxVendidos = boxes.filter((b) => statusAtual(emp.id, b) === "vendido").length;
       const linhaBox = boxes.length
         ? `<div class="linha" style="border-top:1px solid var(--borda);margin-top:6px;padding-top:6px"><span class="st-vendido">Box vendidos</span><strong>${boxVendidos}</strong></div>
-           <div class="linha"><span class="st-disponivel">Box disponíveis <small>(simples · duplos)</small></span><strong>${boxLivres.length} <small>(${boxLivres.length - boxDuplos} · ${boxDuplos})</small></strong></div>`
+           <div class="linha"><span class="st-disponivel">Box disponíveis</span><strong>${boxLivres.length}</strong></div>`
+          // A divisao entre simples e duplos so faz sentido havendo box livre.
+          + (boxLivres.length ? `<div class="linha sub"><span>${boxLivres.length - boxDuplos} simples · ${boxDuplos} duplos</span></div>` : "")
         : "";
       const ativo = estado.empAberto === emp.id;
       // Quanto do estoque de unidades ja foi vendido. Box ficam de fora: sao
