@@ -220,6 +220,14 @@
     .legenda { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; font-size: .82rem; color: var(--texto-suave); }
     .legenda span { display: flex; align-items: center; gap: 6px; }
     .grupo-titulo { color: var(--dourado); font-size: .82rem; font-weight: 700; padding: 12px 10px 6px; }
+    /* Titulo da tabela de box, dentro do bloco do empreendimento. */
+    .titulo-box {
+      display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px;
+      margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--borda);
+      font-size: .95rem; font-weight: 700;
+    }
+    .titulo-box .contagem { color: var(--texto-suave); font-weight: 400; font-size: .8rem; }
+    .titulo-box + .descricao { margin-top: 2px; margin-bottom: 10px; }
     details.emp { border: 1px solid var(--borda); border-radius: 10px; margin-bottom: 12px; background: var(--fundo); }
     details.emp summary {
       cursor: pointer;
@@ -386,18 +394,6 @@
             <span class="st-alugado"><span class="bolinha"></span>Alugado</span>
           </div>
           <div id="lista-emps"></div>
-        </section>
-
-        <!-- Box de garagem (nunca aparece no site) -->
-        <section class="bloco" id="bloco-boxes" style="display:none">
-          <h2>Box de garagem avulsos</h2>
-          <p class="descricao">Controle interno dos box vendidos separadamente. <strong>Esta lista não aparece no site, nos PDFs nem nas mensagens</strong> — serve só para você e os corretores consultarem aqui.</p>
-          <div class="legenda">
-            <span class="st-disponivel"><span class="bolinha"></span>Disponível</span>
-            <span class="st-vendido"><span class="bolinha"></span>Vendido</span>
-            <span class="st-reservado"><span class="bolinha"></span>Reservado</span>
-          </div>
-          <div id="lista-boxes"></div>
         </section>
 
       </div>
@@ -626,7 +622,6 @@
     $("info-versao").textContent = `v${estado.versao} · ${meta.mesTabela} · INCC ${meta.incc.valor} (${meta.incc.variacao})`;
     renderDashboard();
     renderEmps();
-    renderBoxes();
     renderPendentes();
   }
 
@@ -682,16 +677,56 @@
           </div></td>
         </tr>`;
       });
+      // Os box do empreendimento vem logo abaixo das unidades, dentro do mesmo bloco.
+      const tabelaBox = renderTabelaBoxes(emp);
+      const boxes = boxesDoEmp(emp);
+      const boxLivres = boxes.filter((b) => statusAtual(emp.id, b) === "disponivel").length;
+      const resumo = `${disponiveis} de ${itens.length} disponíveis`
+        + (boxes.length ? ` · ${boxLivres} de ${boxes.length} box` : "");
       return `<details class="emp">
-        <summary>${escapeHtml(emp.nome)} <span class="contagem">${disponiveis} de ${itens.length} disponíveis</span></summary>
+        <summary>${escapeHtml(emp.nome)} <span class="contagem">${resumo}</span></summary>
         <div class="conteudo"><table>
           <thead><tr><th>Unidade</th><th style="text-align:right">Preço</th><th>Status</th></tr></thead>
           <tbody>${linhas}</tbody>
-        </table></div>
+        </table>${tabelaBox}</div>
       </details>`;
     }).join("");
 
     ligarSelectsDeStatus(alvo);
+  }
+
+  // Tabela de box de garagem de um empreendimento. Fica dentro do bloco do
+  // proprio empreendimento, logo depois das unidades. Nunca vai para o site.
+  function renderTabelaBoxes(emp) {
+    const boxes = boxesDoEmp(emp);
+    if (!boxes.length) return "";
+    const metro = (n) => (n == null ? "—" : Number(n).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " m²");
+    const livres = boxes.filter((b) => statusAtual(emp.id, b) === "disponivel");
+    const duplos = livres.filter((b) => b.vagas === 2).length;
+    const linhas = boxes.map((item) => {
+      const chave = chaveDoItem(emp.id, item);
+      const status = statusAtual(emp.id, item);
+      const mudou = Boolean(opDeStatus(chave));
+      const opcoes = STATUS_OPCOES.map(([v, l]) => `<option value="${v}"${v === status ? " selected" : ""}>${l}</option>`).join("");
+      const obs = item.obs ? ` <span class="contagem">${escapeHtml(item.obs)}</span>` : "";
+      const tipo = item.vagas === 2 ? "Duplo — 2 vagas" : "Simples — 1 vaga";
+      return `<tr class="linha-${status}${mudou ? " mudou" : ""}">
+        <td>${escapeHtml(item.rotulo)}${obs}</td>
+        <td>${tipo}</td>
+        <td class="num">${metro(item.areaPriv)}</td>
+        <td class="num">${metro(item.areaGlobal)}</td>
+        <td><div class="status-celula st-${status}">
+          <span class="bolinha"></span>
+          <select class="status st-${status}" data-chave="${escapeHtml(chave)}" data-original="${item.status}">${opcoes}</select>
+        </div></td>
+      </tr>`;
+    }).join("");
+    return `<p class="titulo-box">Box de garagem <span class="contagem">${livres.length} de ${boxes.length} disponíveis · ${livres.length - duplos} simples e ${duplos} duplos</span></p>
+      <p class="descricao">Controle interno: os box não aparecem no site, nos PDFs nem nas mensagens.</p>
+      <table>
+        <thead><tr><th>Box</th><th>Tipo</th><th style="text-align:right">Área privativa</th><th style="text-align:right">Área global</th><th>Status</th></tr></thead>
+        <tbody>${linhas}</tbody>
+      </table>`;
   }
 
   // Usado pela lista de unidades e pela lista de box: os dois gravam a mesma
@@ -722,47 +757,6 @@
         renderPendentes();
       });
     });
-  }
-
-  function renderBoxes() {
-    const alvo = $("lista-boxes");
-    const metro = (n) => (n == null ? "—" : Number(n).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " m²");
-    const html = estado.dados.EMPREENDIMENTOS.map((emp) => {
-      const boxes = boxesDoEmp(emp);
-      if (!boxes.length) return "";
-      const livres = boxes.filter((b) => statusAtual(emp.id, b) === "disponivel");
-      const duplosLivres = livres.filter((b) => b.vagas === 2).length;
-      const resumo = `${livres.length} de ${boxes.length} disponíveis`
-        + (livres.length ? ` · ${livres.length - duplosLivres} simples e ${duplosLivres} duplos` : "");
-      const linhas = boxes.map((item) => {
-        const chave = chaveDoItem(emp.id, item);
-        const status = statusAtual(emp.id, item);
-        const mudou = Boolean(opDeStatus(chave));
-        const opcoes = STATUS_OPCOES.map(([v, l]) => `<option value="${v}"${v === status ? " selected" : ""}>${l}</option>`).join("");
-        const obs = item.obs ? ` <span class="contagem">${escapeHtml(item.obs)}</span>` : "";
-        const tipo = item.vagas === 2 ? "Duplo — 2 vagas" : "Simples — 1 vaga";
-        return `<tr class="linha-${status}${mudou ? " mudou" : ""}">
-          <td>${escapeHtml(item.rotulo)}${obs}</td>
-          <td>${tipo}</td>
-          <td class="num">${metro(item.areaPriv)}</td>
-          <td class="num">${metro(item.areaGlobal)}</td>
-          <td><div class="status-celula st-${status}">
-            <span class="bolinha"></span>
-            <select class="status st-${status}" data-chave="${escapeHtml(chave)}" data-original="${item.status}">${opcoes}</select>
-          </div></td>
-        </tr>`;
-      }).join("");
-      return `<details class="emp" open>
-        <summary>${escapeHtml(emp.nome)} <span class="contagem">${resumo}</span></summary>
-        <div class="conteudo"><table>
-          <thead><tr><th>Box</th><th>Tipo</th><th style="text-align:right">Área privativa</th><th style="text-align:right">Área global</th><th>Status</th></tr></thead>
-          <tbody>${linhas}</tbody>
-        </table></div>
-      </details>`;
-    }).join("");
-    alvo.innerHTML = html;
-    $("bloco-boxes").style.display = html ? "block" : "none";
-    ligarSelectsDeStatus(alvo);
   }
 
   function renderPendentes() {
