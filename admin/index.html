@@ -265,7 +265,12 @@
 
     /* Os box seguem as abas junto com as unidades: nada de bloco a parte para
        abrir, a aba escolhida ja diz o que esta na tela. */
-    .secao-box { margin-top: 18px; border-top: 1px solid var(--borda); }
+    .secao-box, .secao-vagas { margin-top: 18px; border-top: 1px solid var(--borda); }
+    .secao-vagas .descricao { margin: 0 0 10px; }
+    .secao-vagas .descricao.alerta { color: var(--vermelho); font-weight: 600; }
+    .secao-vagas .descricao.ok { color: var(--verde); font-weight: 600; }
+    .secao-vagas tr.soma td { font-weight: 700; background: rgba(32,42,50,.03); }
+    .secao-vagas tr.saldo td { border-top: 2px solid var(--borda); }
     .titulo-lista {
       display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px;
       padding: 14px 2px 4px; font-weight: 700; font-size: .95rem;
@@ -791,7 +796,7 @@
           <table>
             <thead><tr><th>Unidade</th><th style="text-align:right">Preço</th><th>Status</th></tr></thead>
             <tbody>${linhas}</tbody>
-          </table>${tabelaBox}
+          </table>${renderVagas(emp)}${tabelaBox}
         </div>
       </details>`;
     }).join("");
@@ -894,6 +899,75 @@
     }
   }
 
+  // Redesenha o quadro de vagas depois de mexer num status: vender um
+  // apartamento ou um box muda a conta na hora, antes mesmo de publicar.
+  function atualizarVagas(det) {
+    const sec = det && det.querySelector(".secao-vagas");
+    if (!sec) return;
+    const emp = estado.dados.EMPREENDIMENTOS.find((e) => e.id === det.dataset.emp);
+    const novo = emp && renderVagas(emp);
+    if (novo) sec.outerHTML = novo;
+  }
+
+  // Confere se os box disponiveis cobrem os apartamentos que ainda estao em
+  // estoque, conforme o que cada tipologia leva (emp.vagasPorTipologia).
+  function renderVagas(emp) {
+    const regra = emp.vagasPorTipologia;
+    const boxes = boxesDoEmp(emp);
+    if (!regra || !boxes.length) return "";
+
+    const estoque = new Map();
+    itensDoEmp(emp).forEach((i) => {
+      if (statusAtual(emp.id, i) !== "disponivel") return;
+      const rot = i.estoque || i.grupo;
+      estoque.set(rot, (estoque.get(rot) || 0) + 1);
+    });
+
+    let precisaD = 0, precisaS = 0, aptos = 0;
+    const linhas = Object.entries(regra).map(([rot, r]) => {
+      const n = estoque.get(rot) || 0;
+      const d = (r.duplo || 0) * n, s = (r.simples || 0) * n;
+      precisaD += d; precisaS += s; aptos += n;
+      const leva = [r.duplo ? `${r.duplo} duplo` : "", r.simples ? `${r.simples} simples` : ""].filter(Boolean).join(" + ");
+      return `<tr>
+        <td>${escapeHtml(rot)}</td><td class="num">${n}</td><td>${leva}</td>
+        <td class="num">${d || "—"}</td><td class="num">${s || "—"}</td><td class="num">${d * 2 + s}</td>
+      </tr>`;
+    }).join("");
+
+    const temD = boxes.filter((b) => statusAtual(emp.id, b) === "disponivel" && b.vagas === 2).length;
+    const temS = boxes.filter((b) => statusAtual(emp.id, b) === "disponivel" && b.vagas === 1).length;
+    const saldoD = temD - precisaD, saldoS = temS - precisaS;
+    const saldoV = (temD * 2 + temS) - (precisaD * 2 + precisaS);
+    const sinal = (n) => (n > 0 ? "+" : "") + n;
+    const cor = (n) => (n < 0 ? "st-vendido" : n > 0 ? "st-disponivel" : "");
+
+    // O recado em uma frase: e o que o dono quer saber sem somar nada.
+    const faltas = [saldoD < 0 ? `${-saldoD} box duplos` : "", saldoS < 0 ? `${-saldoS} box simples` : ""].filter(Boolean).join(" e ");
+    const sobras = [saldoD > 0 ? `${saldoD} duplos` : "", saldoS > 0 ? `${saldoS} simples` : ""].filter(Boolean).join(" e ");
+    let recado;
+    if (!faltas) recado = `Fecha: os box disponíveis cobrem os ${aptos} apartamentos em estoque${sobras ? `, e ainda sobram ${sobras}` : " exatamente"}.`;
+    else recado = `Faltam ${faltas} para cobrir os ${aptos} apartamentos em estoque${sobras ? `, e sobram ${sobras}` : ""}.`
+      + (saldoV >= 0 ? ` Em número de vagas o total fecha (${sinal(saldoV)}), então dois box simples podem cobrir um duplo se a venda aceitar vagas separadas.` : "");
+
+    return `<section class="secao-vagas">
+      <p class="titulo-lista">Vagas de garagem <span class="contagem">conferência do estoque, não muda com as abas</span></p>
+      <p class="descricao ${faltas ? "alerta" : "ok"}">${recado}</p>
+      <table>
+        <thead><tr><th>Tipologia</th><th style="text-align:right">Em estoque</th><th>Cada uma leva</th>
+          <th style="text-align:right">Duplos</th><th style="text-align:right">Simples</th><th style="text-align:right">Vagas</th></tr></thead>
+        <tbody>${linhas}
+          <tr class="soma"><td>Necessário</td><td class="num">${aptos}</td><td></td>
+            <td class="num">${precisaD}</td><td class="num">${precisaS}</td><td class="num">${precisaD * 2 + precisaS}</td></tr>
+          <tr class="soma"><td>Disponível</td><td></td><td></td>
+            <td class="num">${temD}</td><td class="num">${temS}</td><td class="num">${temD * 2 + temS}</td></tr>
+          <tr class="soma saldo"><td>Saldo</td><td></td><td></td>
+            <td class="num ${cor(saldoD)}">${sinal(saldoD)}</td><td class="num ${cor(saldoS)}">${sinal(saldoS)}</td><td class="num ${cor(saldoV)}">${sinal(saldoV)}</td></tr>
+        </tbody>
+      </table>
+    </section>`;
+  }
+
   // Tabela de box de garagem de um empreendimento. Fica dentro do bloco do
   // proprio empreendimento, logo depois das unidades. Nunca vai para o site.
   function renderTabelaBoxes(emp) {
@@ -946,7 +1020,9 @@
         sel.classList.add(`st-${sel.value}`);
         linha.classList.toggle("mudou", sel.value !== original);
         linha.dataset.status = sel.value;
-        aplicarFiltro(sel.closest("details.emp"));
+        const det = sel.closest("details.emp");
+        aplicarFiltro(det);
+        atualizarVagas(det);
         renderDashboard();
         renderPendentes();
       });
