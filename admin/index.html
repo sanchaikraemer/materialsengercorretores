@@ -170,9 +170,21 @@
       font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
     }
     .vazio-emp { margin: 0; }
-    .card h3 { font-size: .92rem; margin-bottom: 8px; }
-    .card .linha { display: flex; justify-content: space-between; font-size: .82rem; padding: 2px 0; color: var(--texto-suave); }
-    .card .linha strong { color: var(--texto); }
+    .card h3 {
+      font-size: .92rem; margin-bottom: 8px;
+      display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+    }
+    /* Quanto do estoque ja foi vendido, ao lado do nome. */
+    .card h3 .pct {
+      flex: none; font-family: "Inter", system-ui, sans-serif; font-size: .72rem;
+      font-weight: 700; letter-spacing: .02em; white-space: nowrap;
+      color: var(--texto-suave); background: var(--cartao);
+      border: 1px solid var(--borda); border-radius: 999px; padding: 3px 9px;
+    }
+    .card h3 .pct.tem { color: var(--vermelho); border-color: rgba(157,73,73,.35); }
+    .card .linha { display: flex; justify-content: space-between; gap: 10px; font-size: .82rem; padding: 2px 0; color: var(--texto-suave); }
+    .card .linha strong { color: var(--texto); text-align: right; white-space: nowrap; }
+    .card .linha small { font-size: .92em; font-weight: 400; opacity: .85; }
     .st-disponivel { color: var(--verde) !important; }
     .st-reservado { color: var(--amarelo) !important; }
     .st-vendido { color: var(--vermelho) !important; }
@@ -677,13 +689,17 @@
       const boxes = boxesDoEmp(emp);
       const boxLivres = boxes.filter((b) => statusAtual(emp.id, b) === "disponivel");
       const boxDuplos = boxLivres.filter((b) => b.vagas === 2).length;
+      const boxVendidos = boxes.filter((b) => statusAtual(emp.id, b) === "vendido").length;
       const linhaBox = boxes.length
-        ? `<div class="linha" style="border-top:1px solid var(--borda);margin-top:6px;padding-top:6px"><span class="st-disponivel">Box disponíveis</span><strong>${boxLivres.length} de ${boxes.length}</strong></div>
-           <div class="linha"><span>Simples · duplos</span><strong>${boxLivres.length - boxDuplos} · ${boxDuplos}</strong></div>`
+        ? `<div class="linha" style="border-top:1px solid var(--borda);margin-top:6px;padding-top:6px"><span class="st-vendido">Box vendidos</span><strong>${boxVendidos}</strong></div>
+           <div class="linha"><span class="st-disponivel">Box disponíveis <small>(simples · duplos)</small></span><strong>${boxLivres.length} <small>(${boxLivres.length - boxDuplos} · ${boxDuplos})</small></strong></div>`
         : "";
       const ativo = estado.empAberto === emp.id;
+      // Quanto do estoque de unidades ja foi vendido. Box ficam de fora: sao
+      // vendidos a parte e distorceriam o numero do empreendimento.
+      const pct = Math.round(((contagem.vendido || 0) / itens.length) * 100);
       return `<button type="button" class="card${ativo ? " ativo" : ""}" data-emp="${escapeHtml(emp.id)}" aria-expanded="${ativo}">
-        <h3>${escapeHtml(emp.nome)}</h3>${linhas}
+        <h3>${escapeHtml(emp.nome)} <span class="pct${pct ? " tem" : ""}">${pct}% vendido</span></h3>${linhas}
         <div class="linha" style="border-top:1px solid var(--borda);margin-top:6px;padding-top:6px"><span>Total</span><strong>${itens.length}</strong></div>${linhaBox}
         <span class="abrir">${ativo ? "Fechar" : "Abrir"}</span>
       </button>`;
