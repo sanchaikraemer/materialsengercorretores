@@ -186,6 +186,10 @@
     .card .linha strong { color: var(--texto); text-align: right; white-space: nowrap; }
     .card .linha small { font-size: .92em; font-weight: 400; opacity: .85; }
     .card .linha.sub { font-size: .75rem; padding: 1px 0 2px; }
+    /* Estoque por tipologia: a divisao fica visivelmente ligada ao "Disponível". */
+    .card .tipos { border-top: 1px solid var(--borda); margin-top: 6px; padding-top: 6px; }
+    .card .tipos .linha { font-size: .78rem; }
+    .card .tipos .linha span { padding-left: 10px; border-left: 2px solid var(--verde); }
     .st-disponivel { color: var(--verde) !important; }
     .st-reservado { color: var(--amarelo) !important; }
     .st-vendido { color: var(--vermelho) !important; }
@@ -619,7 +623,11 @@
         vistosApto[u.apto] = ocorrencia + 1;
         // "404" vira "Apto 404"; "Loja 101" ja vem com o nome pronto.
         const rotulo = /^\d/.test(String(u.apto)) ? "Apto " + u.apto : String(u.apto);
-        itens.push({ tipo: "unidade", grupo: grupo.tipo, rotulo, apto: u.apto, ocorrencia, preco: u.preco, status: u.status || "disponivel" });
+        // "estoque" e a tipologia em que a unidade conta no cartao. So existe
+        // onde a divisao comercial nao bate com a do site: as Casas Suspensas
+        // do Renaissance sao um grupo so, mas contam com o andar delas.
+        itens.push({ tipo: "unidade", grupo: grupo.tipo, estoque: u.estoque || grupo.estoque || grupo.tipo,
+          rotulo, apto: u.apto, ocorrencia, preco: u.preco, status: u.status || "disponivel" });
       });
     });
     (emp.terrenos || []).forEach((t) => {
@@ -686,6 +694,18 @@
         .filter(([s]) => contagem[s])
         .map(([s, label]) => `<div class="linha"><span class="st-${s}">${label}</span><strong>${contagem[s]}</strong></div>`)
         .join("");
+      // O que ha em estoque de cada tipologia — a conta que o dono usa para
+      // dividir as vagas de garagem. Só vale quando ha mais de uma tipologia.
+      const porTipo = new Map();
+      itens.forEach((i) => {
+        if (statusAtual(emp.id, i) !== "disponivel") return;
+        const rot = i.estoque || i.grupo || "Outros";
+        porTipo.set(rot, (porTipo.get(rot) || 0) + 1);
+      });
+      const linhasTipo = porTipo.size > 1
+        ? `<div class="tipos">` + [...porTipo].map(([rot, n]) =>
+            `<div class="linha"><span>${escapeHtml(rot)}</span><strong>${n}</strong></div>`).join("") + `</div>`
+        : "";
       // Os box entram como linha separada para nao se misturarem com as unidades.
       const boxes = boxesDoEmp(emp);
       const boxLivres = boxes.filter((b) => statusAtual(emp.id, b) === "disponivel");
@@ -703,7 +723,7 @@
       const pct = Math.round(((contagem.vendido || 0) / itens.length) * 100);
       return `<button type="button" class="card${ativo ? " ativo" : ""}" data-emp="${escapeHtml(emp.id)}" aria-expanded="${ativo}">
         <h3>${escapeHtml(emp.nome)} <span class="pct${pct ? " tem" : ""}">${pct}% vendido</span></h3>${linhas}
-        <div class="linha" style="border-top:1px solid var(--borda);margin-top:6px;padding-top:6px"><span>Total</span><strong>${itens.length}</strong></div>${linhaBox}
+        <div class="linha" style="border-top:1px solid var(--borda);margin-top:6px;padding-top:6px"><span>Total</span><strong>${itens.length}</strong></div>${linhasTipo}${linhaBox}
         <span class="abrir">${ativo ? "Fechar" : "Abrir"}</span>
       </button>`;
     }).join("");
