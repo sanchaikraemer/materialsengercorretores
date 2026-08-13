@@ -236,11 +236,11 @@
     /* Os box seguem as abas junto com as unidades: nada de bloco a parte para
        abrir, a aba escolhida ja diz o que esta na tela. */
     .secao-box { margin-top: 18px; border-top: 1px solid var(--borda); }
-    .secao-box .titulo-box {
+    .titulo-lista {
       display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px;
       padding: 14px 2px 4px; font-weight: 700; font-size: .95rem;
     }
-    .secao-box .titulo-box .contagem { color: var(--texto-suave); font-weight: 400; font-size: .8rem; }
+    .titulo-lista .contagem { color: var(--texto-suave); font-weight: 400; font-size: .8rem; }
     .secao-box .descricao { margin: 0 0 10px; }
     details.emp { border: 1px solid var(--borda); border-radius: 10px; margin-bottom: 12px; background: var(--fundo); }
     details.emp summary {
@@ -690,10 +690,15 @@
       const boxLivres = boxes.filter((b) => statusAtual(emp.id, b) === "disponivel").length;
       const resumo = `${disponiveis} de ${itens.length} disponíveis`
         + (boxes.length ? ` · ${boxLivres} de ${boxes.length} box` : "");
+      // So vale rotular a lista de unidades onde ela divide a aba com os box.
+      const tituloUnidades = boxes.length
+        ? `<p class="titulo-lista">Unidades <span class="contagem"></span></p>`
+        : "";
       return `<details class="emp" data-emp="${escapeHtml(emp.id)}" data-filtro="disponivel">
         <summary>${escapeHtml(emp.nome)} <span class="contagem">${resumo}</span></summary>
         <div class="conteudo">
           <div class="abas">${abasDeStatus()}</div>
+          ${tituloUnidades}
           <table>
             <thead><tr><th>Unidade</th><th style="text-align:right">Preço</th><th>Status</th></tr></thead>
             <tbody>${linhas}</tbody>
@@ -766,13 +771,24 @@
       const vazio = tabela.querySelector("tr.vazio");
       if (vazio) vazio.hidden = Boolean(tabela.querySelector("tbody tr[data-status]:not([hidden])"));
     });
+    // A aba conta tudo o que ela mostra, unidades e box juntos: dizer
+    // "Vendidos 0" com 21 box vendidos na tela nao para de pe. Cada tabela
+    // tem seu proprio titulo com a contagem separada.
     det.querySelectorAll(".abas button").forEach((b) => {
       const f = b.dataset.filtro;
-      const n = f === "todos"
-        ? Object.values(contagem).reduce((a, v) => a + v, 0)
-        : (contagem[f] || 0);
-      b.querySelector(".quantos").textContent = n;
+      const soma = (obj) => f === "todos"
+        ? Object.values(obj).reduce((a, v) => a + v, 0)
+        : (obj[f] || 0);
+      b.querySelector(".quantos").textContent = soma(contagem) + soma(contagemBox);
     });
+    const tituloUnid = det.querySelector(".conteudo > .titulo-lista .contagem");
+    if (tituloUnid) {
+      const total = Object.values(contagem).reduce((a, v) => a + v, 0);
+      const plural = (STATUS_OPCOES.find(([v]) => v === filtro) || [])[2];
+      tituloUnid.textContent = filtro === "todos"
+        ? `${total} no total · ${(contagem.disponivel || 0)} disponíveis`
+        : `${contagem[filtro] || 0} de ${total} ${plural.toLowerCase()}`;
+    }
     // A secao de box acompanha a aba: some inteira quando nao ha box naquela
     // situacao, para a aba nao terminar num cabecalho de tabela vazio.
     const secao = det.querySelector(".secao-box");
@@ -806,7 +822,7 @@
       ]);
     }).join("");
     return `<section class="secao-box">
-      <p class="titulo-box">Box de garagem <span class="contagem">${livres.length} de ${boxes.length} disponíveis · ${livres.length - duplos} simples e ${duplos} duplos</span></p>
+      <p class="titulo-lista">Box de garagem <span class="contagem">${livres.length} de ${boxes.length} disponíveis · ${livres.length - duplos} simples e ${duplos} duplos</span></p>
       <p class="descricao">Controle interno: os box não aparecem no site, nos PDFs nem nas mensagens.</p>
       <table>
         <thead><tr><th>Box</th><th>Tipo</th><th style="text-align:right">Área privativa</th><th style="text-align:right">Área global</th><th>Status</th></tr></thead>
