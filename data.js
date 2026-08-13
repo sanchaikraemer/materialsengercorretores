@@ -76,10 +76,10 @@ const EMPREENDIMENTOS = [
         garagem: "Box opcional (consultar)",
         obs: "Plantas exclusivas — pavimentos 4 e 13. Valor sem box de garagem.",
         unidades: [
-          { apto: "401", preco: 1490000, status: "disponivel", areaUnit: "358 m² global · 258 m² privativo", planta: "ren-planta-401" },
-          { apto: "402", preco: 1490000, status: "disponivel", areaUnit: "385 m² global · 280 m² privativo", planta: "ren-planta-402" },
-          { apto: "1301", preco: 1590000, status: "disponivel", areaUnit: "306 m² global · 208 m² privativo", planta: "ren-planta-1301" },
-          { apto: "1302", preco: 1590000, status: "disponivel", areaUnit: "306 m² global · 208 m² privativo", planta: "ren-planta-1302" },
+          { apto: "401", preco: 1490000, status: "disponivel", areaUnit: "358 m² global · 258 m² privativo", planta: "ren-planta-401", estoque: "3 suítes — frente" },
+          { apto: "402", preco: 1490000, status: "disponivel", areaUnit: "385 m² global · 280 m² privativo", planta: "ren-planta-402", estoque: "3 suítes — frente" },
+          { apto: "1301", preco: 1590000, status: "disponivel", areaUnit: "306 m² global · 208 m² privativo", planta: "ren-planta-1301", estoque: "3 suítes — pavimentos superiores" },
+          { apto: "1302", preco: 1590000, status: "disponivel", areaUnit: "306 m² global · 208 m² privativo", planta: "ren-planta-1302", estoque: "3 suítes — pavimentos superiores" },
         ],
       },
       {
@@ -166,11 +166,14 @@ const EMPREENDIMENTOS = [
         planta: "ren-planta-504",
         obs: "Unidade 504 — lateral direita. Valor sem box de garagem.",
         unidades: [
-          { apto: "504", preco: 880000, status: "disponivel" },
+          { apto: "504", preco: 880000, status: "disponivel", estoque: "2 suítes" },
         ],
       },
       {
         tipo: "Salas comerciais — térreo",
+        // No painel, a contagem de estoque chama de "Sala comercial": nao e
+        // apartamento e nao entra na divisao das vagas de garagem.
+        estoque: "Sala comercial",
         area: "175 m² global · 114 m² privativo",
         garagem: "",
         obs: "Pavimento térreo. Valor sem box de garagem.",
