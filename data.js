@@ -226,7 +226,9 @@ const EMPREENDIMENTOS = [
         area: "99 m² global · 73 m² privativo",
         garagem: "01 box",
         unidades: [
+          { apto: "403", status: "vendido", tags: ["Casa Suspensa"], areaUnit: "149 m² global · 116 m² privativo" },
           { apto: "503", preco: 740000, status: "disponivel" },
+          { apto: "603", status: "vendido" },
           { apto: "703", preco: 760000, status: "disponivel" },
           { apto: "803", preco: 770000, status: "disponivel" },
         ],
@@ -237,8 +239,30 @@ const EMPREENDIMENTOS = [
         area: "118 m² global · 87 m² privativo",
         garagem: "01 box",
         unidades: [
+          { apto: "401", status: "vendido", tags: ["Casa Suspensa"], areaUnit: "215 m² global · 169 m² privativo" },
           { apto: "402", preco: 850000, status: "disponivel", tags: ["Casa Suspensa"], areaUnit: "173 m² global · 133 m² privativo" },
+          { apto: "501", status: "vendido" },
           { apto: "502", preco: 800000, status: "disponivel" },
+          { apto: "601", status: "vendido" },
+          { apto: "602", status: "vendido" },
+          { apto: "701", status: "vendido" },
+          { apto: "702", status: "vendido" },
+          { apto: "801", status: "vendido" },
+          { apto: "802", status: "vendido" },
+        ],
+      },
+      {
+        // 9o pavimento: dois apartamentos maiores que os demais, os dois ja
+        // vendidos. A planilha de vendas nao informa o numero de dormitorios,
+        // entao o grupo fica sem tipologia ate a construtora confirmar. Como
+        // nenhum esta disponivel, o grupo nao aparece no site.
+        tipo: "9º pavimento",
+        planta: "evo-p3",
+        area: "217 m² global · 164 m² privativo",
+        garagem: "01 box duplo",
+        unidades: [
+          { apto: "901", status: "vendido" },
+          { apto: "902", status: "vendido" },
         ],
       },
       {
@@ -247,9 +271,13 @@ const EMPREENDIMENTOS = [
         area: "179 m² global · 132 m² privativo",
         garagem: "01 box duplo",
         unidades: [
+          { apto: "1001", status: "vendido" },
           { apto: "1002", preco: 1120000, status: "disponivel" },
+          { apto: "1101", status: "vendido" },
           { apto: "1102", preco: 1130000, status: "disponivel" },
+          { apto: "1201", status: "vendido" },
           { apto: "1202", preco: 1140000, status: "disponivel" },
+          { apto: "1301", status: "vendido" },
           { apto: "1302", preco: 1150000, status: "disponivel" },
         ],
       },

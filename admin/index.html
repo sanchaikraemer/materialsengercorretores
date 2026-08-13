@@ -520,8 +520,11 @@
     return btoa(bin);
   }
 
+  // Unidade vendida nao carrega preco no data.js: a tabela mostra um traco.
   function moeda(n) {
-    return "R$ " + Number(n).toLocaleString("pt-BR");
+    return Number.isFinite(Number(n)) && Number(n) > 0
+      ? "R$ " + Number(n).toLocaleString("pt-BR")
+      : "—";
   }
 
   function escapeRegex(s) {
