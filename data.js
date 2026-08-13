@@ -78,8 +78,8 @@ const EMPREENDIMENTOS = [
         unidades: [
           { apto: "401", preco: 1490000, status: "disponivel", areaUnit: "358 m² global · 258 m² privativo", planta: "ren-planta-401", estoque: "3 suítes — frente" },
           { apto: "402", preco: 1490000, status: "disponivel", areaUnit: "385 m² global · 280 m² privativo", planta: "ren-planta-402", estoque: "3 suítes — frente" },
-          { apto: "1301", preco: 1590000, status: "disponivel", areaUnit: "306 m² global · 208 m² privativo", planta: "ren-planta-1301", estoque: "3 suítes — pavimentos superiores" },
-          { apto: "1302", preco: 1590000, status: "disponivel", areaUnit: "306 m² global · 208 m² privativo", planta: "ren-planta-1302", estoque: "3 suítes — pavimentos superiores" },
+          { apto: "1301", preco: 1590000, status: "disponivel", areaUnit: "306 m² global · 208 m² privativo", planta: "ren-planta-1301", estoque: "3 suítes — superiores" },
+          { apto: "1302", preco: 1590000, status: "disponivel", areaUnit: "306 m² global · 208 m² privativo", planta: "ren-planta-1302", estoque: "3 suítes — superiores" },
         ],
       },
       {
@@ -109,6 +109,8 @@ const EMPREENDIMENTOS = [
       },
       {
         tipo: "3 suítes — pavimentos superiores",
+        // No cartao do painel a linha e mais curta, para nao quebrar em duas.
+        estoque: "3 suítes — superiores",
         area: "243 m² global · 159 m² privativo",
         garagem: "Box opcional (consultar)",
         planta: "ren-planta-3s-superior",
