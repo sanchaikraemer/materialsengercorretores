@@ -233,21 +233,15 @@
     .abas button.ativa .quantos { color: #fff; }
     tr.vazio td { color: var(--texto-suave); font-size: .85rem; padding: 14px 10px; }
 
-    /* Bloco recolhivel dos box, dentro do empreendimento. Comeca fechado. */
-    details.caixa-box { margin-top: 18px; border-top: 1px solid var(--borda); }
-    details.caixa-box > summary {
+    /* Os box seguem as abas junto com as unidades: nada de bloco a parte para
+       abrir, a aba escolhida ja diz o que esta na tela. */
+    .secao-box { margin-top: 18px; border-top: 1px solid var(--borda); }
+    .secao-box .titulo-box {
       display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px;
-      padding: 14px 2px 10px; cursor: pointer; font-weight: 700; font-size: .95rem;
-      list-style: none;
+      padding: 14px 2px 4px; font-weight: 700; font-size: .95rem;
     }
-    details.caixa-box > summary::-webkit-details-marker { display: none; }
-    details.caixa-box > summary::before {
-      content: "›"; display: inline-block; font-size: 1.15rem; line-height: 1;
-      color: var(--dourado); transition: transform .15s; transform: rotate(0deg);
-    }
-    details.caixa-box[open] > summary::before { transform: rotate(90deg); }
-    details.caixa-box > summary .contagem { color: var(--texto-suave); font-weight: 400; font-size: .8rem; }
-    details.caixa-box .descricao { margin: 0 0 10px; }
+    .secao-box .titulo-box .contagem { color: var(--texto-suave); font-weight: 400; font-size: .8rem; }
+    .secao-box .descricao { margin: 0 0 10px; }
     details.emp { border: 1px solid var(--borda); border-radius: 10px; margin-bottom: 12px; background: var(--fundo); }
     details.emp summary {
       cursor: pointer;
@@ -756,7 +750,7 @@
     const contagemBox = {};
     det.querySelectorAll("tbody tr[data-status]").forEach((tr) => {
       const s = tr.dataset.status;
-      const alvo = tr.closest("details.caixa-box") ? contagemBox : contagem;
+      const alvo = tr.closest(".secao-box") ? contagemBox : contagem;
       alvo[s] = (alvo[s] || 0) + 1;
       tr.hidden = !(filtro === "todos" || s === filtro || tr.classList.contains("mudou"));
     });
@@ -779,18 +773,18 @@
         : (contagem[f] || 0);
       b.querySelector(".quantos").textContent = n;
     });
-    // O titulo dos box acompanha a aba escolhida.
-    const caixa = det.querySelector("details.caixa-box .contagem");
-    if (caixa) {
+    // A secao de box acompanha a aba: some inteira quando nao ha box naquela
+    // situacao, para a aba nao terminar num cabecalho de tabela vazio.
+    const secao = det.querySelector(".secao-box");
+    if (secao) {
+      const naAba = [...secao.querySelectorAll("tbody tr[data-status]")].filter((tr) => !tr.hidden);
+      secao.hidden = naAba.length === 0;
       const total = Object.values(contagemBox).reduce((a, v) => a + v, 0);
-      const livres = contagemBox.disponivel || 0;
-      const duplos = det.querySelectorAll("details.caixa-box tbody tr[data-status='disponivel']").length
-        && [...det.querySelectorAll("details.caixa-box tbody tr[data-status='disponivel']")]
-          .filter((tr) => tr.children[1].textContent.startsWith("Duplo")).length;
-      caixa.textContent = filtro === "todos"
-        ? `${total} no total · ${livres} disponíveis`
-        : `${contagemBox[filtro] || 0} de ${total} ${(STATUS_OPCOES.find(([v]) => v === filtro) || [])[2].toLowerCase()}`
-          + (filtro === "disponivel" ? ` · ${livres - duplos} simples e ${duplos} duplos` : "");
+      const duplos = naAba.filter((tr) => tr.children[1].textContent.startsWith("Duplo")).length;
+      const plural = (STATUS_OPCOES.find(([v]) => v === filtro) || [])[2];
+      secao.querySelector(".contagem").textContent = filtro === "todos"
+        ? `${total} no total · ${(contagemBox.disponivel || 0)} disponíveis`
+        : `${naAba.length} de ${total} ${plural.toLowerCase()} · ${naAba.length - duplos} simples e ${duplos} duplos`;
     }
   }
 
@@ -810,15 +804,15 @@
         `<span class="num">${metro(item.areaPriv)}</span>`,
         `<span class="num">${metro(item.areaGlobal)}</span>`,
       ]);
-    }).join("") + `<tr class="vazio"><td colspan="5">Nenhum box nesta situação.</td></tr>`;
-    return `<details class="caixa-box">
-      <summary>Box de garagem <span class="contagem">${livres.length} de ${boxes.length} disponíveis · ${livres.length - duplos} simples e ${duplos} duplos</span></summary>
+    }).join("");
+    return `<section class="secao-box">
+      <p class="titulo-box">Box de garagem <span class="contagem">${livres.length} de ${boxes.length} disponíveis · ${livres.length - duplos} simples e ${duplos} duplos</span></p>
       <p class="descricao">Controle interno: os box não aparecem no site, nos PDFs nem nas mensagens.</p>
       <table>
         <thead><tr><th>Box</th><th>Tipo</th><th style="text-align:right">Área privativa</th><th style="text-align:right">Área global</th><th>Status</th></tr></thead>
         <tbody>${linhas}</tbody>
       </table>
-    </details>`;
+    </section>`;
   }
 
   // Usado pela lista de unidades e pela lista de box: os dois gravam a mesma
