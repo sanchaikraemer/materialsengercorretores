@@ -39,8 +39,9 @@ Status válidos: `disponivel`, `vendido`, `alugado`. **Não existe "reservado"**
 a construtora não reserva unidades.
 
 O estoque cadastrado é o prédio inteiro, não só o que está à venda: unidade
-vendida fica no `data.js` com `status: "vendido"` e **sem `preco`** (o valor de
-tabela não vale mais). O site esconde as vendidas e omite o grupo que ficar sem
+vendida fica no `data.js` com `status: "vendido"`, **sem `preco`** (o valor de
+tabela não vale mais) e **sem número de dormitórios** (o comprador costuma
+modificar a planta). O site esconde as vendidas e omite o grupo que ficar sem
 nenhuma disponível; se a venda for desfeita, o preço aparece como "Sob consulta"
 até alguém informar o novo valor.
 

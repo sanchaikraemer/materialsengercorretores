@@ -208,6 +208,16 @@ const EMPREENDIMENTOS = [
     ],
     grupos: [
       {
+        // Lojas do terreo, as tres vendidas. Cada uma tem a sua metragem, por
+        // isso a area vai na propria unidade e nao no grupo.
+        tipo: "Lojas",
+        unidades: [
+          { apto: "Loja 101", status: "vendido", areaUnit: "148 m² global · 108 m² privativo" },
+          { apto: "Loja 102", status: "vendido", areaUnit: "120 m² global · 88 m² privativo" },
+          { apto: "Loja 103", status: "vendido", areaUnit: "185 m² global · 135 m² privativo" },
+        ],
+      },
+      {
         tipo: "2 dormitórios (1 suíte)",
         planta: "evo-p2",
         area: "99 m² global · 73 m² privativo",
@@ -252,10 +262,10 @@ const EMPREENDIMENTOS = [
         ],
       },
       {
-        // 9o pavimento: dois apartamentos maiores que os demais, os dois ja
-        // vendidos. A planilha de vendas nao informa o numero de dormitorios,
-        // entao o grupo fica sem tipologia ate a construtora confirmar. Como
-        // nenhum esta disponivel, o grupo nao aparece no site.
+        // 9o pavimento: os dois maiores apartamentos do predio, ja vendidos.
+        // Vendido nao leva numero de dormitorios — a planta costuma ser
+        // modificada pelo comprador. Como nenhum esta disponivel, o grupo nao
+        // aparece no site.
         tipo: "9º pavimento",
         planta: "evo-p3",
         area: "217 m² global · 164 m² privativo",
