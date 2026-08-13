@@ -388,6 +388,18 @@
           <div id="lista-emps"></div>
         </section>
 
+        <!-- Box de garagem (nunca aparece no site) -->
+        <section class="bloco" id="bloco-boxes" style="display:none">
+          <h2>Box de garagem avulsos</h2>
+          <p class="descricao">Controle interno dos box vendidos separadamente. <strong>Esta lista não aparece no site, nos PDFs nem nas mensagens</strong> — serve só para você e os corretores consultarem aqui.</p>
+          <div class="legenda">
+            <span class="st-disponivel"><span class="bolinha"></span>Disponível</span>
+            <span class="st-vendido"><span class="bolinha"></span>Vendido</span>
+            <span class="st-reservado"><span class="bolinha"></span>Reservado</span>
+          </div>
+          <div id="lista-boxes"></div>
+        </section>
+
       </div>
     </main>
   </div>
@@ -576,9 +588,24 @@
     return itens;
   }
 
+  // Box de garagem avulsos: ficam fora de itensDoEmp de proposito, para nao
+  // entrarem na contagem de unidades nem na correcao do INCC.
+  function boxesDoEmp(emp) {
+    return (emp.boxes || []).map((b) => ({
+      tipo: "box",
+      box: b.box,
+      rotulo: "Box " + b.box,
+      areaPriv: b.areaPriv,
+      areaGlobal: b.areaGlobal,
+      obs: b.obs || "",
+      status: b.status || "disponivel",
+    }));
+  }
+
   function chaveDoItem(empId, item) {
     if (item.tipo === "unidade") return `${empId}:u:${item.apto}:${item.ocorrencia}`;
     if (item.tipo === "terreno") return `${empId}:t:${item.quadra}:${item.numero}`;
+    if (item.tipo === "box") return `${empId}:b:${item.box}`;
     return `${empId}:o:${item.nome}`;
   }
 
@@ -598,6 +625,7 @@
     $("info-versao").textContent = `v${estado.versao} · ${meta.mesTabela} · INCC ${meta.incc.valor} (${meta.incc.variacao})`;
     renderDashboard();
     renderEmps();
+    renderBoxes();
     renderPendentes();
   }
 
@@ -615,7 +643,13 @@
         .filter(([s]) => contagem[s])
         .map(([s, label]) => `<div class="linha"><span class="st-${s}">${label}</span><strong>${contagem[s]}</strong></div>`)
         .join("");
-      return `<div class="card"><h3>${escapeHtml(emp.nome)}</h3>${linhas}<div class="linha" style="border-top:1px solid var(--borda);margin-top:6px;padding-top:6px"><span>Total</span><strong>${itens.length}</strong></div></div>`;
+      // Os box entram como linha separada para nao se misturarem com as unidades.
+      const boxes = boxesDoEmp(emp);
+      const boxDisp = boxes.filter((b) => statusAtual(emp.id, b) === "disponivel").length;
+      const linhaBox = boxes.length
+        ? `<div class="linha" style="border-top:1px solid var(--borda);margin-top:6px;padding-top:6px"><span class="st-disponivel">Box disponíveis</span><strong>${boxDisp} de ${boxes.length}</strong></div>`
+        : "";
+      return `<div class="card"><h3>${escapeHtml(emp.nome)}</h3>${linhas}<div class="linha" style="border-top:1px solid var(--borda);margin-top:6px;padding-top:6px"><span>Total</span><strong>${itens.length}</strong></div>${linhaBox}</div>`;
     }).join("");
   }
 
@@ -654,6 +688,12 @@
       </details>`;
     }).join("");
 
+    ligarSelectsDeStatus(alvo);
+  }
+
+  // Usado pela lista de unidades e pela lista de box: os dois gravam a mesma
+  // operacao pendente, so muda a chave.
+  function ligarSelectsDeStatus(alvo) {
     alvo.querySelectorAll("select.status").forEach((sel) => {
       sel.addEventListener("change", () => {
         const chave = sel.dataset.chave;
@@ -679,6 +719,42 @@
         renderPendentes();
       });
     });
+  }
+
+  function renderBoxes() {
+    const alvo = $("lista-boxes");
+    const metro = (n) => (n == null ? "—" : Number(n).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " m²");
+    const html = estado.dados.EMPREENDIMENTOS.map((emp) => {
+      const boxes = boxesDoEmp(emp);
+      if (!boxes.length) return "";
+      const disponiveis = boxes.filter((b) => statusAtual(emp.id, b) === "disponivel").length;
+      const linhas = boxes.map((item) => {
+        const chave = chaveDoItem(emp.id, item);
+        const status = statusAtual(emp.id, item);
+        const mudou = Boolean(opDeStatus(chave));
+        const opcoes = STATUS_OPCOES.map(([v, l]) => `<option value="${v}"${v === status ? " selected" : ""}>${l}</option>`).join("");
+        const obs = item.obs ? ` <span class="contagem">${escapeHtml(item.obs)}</span>` : "";
+        return `<tr class="linha-${status}${mudou ? " mudou" : ""}">
+          <td>${escapeHtml(item.rotulo)}${obs}</td>
+          <td class="num">${metro(item.areaPriv)}</td>
+          <td class="num">${metro(item.areaGlobal)}</td>
+          <td><div class="status-celula st-${status}">
+            <span class="bolinha"></span>
+            <select class="status st-${status}" data-chave="${escapeHtml(chave)}" data-original="${item.status}">${opcoes}</select>
+          </div></td>
+        </tr>`;
+      }).join("");
+      return `<details class="emp" open>
+        <summary>${escapeHtml(emp.nome)} <span class="contagem">${disponiveis} de ${boxes.length} disponíveis</span></summary>
+        <div class="conteudo"><table>
+          <thead><tr><th>Box</th><th style="text-align:right">Área privativa</th><th style="text-align:right">Área global</th><th>Status</th></tr></thead>
+          <tbody>${linhas}</tbody>
+        </table></div>
+      </details>`;
+    }).join("");
+    alvo.innerHTML = html;
+    $("bloco-boxes").style.display = html ? "block" : "none";
+    ligarSelectsDeStatus(alvo);
   }
 
   function renderPendentes() {
@@ -787,6 +863,15 @@
           : linha.replace(/\s*\},?\s*$/, (fimLinha) => `, status: "${op.novoStatus}"` + fimLinha);
         return bloco.replace(re, nova);
       }
+      if (partes[1] === "b") {
+        const numero = partes[2];
+        const re = new RegExp(`^.*\\bbox:\\s*"${escapeRegex(numero)}".*$`, "m");
+        const achou = bloco.match(re);
+        if (!achou) throw new Error(`Box ${numero} não encontrado em ${empId}.`);
+        const nova = achou[0].replace(/status:\s*"[a-z]+"/, `status: "${op.novoStatus}"`);
+        if (nova === achou[0]) throw new Error(`Não achei o status do box ${numero} em ${empId}.`);
+        return bloco.replace(re, nova);
+      }
       // "outro": objeto de várias linhas, localizado pelo nome; o status vem depois.
       const nome = partes.slice(2).join(":");
       const posNome = bloco.search(new RegExp(`nome:\\s*"${escapeRegex(nome)}"`));
@@ -847,6 +932,10 @@
       const conferido = avaliarDataJs(texto);
       if (conferido.EMPREENDIMENTOS.length !== estado.dados.EMPREENDIMENTOS.length) {
         throw new Error("A conferência falhou: o número de empreendimentos mudou. Nada foi gravado.");
+      }
+      const contaBoxes = (d) => d.EMPREENDIMENTOS.reduce((s, e) => s + (e.boxes || []).length, 0);
+      if (contaBoxes(conferido) !== contaBoxes(estado.dados)) {
+        throw new Error("A conferência falhou: o número de box mudou. Nada foi gravado.");
       }
 
       // Sobe a versão do cache para os corretores receberem a atualização.
