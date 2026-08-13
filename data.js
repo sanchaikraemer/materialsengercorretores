@@ -32,6 +32,13 @@ const EMPREENDIMENTOS = [
     statusLabel: "Pré-lançamento",
     entrega: "Pré-lançamento com entrega em 5 anos",
     ri: [],
+    // Quantos box cada tipologia leva. O painel usa isso para conferir se as
+    // vagas fecham com o que ha em estoque. O site nao le este campo.
+    vagasPorTipologia: {
+      "2 suítes": { simples: 1 },
+      "3 suítes — frente": { duplo: 1 },
+      "3 suítes — superiores": { duplo: 1, simples: 1 },
+    },
     hero: "assets/ren-hero.jpg",
     logo: "assets/ren-logo.png",
     destaque: true,
