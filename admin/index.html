@@ -604,7 +604,9 @@
       (grupo.unidades || []).forEach((u) => {
         const ocorrencia = vistosApto[u.apto] || 0;
         vistosApto[u.apto] = ocorrencia + 1;
-        itens.push({ tipo: "unidade", grupo: grupo.tipo, rotulo: "Apto " + u.apto, apto: u.apto, ocorrencia, preco: u.preco, status: u.status || "disponivel" });
+        // "404" vira "Apto 404"; "Loja 101" ja vem com o nome pronto.
+        const rotulo = /^\d/.test(String(u.apto)) ? "Apto " + u.apto : String(u.apto);
+        itens.push({ tipo: "unidade", grupo: grupo.tipo, rotulo, apto: u.apto, ocorrencia, preco: u.preco, status: u.status || "disponivel" });
       });
     });
     (emp.terrenos || []).forEach((t) => {
