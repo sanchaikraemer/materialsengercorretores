@@ -577,11 +577,23 @@
   // ---------------- GitHub API ----------------
 
   async function ghBuscar(path) {
-    const resp = await fetch(API + path + "?ref=" + BRANCH, {
-      headers: { Authorization: "Bearer " + estado.token, Accept: "application/vnd.github+json" },
-      cache: "no-store",
-    });
-    if (!resp.ok) throw new Error(`Não consegui ler ${path} (HTTP ${resp.status}).`);
+    let resp;
+    try {
+      resp = await fetch(API + path + "?ref=" + BRANCH, {
+        headers: { Authorization: "Bearer " + estado.token, Accept: "application/vnd.github+json" },
+        cache: "no-store",
+      });
+    } catch (e) {
+      // Sem internet ou GitHub fora do ar: nao e culpa da chave.
+      const falha = new Error("Não consegui falar com o GitHub (sem internet ou serviço fora do ar).");
+      falha.status = 0;
+      throw falha;
+    }
+    if (!resp.ok) {
+      const falha = new Error(`Não consegui ler ${path} (HTTP ${resp.status}).`);
+      falha.status = resp.status;
+      throw falha;
+    }
     const json = await resp.json();
     return { text: base64ParaTexto(json.content), sha: json.sha };
   }
@@ -1386,7 +1398,9 @@
       iniciarPainel();
     } catch (e) {
       estado.token = "";
-      erro.textContent = "O GitHub recusou esse token. Confira se ele tem acesso ao repositório materialsengercorretores com permissão Contents: Read and write.";
+      erro.textContent = e.status === 0
+        ? "Não consegui falar com o GitHub agora. Confira a internet e tente de novo — o token pode estar certo."
+        : "O GitHub recusou esse token. Confira se ele tem acesso ao repositório materialsengercorretores com permissão Contents: Read and write.";
       erro.classList.add("visivel");
     }
   });
@@ -1416,13 +1430,48 @@
     try {
       await carregarTudo();
     } catch (e) {
-      // Token expirado ou revogado: volta para a tela de configuração.
+      // So apaga a chave quando o GitHub diz que ela nao vale mais (401).
+      // Queda de internet ou GitHub fora do ar nao pode fazer o dono
+      // cadastrar token de novo: nesses casos a chave fica e ele so tenta
+      // outra vez.
+      if (e.status === 401) {
+        localStorage.removeItem("senger-admin-token");
+        estado.token = "";
+        mostrarTela("tela-token");
+        $("erro-token").textContent = "A chave guardada neste aparelho não funciona mais (ela venceu ou foi apagada no GitHub). Gere uma nova.";
+        $("erro-token").classList.add("visivel");
+      } else {
+        mostrarFalhaAoCarregar(e);
+      }
+    }
+  }
+
+  // Falha passageira: mantem a chave e oferece tentar de novo.
+  function mostrarFalhaAoCarregar(e) {
+    const semPermissao = e.status === 403 || e.status === 404;
+    $("conteudo").style.display = "none";
+    const area = $("carregando");
+    area.style.display = "block";
+    area.innerHTML = "";
+    const texto = document.createElement("p");
+    texto.textContent = semPermissao
+      ? "O GitHub não deixou o painel ler os arquivos agora (" + e.message + "). Pode ser que a chave tenha perdido a permissão no repositório."
+      : "Não consegui carregar os dados do site (" + e.message + "). Sua chave continua guardada aqui.";
+    const tentar = document.createElement("button");
+    tentar.className = "botao";
+    tentar.textContent = "Tentar de novo";
+    tentar.addEventListener("click", () => { area.innerHTML = "Carregando os dados do site…"; iniciarPainel(); });
+    const trocar = document.createElement("button");
+    trocar.className = "botao secundario";
+    trocar.style.marginLeft = "8px";
+    trocar.textContent = "Cadastrar outra chave";
+    trocar.addEventListener("click", () => {
       localStorage.removeItem("senger-admin-token");
       estado.token = "";
+      area.innerHTML = "Carregando os dados do site…";
       mostrarTela("tela-token");
-      $("erro-token").textContent = "A chave guardada neste aparelho não funciona mais (" + e.message + "). Gere uma nova.";
-      $("erro-token").classList.add("visivel");
-    }
+    });
+    area.append(texto, tentar, trocar);
   }
 
   try { if (sessionStorage.getItem("senger-admin-ok") === "1") iniciarPainel(); } catch (e) { /* modo privado */ }
