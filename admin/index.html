@@ -260,6 +260,8 @@
     .abas button:hover { border-color: var(--dourado); color: var(--texto); }
     .abas button .quantos { font-weight: 700; }
     .abas button.ativa { background: var(--dourado); border-color: var(--dourado); color: #fff; }
+    /* A aba dos box fica um pouco afastada: e outro tipo de produto. */
+    .abas button.aba-box { margin-left: auto; }
     .abas button.ativa .quantos { color: #fff; }
     tr.vazio td { color: var(--texto-suave); font-size: .85rem; padding: 14px 10px; }
 
@@ -794,15 +796,10 @@
       const boxLivres = boxes.filter((b) => statusAtual(emp.id, b) === "disponivel").length;
       const resumo = `${disponiveis} de ${itens.length} disponíveis`
         + (boxes.length ? ` · ${boxLivres} de ${boxes.length} box` : "");
-      // So vale rotular a lista de unidades onde ela divide a aba com os box.
-      const tituloUnidades = boxes.length
-        ? `<p class="titulo-lista">Unidades <span class="contagem"></span></p>`
-        : "";
       return `<details class="emp" data-emp="${escapeHtml(emp.id)}" data-filtro="disponivel">
         <summary>${escapeHtml(emp.nome)} <span class="contagem">${resumo}</span></summary>
         <div class="conteudo">
-          <div class="abas">${abasDeStatus()}</div>
-          ${tituloUnidades}
+          <div class="abas">${abasDeStatus()}${abaDeBoxes(emp)}</div>
           <table>
             <thead><tr><th>Unidade</th><th style="text-align:right">Preço</th>${boxes.length ? "<th>Garagem</th>" : ""}<th>Status</th></tr></thead>
             <tbody>${linhas}</tbody>
@@ -854,6 +851,13 @@
     ).join("") + `<button type="button" data-filtro="todos">Todos <span class="quantos"></span></button>`;
   }
 
+  // A aba dos box so aparece onde ha box cadastrado.
+  function abaDeBoxes(emp) {
+    return boxesDoEmp(emp).length
+      ? `<button type="button" data-filtro="box" class="aba-box">Box de garagem <span class="quantos"></span></button>`
+      : "";
+  }
+
   function ligarAbas(alvo) {
     alvo.querySelectorAll(".abas button").forEach((botao) => {
       botao.addEventListener("click", () => {
@@ -865,21 +869,26 @@
     });
   }
 
-  // Mostra so as linhas da situacao escolhida. Linhas que o usuario acabou de
-  // alterar (.mudou) continuam visiveis, senao elas sumiriam sob o dedo dele.
+  // Uma aba por vez: as de situacao mostram so unidades (apartamentos e
+  // salas); os box tem a aba deles, com a conferencia das vagas junto.
   function aplicarFiltro(det) {
     const filtro = det.dataset.filtro || "disponivel";
-    // Unidades e box sao contados em separado: somar os dois num numero so
-    // faria a aba dizer 29 com 14 apartamentos na tela.
+    const ehBox = filtro === "box";
     const contagem = {};
     const contagemBox = {};
+
     det.querySelectorAll("tbody tr[data-status]").forEach((tr) => {
       const s = tr.dataset.status;
-      const alvo = tr.closest(".secao-box") ? contagemBox : contagem;
-      alvo[s] = (alvo[s] || 0) + 1;
-      tr.hidden = !(filtro === "todos" || s === filtro || tr.classList.contains("mudou"));
+      const daBox = Boolean(tr.closest(".secao-box"));
+      (daBox ? contagemBox : contagem)[s] = ((daBox ? contagemBox : contagem)[s] || 0) + 1;
+      // Na aba dos box aparecem todos eles, separados por situacao mais
+      // abaixo; nas abas de situacao aparecem so as unidades daquela situacao.
+      tr.hidden = daBox ? !ehBox
+        : ehBox ? true
+        : !(filtro === "todos" || s === filtro || tr.classList.contains("mudou"));
     });
-    // Titulo de tipologia some quando nenhuma unidade dele aparece.
+
+    // Cabecalho de grupo (tipologia ou situacao) some quando fica sem linha.
     det.querySelectorAll("tr.linha-grupo").forEach((tr) => {
       let visiveis = 0;
       for (let s = tr.nextElementSibling; s && !s.classList.contains("linha-grupo"); s = s.nextElementSibling) {
@@ -891,37 +900,31 @@
       const vazio = tabela.querySelector("tr.vazio");
       if (vazio) vazio.hidden = Boolean(tabela.querySelector("tbody tr[data-status]:not([hidden])"));
     });
-    // A aba conta tudo o que ela mostra, unidades e box juntos: dizer
-    // "Vendidos 0" com 21 box vendidos na tela nao para de pe. Cada tabela
-    // tem seu proprio titulo com a contagem separada.
+
+    // A tabela de unidades sai de cena na aba dos box, e vice-versa.
+    const tabelaUnid = det.querySelector(".conteudo > table");
+    if (tabelaUnid) tabelaUnid.hidden = ehBox;
+    const secaoBox = det.querySelector(".secao-box");
+    if (secaoBox) secaoBox.hidden = !ehBox;
+    const secaoVagas = det.querySelector(".secao-vagas");
+    if (secaoVagas) secaoVagas.hidden = !ehBox;
+
     det.querySelectorAll(".abas button").forEach((b) => {
       const f = b.dataset.filtro;
-      const soma = (obj) => f === "todos"
-        ? Object.values(obj).reduce((a, v) => a + v, 0)
-        : (obj[f] || 0);
-      b.querySelector(".quantos").textContent = soma(contagem) + soma(contagemBox);
+      const total = (obj) => Object.values(obj).reduce((a, v) => a + v, 0);
+      b.querySelector(".quantos").textContent = f === "box" ? total(contagemBox)
+        : f === "todos" ? total(contagem)
+        : (contagem[f] || 0);
     });
-    const tituloUnid = det.querySelector(".conteudo > .titulo-lista .contagem");
-    if (tituloUnid) {
-      const total = Object.values(contagem).reduce((a, v) => a + v, 0);
-      const plural = (STATUS_OPCOES.find(([v]) => v === filtro) || [])[2];
-      tituloUnid.textContent = filtro === "todos"
-        ? `${total} no total · ${(contagem.disponivel || 0)} disponíveis`
-        : `${contagem[filtro] || 0} de ${total} ${plural.toLowerCase()}`;
+
+    if (secaoBox) {
+      const livres = contagemBox.disponivel || 0;
+      const duplos = [...secaoBox.querySelectorAll("tbody tr[data-status='disponivel']")]
+        .filter((tr) => tr.children[1].textContent.startsWith("Duplo")).length;
+      secaoBox.querySelector(".contagem").textContent =
+        `${livres} de ${total(contagemBox)} disponíveis · ${livres - duplos} simples e ${duplos} duplos`;
     }
-    // A secao de box acompanha a aba: some inteira quando nao ha box naquela
-    // situacao, para a aba nao terminar num cabecalho de tabela vazio.
-    const secao = det.querySelector(".secao-box");
-    if (secao) {
-      const naAba = [...secao.querySelectorAll("tbody tr[data-status]")].filter((tr) => !tr.hidden);
-      secao.hidden = naAba.length === 0;
-      const total = Object.values(contagemBox).reduce((a, v) => a + v, 0);
-      const duplos = naAba.filter((tr) => tr.children[1].textContent.startsWith("Duplo")).length;
-      const plural = (STATUS_OPCOES.find(([v]) => v === filtro) || [])[2];
-      secao.querySelector(".contagem").textContent = filtro === "todos"
-        ? `${total} no total · ${(contagemBox.disponivel || 0)} disponíveis`
-        : `${naAba.length} de ${total} ${plural.toLowerCase()} · ${naAba.length - duplos} simples e ${duplos} duplos`;
-    }
+    function total(obj) { return Object.values(obj).reduce((a, v) => a + v, 0); }
   }
 
   // Redesenha o quadro de vagas depois de mexer num status: vender um
@@ -1071,7 +1074,14 @@
     const metro = (n) => (n == null ? "—" : Number(n).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " m²");
     const livres = boxes.filter((b) => statusAtual(emp.id, b) === "disponivel");
     const duplos = livres.filter((b) => b.vagas === 2).length;
-    const linhas = boxes.map((item) => {
+    // Dentro da aba, os box vem separados por situacao, nunca corridos.
+    const ordenados = [];
+    STATUS_OPCOES.forEach(([valor, , plural]) => {
+      const doStatus = boxes.filter((b) => statusAtual(emp.id, b) === valor);
+      if (doStatus.length) ordenados.push({ cabecalho: `${plural} (${doStatus.length})` }, ...doStatus);
+    });
+    const linhas = ordenados.map((item) => {
+      if (item.cabecalho) return `<tr class="linha-grupo"><td colspan="6" class="grupo-titulo">${escapeHtml(item.cabecalho)}</td></tr>`;
       const obs = item.obs ? ` <span class="contagem">${escapeHtml(item.obs)}</span>` : "";
       return linhaDeStatus(emp.id, item, [
         escapeHtml(item.rotulo) + obs,
