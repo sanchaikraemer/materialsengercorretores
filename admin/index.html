@@ -656,6 +656,7 @@
       box: b.box,
       rotulo: "Box " + b.box,
       vagas: b.vagas || 1,
+      apto: b.apto || "",
       areaPriv: b.areaPriv,
       areaGlobal: b.areaGlobal,
       obs: b.obs || "",
@@ -769,22 +770,27 @@
       const itens = itensDoEmp(emp);
       if (!itens.length) return "";
       const disponiveis = itens.filter((i) => statusAtual(emp.id, i) === "disponivel").length;
+      // Coluna de garagem: quantas vagas a unidade leva e, quando ja vendida,
+      // quais box foram com ela. So aparece onde ha box cadastrado.
+      const boxes = boxesDoEmp(emp);
+      const regra = emp.vagasPorTipologia || {};
+      const boxDoApto = {};
+      boxes.forEach((b) => { if (b.apto) (boxDoApto[b.apto] = boxDoApto[b.apto] || []).push(b); });
+      const colunas = boxes.length ? 4 : 3;
       let linhas = "";
       let grupoAtual = null;
       itens.forEach((item) => {
         if (item.grupo !== grupoAtual) {
           grupoAtual = item.grupo;
-          if (grupoAtual) linhas += `<tr class="linha-grupo"><td colspan="3" class="grupo-titulo">${escapeHtml(grupoAtual)}</td></tr>`;
+          if (grupoAtual) linhas += `<tr class="linha-grupo"><td colspan="${colunas}" class="grupo-titulo">${escapeHtml(grupoAtual)}</td></tr>`;
         }
-        linhas += linhaDeStatus(emp.id, item, [
-          escapeHtml(item.rotulo),
-          `<span class="num">${moeda(item.preco)}</span>`,
-        ]);
+        const celulas = [escapeHtml(item.rotulo), `<span class="num">${moeda(item.preco)}</span>`];
+        if (boxes.length) celulas.push(celulaGaragem(item, regra, boxDoApto[item.apto]));
+        linhas += linhaDeStatus(emp.id, item, celulas);
       });
-      linhas += `<tr class="vazio"><td colspan="3">Nenhuma unidade nesta situação.</td></tr>`;
+      linhas += `<tr class="vazio"><td colspan="${colunas}">Nenhuma unidade nesta situação.</td></tr>`;
       // Os box do empreendimento vem logo abaixo das unidades, dentro do mesmo bloco.
       const tabelaBox = renderTabelaBoxes(emp);
-      const boxes = boxesDoEmp(emp);
       const boxLivres = boxes.filter((b) => statusAtual(emp.id, b) === "disponivel").length;
       const resumo = `${disponiveis} de ${itens.length} disponíveis`
         + (boxes.length ? ` · ${boxLivres} de ${boxes.length} box` : "");
@@ -798,7 +804,7 @@
           <div class="abas">${abasDeStatus()}</div>
           ${tituloUnidades}
           <table>
-            <thead><tr><th>Unidade</th><th style="text-align:right">Preço</th><th>Status</th></tr></thead>
+            <thead><tr><th>Unidade</th><th style="text-align:right">Preço</th>${boxes.length ? "<th>Garagem</th>" : ""}<th>Status</th></tr></thead>
             <tbody>${linhas}</tbody>
           </table>${renderVagas(emp)}${tabelaBox}
         </div>
@@ -825,6 +831,21 @@
         <select class="status st-${status}" data-chave="${escapeHtml(chave)}" data-original="${item.status}">${opcoes}</select>
       </div></td>
     </tr>`;
+  }
+
+  // O que a unidade leva de garagem: os box que ja foram com ela, se houver;
+  // senao, quantas vagas ela leva pela regra da tipologia.
+  function celulaGaragem(item, regra, vinculados) {
+    if (vinculados && vinculados.length) {
+      const vagas = vinculados.reduce((soma, b) => soma + b.vagas, 0);
+      const lista = vinculados.map((b) => `Box ${b.box}${b.vagas === 2 ? " (duplo)" : ""}`).join(", ");
+      return `${lista} <span class="contagem">${vagas} vaga${vagas > 1 ? "s" : ""}</span>`;
+    }
+    const r = regra[item.estoque || item.grupo];
+    if (!r) return `<span class="contagem">—</span>`;
+    const vagas = (r.duplo || 0) * 2 + (r.simples || 0);
+    const falta = item.status === "vendido";
+    return `<span class="${falta ? "st-vendido" : "contagem"}">${vagas} vaga${vagas > 1 ? "s" : ""}${falta ? " · sem box vinculado" : ""}</span>`;
   }
 
   function abasDeStatus() {
@@ -1055,6 +1076,7 @@
       return linhaDeStatus(emp.id, item, [
         escapeHtml(item.rotulo) + obs,
         item.vagas === 2 ? "Duplo — 2 vagas" : "Simples — 1 vaga",
+        item.apto ? `Apto ${escapeHtml(item.apto)}` : `<span class="contagem">—</span>`,
         `<span class="num">${metro(item.areaPriv)}</span>`,
         `<span class="num">${metro(item.areaGlobal)}</span>`,
       ]);
@@ -1063,7 +1085,7 @@
       <p class="titulo-lista">Box de garagem <span class="contagem">${livres.length} de ${boxes.length} disponíveis · ${livres.length - duplos} simples e ${duplos} duplos</span></p>
       <p class="descricao">Controle interno: os box não aparecem no site, nos PDFs nem nas mensagens.</p>
       <table>
-        <thead><tr><th>Box</th><th>Tipo</th><th style="text-align:right">Área privativa</th><th style="text-align:right">Área global</th><th>Status</th></tr></thead>
+        <thead><tr><th>Box</th><th>Tipo</th><th>Apartamento</th><th style="text-align:right">Área privativa</th><th style="text-align:right">Área global</th><th>Status</th></tr></thead>
         <tbody>${linhas}</tbody>
       </table>
     </section>`;
