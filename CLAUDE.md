@@ -63,6 +63,12 @@ Sempre **truncadas**, nunca arredondadas para cima: 99,6188 m² vira "99 m²", e
   direto no repositório precisa subir o número à mão, antes do merge.
 - Cada empreendimento tem abas Disponíveis / Vendidos / Alugados / Todos, que
   filtram unidades e box juntos.
+- O cartão mostra o estoque por tipologia. O rótulo vem de `estoque` (na
+  unidade ou no grupo) e cai para `grupo.tipo` quando não há — é assim que as
+  Casas Suspensas do Renaissance contam junto com o andar delas.
+- `vagasPorTipologia` liga cada rótulo de estoque aos box que a unidade leva, e
+  o painel confere se as vagas fecham. **Faltando box duplo, dois simples fazem
+  o lugar dele** — decisão do dono.
 
 ## Testar o painel
 
