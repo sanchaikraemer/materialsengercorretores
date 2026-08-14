@@ -272,6 +272,9 @@
     .secao-vagas tr.soma td { font-weight: 700; background: rgba(32,42,50,.03); }
     .secao-vagas tr.saldo td { border-top: 2px solid var(--borda); }
     .secao-vagas tr.troca td { color: var(--texto-suave); font-size: .82em; font-style: italic; }
+    .secao-vagas .aviso-limite { color: var(--amarelo); }
+    .secao-vagas td[rowspan] { vertical-align: top; font-weight: 600; }
+    .secao-vagas td[rowspan] .contagem { display: block; font-weight: 400; color: var(--texto-suave); font-size: .78rem; }
     .titulo-lista {
       display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px;
       padding: 14px 2px 4px; font-weight: 700; font-size: .95rem;
@@ -910,6 +913,32 @@
     if (novo) sec.outerHTML = novo;
   }
 
+  // Estoque de unidades por tipologia e de box por tipo, do jeito que a
+  // conferencia de vagas precisa.
+  function estoqueDeVagas(emp) {
+    const estoque = new Map();
+    itensDoEmp(emp).forEach((i) => {
+      if (statusAtual(emp.id, i) !== "disponivel") return;
+      const rot = i.estoque || i.grupo;
+      estoque.set(rot, (estoque.get(rot) || 0) + 1);
+    });
+    const boxes = boxesDoEmp(emp).filter((b) => statusAtual(emp.id, b) === "disponivel");
+    return { estoque, temD: boxes.filter((b) => b.vagas === 2).length, temS: boxes.filter((b) => b.vagas === 1).length };
+  }
+
+  // A conta em si: quanto os apartamentos em estoque precisam, quanto sobra
+  // depois de trocar cada duplo que falta por dois simples.
+  function conferirVagas(regra, estoque, temD, temS) {
+    let precisaD = 0, precisaS = 0, aptos = 0;
+    Object.entries(regra).forEach(([rot, r]) => {
+      const n = estoque.get(rot) || 0;
+      precisaD += (r.duplo || 0) * n; precisaS += (r.simples || 0) * n; aptos += n;
+    });
+    const faltamD = Math.max(0, precisaD - temD);
+    return { aptos, precisaD, precisaS, faltamD,
+      sobraD: temD - (precisaD - faltamD), sobraS: temS - (precisaS + faltamD * 2) };
+  }
+
   // Confere se os box disponiveis cobrem os apartamentos que ainda estao em
   // estoque, conforme o que cada tipologia leva (emp.vagasPorTipologia).
   function renderVagas(emp) {
@@ -917,18 +946,10 @@
     const boxes = boxesDoEmp(emp);
     if (!regra || !boxes.length) return "";
 
-    const estoque = new Map();
-    itensDoEmp(emp).forEach((i) => {
-      if (statusAtual(emp.id, i) !== "disponivel") return;
-      const rot = i.estoque || i.grupo;
-      estoque.set(rot, (estoque.get(rot) || 0) + 1);
-    });
-
-    let precisaD = 0, precisaS = 0, aptos = 0;
+    const { estoque, temD, temS } = estoqueDeVagas(emp);
     const linhas = Object.entries(regra).map(([rot, r]) => {
       const n = estoque.get(rot) || 0;
       const d = (r.duplo || 0) * n, s = (r.simples || 0) * n;
-      precisaD += d; precisaS += s; aptos += n;
       const leva = [r.duplo ? `${r.duplo} duplo` : "", r.simples ? `${r.simples} simples` : ""].filter(Boolean).join(" + ");
       return `<tr>
         <td>${escapeHtml(rot)}</td><td class="num">${n}</td><td>${leva}</td>
@@ -936,17 +957,9 @@
       </tr>`;
     }).join("");
 
-    const temD = boxes.filter((b) => statusAtual(emp.id, b) === "disponivel" && b.vagas === 2).length;
-    const temS = boxes.filter((b) => statusAtual(emp.id, b) === "disponivel" && b.vagas === 1).length;
-
-    // Faltando duplo, dois simples fazem o lugar dele — decisao do dono.
-    const faltamD = Math.max(0, precisaD - temD);
-    const simplesUsados = precisaS + faltamD * 2;
-    const sobraD = temD - (precisaD - faltamD);
-    const sobraS = temS - simplesUsados;
+    const { aptos, precisaD, precisaS, faltamD, sobraD, sobraS } = conferirVagas(regra, estoque, temD, temS);
     const sinal = (n) => (n > 0 ? "+" : "") + n;
     const cor = (n) => (n < 0 ? "st-vendido" : n > 0 ? "st-disponivel" : "");
-    const conta = (n, sing, plur) => `${n} ${n === 1 ? sing : plur}`;
 
     const sobras = [sobraD > 0 ? conta(sobraD, "duplo", "duplos") : "", sobraS > 0 ? conta(sobraS, "simples", "simples") : ""].filter(Boolean).join(" e ");
     const troca = !faltamD ? ""
@@ -974,7 +987,59 @@
             <td class="num ${cor(sobraD * 2 + sobraS)}">${sinal(sobraD * 2 + sobraS)}</td></tr>
         </tbody>
       </table>
+      ${renderOpcoesDeVenda(emp, regra, estoque, temD, temS)}
     </section>`;
+  }
+
+  // O que dá para dar de garagem em cada venda sem deixar os apartamentos
+  // seguintes a descoberto. Simula cada combinação e refaz a conta com o que
+  // sobraria — é a pergunta do dono na hora de fechar negócio.
+  function renderOpcoesDeVenda(emp, regra, estoque, temD, temS) {
+    const linhas = Object.entries(regra).map(([rot, r]) => {
+      const nesta = estoque.get(rot) || 0;
+      if (!nesta) return "";
+      const vagas = (r.duplo || 0) * 2 + (r.simples || 0);
+      // Todas as combinacoes que somam as vagas da tipologia, mais a que usa so
+      // duplos quando o numero e impar — nesse caso ela passa uma vaga, mas e
+      // uma venda que o dono faz. A combinacao da regra vem primeiro.
+      const opcoes = [];
+      for (let d = Math.floor(vagas / 2); d >= 0; d--) opcoes.push({ d, s: vagas - d * 2 });
+      if (vagas % 2) opcoes.push({ d: (vagas + 1) / 2, s: 0 });
+      opcoes.sort((a, b) => (b.d === (r.duplo || 0) && b.s === (r.simples || 0) ? 1 : 0)
+        - (a.d === (r.duplo || 0) && a.s === (r.simples || 0) ? 1 : 0) || b.d - a.d);
+      return opcoes.map((o, i) => {
+        // Tira esta unidade do estoque e os box que ela levaria.
+        const resto = new Map(estoque);
+        resto.set(rot, nesta - 1);
+        const c = conferirVagas(regra, resto, temD - o.d, temS - o.s);
+        const impossivel = o.d > temD || o.s > temS;
+        const falta = c.sobraS < 0;
+        const padrao = o.d === (r.duplo || 0) && o.s === (r.simples || 0);
+        const nome = [o.d ? conta(o.d, "box duplo", "box duplos") : "", o.s ? conta(o.s, "box simples", "box simples") : ""].filter(Boolean).join(" + ")
+          + (padrao ? ` <span class="contagem">(o de sempre)</span>` : o.d * 2 + o.s > vagas ? ` <span class="contagem">(uma vaga a mais)</span>` : "");
+        const veredito = impossivel ? `<span class="st-vendido">não há box assim em estoque</span>`
+          : falta ? `<span class="st-vendido">deixa ${conta(-c.sobraS, "apartamento", "apartamentos")} sem vaga</span>`
+          : c.sobraD + c.sobraS === 0 ? `<span class="aviso-limite">no limite, sem folga</span>`
+          : `<span class="st-disponivel">pode</span>`;
+        const sobra = impossivel ? "—"
+          : [c.sobraD ? `${c.sobraD} duplo${c.sobraD > 1 ? "s" : ""}` : "", c.sobraS ? `${c.sobraS} simples` : ""].filter(Boolean).join(" e ") || "nada";
+        return `<tr>
+          ${i === 0 ? `<td rowspan="${opcoes.length}">${escapeHtml(rot)}<br><span class="contagem">${nesta} em estoque · ${conta(vagas, "vaga", "vagas")}</span></td>` : ""}
+          <td>${nome}</td><td>${veredito}</td><td class="num">${sobra}</td>
+        </tr>`;
+      }).join("");
+    }).join("");
+    if (!linhas) return "";
+    return `<p class="titulo-lista" style="border-top:1px solid var(--borda);margin-top:16px">Ao vender, o que dar de garagem
+      <span class="contagem">o que sobra é o que ainda cobre os outros apartamentos</span></p>
+      <table>
+        <thead><tr><th>Tipologia</th><th>Se der…</th><th>Resultado</th><th style="text-align:right">Sobra depois</th></tr></thead>
+        <tbody>${linhas}</tbody>
+      </table>`;
+  }
+
+  function conta(n, sing, plur) {
+    return `${n} ${n === 1 ? sing : plur}`;
   }
 
   // Tabela de box de garagem de um empreendimento. Fica dentro do bloco do
