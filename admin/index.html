@@ -349,13 +349,13 @@
   <div class="tela centro" id="tela-token">
     <div class="caixa">
       <h1>Conectar ao GitHub</h1>
-      <p class="sub">Para o painel conseguir salvar as alterações no site, ele precisa de uma chave de acesso (token) do GitHub. Isso é feito uma única vez neste aparelho.</p>
+      <p class="sub">Para o painel conseguir salvar as alterações no site, ele precisa de uma chave de acesso (token) do GitHub.</p>
       <ol class="passos">
         <li>Entre no GitHub com a conta <strong>sanchaikraemer</strong>.</li>
-        <li>Abra <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a>.</li>
-        <li>Em <em>Token name</em>, escreva <strong>Painel Senger</strong>. Em <em>Expiration</em>, escolha 1 ano.</li>
+        <li>Abra <a href="https://github.com/settings/personal-access-tokens/new?name=Painel%20Senger&amp;description=Chave%20do%20painel%20administrativo%20do%20site&amp;contents=write" target="_blank" rel="noopener">esta página do GitHub</a> — o nome e a permissão já vão preenchidos.</li>
+        <li>Em <em>Expiration</em>, escolha <strong>No expiration</strong> (sem vencimento). É o que evita ter de repetir isso daqui a alguns meses.</li>
         <li>Em <em>Repository access</em>, marque <em>Only select repositories</em> e escolha <strong>materialsengercorretores</strong>.</li>
-        <li>Em <em>Permissions → Repository permissions → Contents</em>, escolha <strong>Read and write</strong>.</li>
+        <li>Confira em <em>Permissions → Repository permissions → Contents</em> se está <strong>Read and write</strong>.</li>
         <li>Clique em <em>Generate token</em>, copie o código (começa com <code>github_pat_</code>) e cole abaixo.</li>
       </ol>
       <label for="campo-token">Token do GitHub</label>
@@ -364,8 +364,26 @@
         <button type="button" class="olho" data-alvo="campo-token" aria-label="Mostrar token"></button>
       </div>
       <p class="erro" id="erro-token"></p>
-      <div class="nota">A chave fica guardada apenas neste aparelho (navegador). Se trocar de celular ou computador, basta gerar outra.</div>
+      <div class="nota">A chave fica guardada apenas neste aparelho (navegador). Para usar o painel no celular <em>e</em> no computador, leve a <strong>mesma</strong> chave para o outro aparelho pelo botão <strong>Chave</strong> lá em cima do painel. Cuidado: apagar a chave antiga no GitHub, ou usar <em>Regenerate token</em>, desliga o aparelho que ainda estava com ela.</div>
       <button class="botao" id="botao-token">Salvar e continuar</button>
+    </div>
+  </div>
+
+  <!-- ============ TELA: VER A CHAVE ============ -->
+  <!-- Existe para o dono levar a MESMA chave para o outro aparelho, em vez de
+       gerar uma nova por cima — gerar de novo derruba o aparelho antigo. -->
+  <div class="tela centro" id="tela-chave">
+    <div class="caixa">
+      <h1>A chave deste aparelho</h1>
+      <p class="sub" id="chave-desde">—</p>
+      <div class="campo-senha">
+        <input type="password" id="campo-chave-atual" readonly>
+        <button type="button" class="olho" data-alvo="campo-chave-atual" aria-label="Mostrar a chave"></button>
+      </div>
+      <div class="nota">Para usar o painel em outro celular ou computador, copie esta chave e cole lá. Não gere uma chave nova para o outro aparelho: no GitHub, gerar de novo no lugar da antiga desliga este aqui.</div>
+      <button class="botao" id="botao-copiar-chave">Copiar a chave</button>
+      <button class="botao secundario" id="botao-trocar-chave" style="margin-left:8px">Cadastrar outra chave</button>
+      <button class="botao secundario" id="botao-voltar-chave" style="margin-left:8px">Voltar</button>
     </div>
   </div>
 
@@ -378,6 +396,7 @@
         <span class="pendentes" id="badge-pendentes"></span>
         <button class="botao" id="botao-publicar" disabled>Publicar no site</button>
         <button class="botao secundario" id="botao-descartar" style="display:none">Descartar</button>
+        <button class="botao secundario" id="botao-chave">Chave</button>
         <button class="botao secundario" id="botao-sair">Sair</button>
       </div>
     </header>
@@ -478,8 +497,15 @@
   ];
   const STATUS_LABEL = Object.fromEntries(STATUS_OPCOES);
 
+  // Onde a chave do GitHub fica guardada neste aparelho, e desde quando. A data
+  // existe para responder na hora a pergunta certa quando a chave para de
+  // funcionar: se ela durou meses, venceu; se durou poucos dias, foi apagada ou
+  // gerada de novo no GitHub.
+  const CHAVE_ITEM = "senger-admin-token";
+  const CHAVE_DESDE = "senger-admin-token-desde";
+
   const estado = {
-    token: localStorage.getItem("senger-admin-token") || "",
+    token: localStorage.getItem(CHAVE_ITEM) || "",
     arquivos: {},      // path -> { text, sha }
     dados: null,       // { META, EMPREENDIMENTOS } avaliados do data.js
     versao: 0,         // número atual do "?v=" do index.html
@@ -578,6 +604,47 @@
     $(id).classList.add("ativa");
   }
 
+  // ---------------- a chave do GitHub ----------------
+
+  function guardarChave(token) {
+    estado.token = token;
+    try {
+      localStorage.setItem(CHAVE_ITEM, token);
+      localStorage.setItem(CHAVE_DESDE, new Date().toISOString());
+    } catch (e) { /* modo privado: a chave vale so ate fechar a aba */ }
+  }
+
+  function esquecerChave() {
+    estado.token = "";
+    localStorage.removeItem(CHAVE_ITEM);
+    localStorage.removeItem(CHAVE_DESDE);
+  }
+
+  // Ha quantos dias a chave deste aparelho foi cadastrada (null se nao sabemos).
+  function idadeDaChave() {
+    const desde = localStorage.getItem(CHAVE_DESDE);
+    if (!desde) return null;
+    const inicio = new Date(desde);
+    const ms = Date.now() - inicio.getTime();
+    if (!Number.isFinite(ms) || ms < 0) return null;
+    return { dias: Math.floor(ms / 86400000), desde: inicio };
+  }
+
+  function emDias(n) {
+    return n === 1 ? "1 dia" : n + " dias";
+  }
+
+  // O texto que explica, em portugues de gente, por que a chave parou.
+  function porQueAChaveParou() {
+    const idade = idadeDaChave();
+    if (!idade) return "";
+    const quando = idade.desde.toLocaleDateString("pt-BR");
+    if (idade.dias >= 300) {
+      return ` A chave foi cadastrada aqui em ${quando} e durou ${emDias(idade.dias)}: foi vencimento mesmo. Ao gerar a nova, escolha "No expiration" e isso não se repete.`;
+    }
+    return ` A chave foi cadastrada aqui em ${quando}, ou seja, durou ${emDias(idade.dias)} — cedo demais para ter vencido. O mais provável é que ela tenha sido apagada, ou gerada de novo (Regenerate), lá no GitHub: fazer isso desliga a chave que este aparelho guardava.`;
+  }
+
   // ---------------- GitHub API ----------------
 
   async function ghBuscar(path) {
@@ -610,7 +677,9 @@
     });
     if (!resp.ok) {
       const corpo = await resp.json().catch(() => ({}));
-      throw new Error(`Falha ao gravar ${path} (HTTP ${resp.status}): ${corpo.message || ""}`);
+      const falha = new Error(`Falha ao gravar ${path} (HTTP ${resp.status}): ${corpo.message || ""}`);
+      falha.status = resp.status;
+      throw falha;
     }
     return (await resp.json()).content.sha;
   }
@@ -1370,7 +1439,18 @@
       aviso(`Publicado! O site sobe para a v${novaVersao} em 1–2 minutos.`, "ok");
       await carregarTudo();
     } catch (erro) {
-      aviso("Não consegui publicar: " + erro.message, "falha");
+      // Chave recusada no meio da publicacao: as alteracoes ficam guardadas na
+      // tela e o dono so precisa cadastrar a chave nova e clicar em Publicar de
+      // novo — nada do que ele fez se perde.
+      if (erro.status === 401) {
+        const motivo = porQueAChaveParou();
+        esquecerChave();
+        mostrarTela("tela-token");
+        $("erro-token").textContent = "A chave parou de funcionar bem na hora de publicar." + motivo + " Suas alterações não se perderam: cadastre a chave nova aqui e o painel volta com elas.";
+        $("erro-token").classList.add("visivel");
+      } else {
+        aviso("Não consegui publicar: " + erro.message, "falha");
+      }
     } finally {
       botao.disabled = estado.ops.length === 0;
       botao.textContent = "Publicar no site";
@@ -1427,7 +1507,15 @@
     estado.token = token;
     try {
       await ghBuscar("data.js");
-      localStorage.setItem("senger-admin-token", token);
+      guardarChave(token);
+      $("campo-token").value = "";
+      // Se ja havia alteracoes esperando (a chave falhou na hora de publicar),
+      // volta para o painel com elas intactas em vez de recarregar tudo.
+      if (estado.ops.length && estado.dados) {
+        mostrarTela("tela-painel");
+        aviso("Chave trocada. Suas alterações continuam aqui — clique em “Publicar no site”.", "ok");
+        return;
+      }
       iniciarPainel();
     } catch (e) {
       estado.token = "";
@@ -1436,6 +1524,47 @@
         : "O GitHub recusou esse token. Confira se ele tem acesso ao repositório materialsengercorretores com permissão Contents: Read and write.";
       erro.classList.add("visivel");
     }
+  });
+
+  // ---- tela da chave: levar a MESMA chave para outro aparelho ----
+
+  $("botao-chave").addEventListener("click", () => {
+    const campo = $("campo-chave-atual");
+    campo.value = estado.token;
+    campo.type = "password";
+    document.querySelector('.olho[data-alvo="campo-chave-atual"]').innerHTML = OLHO_ABERTO;
+    const idade = idadeDaChave();
+    $("chave-desde").textContent = idade
+      ? `Cadastrada neste aparelho em ${idade.desde.toLocaleDateString("pt-BR")} — faz ${emDias(idade.dias)}.`
+      : "Cadastrada neste aparelho antes de o painel passar a anotar a data.";
+    mostrarTela("tela-chave");
+  });
+
+  $("botao-copiar-chave").addEventListener("click", async () => {
+    const campo = $("campo-chave-atual");
+    try {
+      await navigator.clipboard.writeText(estado.token);
+      aviso("Chave copiada. Cole no outro aparelho.", "ok");
+    } catch (e) {
+      // Sem permissao para a area de transferencia: deixa a chave a mostra e
+      // selecionada, para copiar com o dedo.
+      campo.type = "text";
+      campo.select();
+      aviso("Não consegui copiar sozinho — a chave está à mostra e selecionada, copie por aí.", "falha");
+    }
+  });
+
+  $("botao-voltar-chave").addEventListener("click", () => {
+    $("campo-chave-atual").value = "";
+    mostrarTela("tela-painel");
+  });
+
+  $("botao-trocar-chave").addEventListener("click", () => {
+    $("campo-chave-atual").value = "";
+    esquecerChave();
+    $("campo-token").value = "";
+    $("erro-token").classList.remove("visivel");
+    mostrarTela("tela-token");
   });
 
   $("botao-sair").addEventListener("click", () => {
@@ -1468,10 +1597,10 @@
       // cadastrar token de novo: nesses casos a chave fica e ele so tenta
       // outra vez.
       if (e.status === 401) {
-        localStorage.removeItem("senger-admin-token");
-        estado.token = "";
+        const motivo = porQueAChaveParou();
+        esquecerChave();
         mostrarTela("tela-token");
-        $("erro-token").textContent = "A chave guardada neste aparelho não funciona mais (ela venceu ou foi apagada no GitHub). Gere uma nova.";
+        $("erro-token").textContent = "A chave guardada neste aparelho não funciona mais." + motivo;
         $("erro-token").classList.add("visivel");
       } else {
         mostrarFalhaAoCarregar(e);
@@ -1499,8 +1628,7 @@
     trocar.style.marginLeft = "8px";
     trocar.textContent = "Cadastrar outra chave";
     trocar.addEventListener("click", () => {
-      localStorage.removeItem("senger-admin-token");
-      estado.token = "";
+      esquecerChave();
       area.innerHTML = "Carregando os dados do site…";
       mostrarTela("tela-token");
     });
