@@ -1154,17 +1154,22 @@
       const n = estoque.get(rot) || 0;
       const pedeD = (r.duplo || 0) * n, pedeS = (r.simples || 0) * n;
       precisaD += pedeD; precisaS += pedeS; aptos += n;
-      // Os duplos que esta tipologia consegue; o resto sai como par de simples.
-      const ficaD = Math.max(0, Math.min(pedeD, livresD));
+      // A conta se faz por APARTAMENTO, nao por box: quantos conseguem o duplo
+      // que a regra pede e quantos ficam sem. Quem fica sem sai com 2 box
+      // simples no lugar de cada duplo. Contar por apartamento e o que faz a
+      // linha da tabela fechar com o que ha em estoque.
+      const comDuplo = r.duplo ? Math.max(0, Math.min(n, Math.floor(livresD / r.duplo))) : n;
+      const semDuplo = n - comDuplo;
+      const ficaD = (r.duplo || 0) * comDuplo;
+      const ficaS = pedeS + semDuplo * (r.duplo || 0) * 2;
       const trocados = pedeD - ficaD;
-      const ficaS = pedeS + trocados * 2;
       // Quantas unidades desta tipologia ficam sem o duplo que pediam.
-      const unidadesTrocadas = r.duplo ? Math.ceil(trocados / r.duplo) : 0;
+      const unidadesTrocadas = semDuplo;
       // O que nao ha em estoque para dar: aparece como falta na linha.
       const faltaS = Math.max(0, ficaS - Math.max(0, livresS));
       livresD -= ficaD; livresS -= ficaS;
       faltamD += trocados;
-      reparte.push({ rot, n, ficaD, ficaS, trocados, unidadesTrocadas, faltaS });
+      reparte.push({ rot, n, r, comDuplo, semDuplo, ficaD, ficaS, trocados, unidadesTrocadas, faltaS });
     });
     return { aptos, precisaD, precisaS, faltamD, reparte, sobraD: livresD, sobraS: livresS };
   }
@@ -1175,7 +1180,7 @@
   function renderVagasNoCartao(emp, regra, boxes) {
     if (!regra || !Object.keys(regra).length || !boxes.length) return "";
     const { estoque, temD, temS } = estoqueDeVagas(emp);
-    const { aptos, reparte, faltamD, sobraD, sobraS } = conferirVagas(regra, estoque, temD, temS);
+    const { aptos, reparte, sobraD, sobraS } = conferirVagas(regra, estoque, temD, temS);
     if (!aptos) return "";
     const usaD = reparte.reduce((a, l) => a + l.ficaD, 0);
     const usaS = reparte.reduce((a, l) => a + l.ficaS, 0);
@@ -1184,9 +1189,10 @@
     const recado = sobraS < 0
       ? `Não fecha — ${-sobraS === 1 ? "falta 1 box simples" : `faltam ${-sobraS} box simples`}`
       : `Fecha` + (sobras ? ` — sobra${sobraD + sobraS > 1 ? "m" : ""} ${sobras}` : " — não sobra box");
-    const troca = faltamD ? `<div class="linha sub"><span>${conta(faltamD, "duplo sai", "duplos saem")} como 2 simples</span></div>` : "";
+    const trocam = reparte.reduce((a, l) => a + l.semDuplo, 0);
+    const troca = trocam ? `<div class="linha sub"><span>${conta(trocam, "apartamento sai", "apartamentos saem")} com simples no lugar do duplo</span></div>` : "";
     return `<div class="vagas-cartao">
-      <div class="linha"><span>Box reservados<br><span class="regra">para os ${aptos} em estoque</span></span><strong>${usaD * 2 + usaS} vagas</strong></div>
+      <div class="linha"><span>Box reservados<br><span class="regra">para os ${aptos} em estoque</span></span><strong>${usaD + usaS} box</strong></div>
       ${parte ? `<div class="linha sub"><span>${parte}</span></div>` : ""}${troca}
       <div class="linha veredito ${sobraS < 0 ? "alerta" : "ok"}"><span>${recado}</span></div>
     </div>`;
@@ -1200,52 +1206,61 @@
     if (!regra || !boxes.length) return "";
 
     const { estoque, temD, temS } = estoqueDeVagas(emp);
-    const { aptos, faltamD, reparte, sobraD, sobraS } = conferirVagas(regra, estoque, temD, temS);
-    const sinal = (n) => (n > 0 ? "+" : "") + n;
+    const { aptos, reparte, sobraD, sobraS } = conferirVagas(regra, estoque, temD, temS);
     const cor = (n) => (n < 0 ? "st-vendido" : n > 0 ? "st-disponivel" : "");
 
-    // Cada linha e uma tipologia: quantas estao em estoque, o que cada uma
-    // leva e quantos box do estoque ficam reservados para ela.
-    const linhas = reparte.map(({ rot, n, ficaD, ficaS, trocados, unidadesTrocadas, faltaS }) => {
-      const r = regra[rot];
-      const leva = [r.duplo ? `${r.duplo} duplo` : "", r.simples ? `${r.simples} simples` : ""].filter(Boolean).join(" + ");
-      const aviso = !n ? ""
-        : trocados ? `<tr class="linha-nota"><td colspan="6"><span class="contagem">${conta(unidadesTrocadas, "apartamento fica", "apartamentos ficam")} com 2 box simples no lugar do duplo — não há duplo para todos</span></td></tr>`
-        : "";
-      const falta = faltaS ? `<tr class="linha-nota"><td colspan="6"><span class="st-vendido">${conta(faltaS, "box simples", "box simples")} sem ter de onde tirar</span></td></tr>` : "";
-      return `<tr${n ? "" : ' class="linha-zerada"'}>
-        <td>${escapeHtml(rot)}</td><td class="num">${n}</td><td>${leva}</td>
-        <td class="num">${ficaD || "—"}</td><td class="num${faltaS ? " st-vendido" : ""}">${ficaS || "—"}</td><td class="num">${ficaD * 2 + ficaS}</td>
-      </tr>${aviso}${falta}`;
+    // Cada linha conta APARTAMENTOS, e o box que eles levam vem escrito por
+    // extenso na coluna do lado — misturar apartamento e box na mesma coluna
+    // era o que impedia a linha de fechar com o estoque. Quando nao ha duplo
+    // para todos, a tipologia se parte em duas linhas, e a soma dos
+    // apartamentos das duas continua sendo o estoque.
+    const emBox = (d, s) => [d ? conta(d, "duplo", "duplos") : "", s ? conta(s, "simples", "simples") : ""].filter(Boolean).join(" + ") || "—";
+    const cada = (d, s) => [d ? conta(d, "box duplo", "box duplos") : "", s ? conta(s, "box simples", "box simples") : ""].filter(Boolean).join(" + ");
+    const linhas = reparte.map(({ rot, n, r, comDuplo, semDuplo, faltaS }) => {
+      const nome = escapeHtml(rot);
+      const regraCheia = cada(r.duplo || 0, r.simples || 0);
+      if (!n) return `<tr class="linha-zerada"><td>${nome}</td><td class="num">0</td><td>${regraCheia}</td><td>—</td></tr>`;
+      const partes = [];
+      if (comDuplo) {
+        partes.push(`<tr><td>${nome}</td><td class="num">${comDuplo}</td><td>${regraCheia}</td>
+          <td>${emBox((r.duplo || 0) * comDuplo, (r.simples || 0) * comDuplo)}</td></tr>`);
+      }
+      if (semDuplo) {
+        // Sem duplo sobrando, cada duplo que o apartamento pedia vira 2 simples.
+        const simplesCada = (r.duplo || 0) * 2 + (r.simples || 0);
+        partes.push(`<tr><td>${comDuplo ? `<span class="contagem">↳ ${nome}</span>` : nome}</td><td class="num">${semDuplo}</td>
+          <td>${cada(0, simplesCada)}<br><span class="contagem">no lugar de ${regraCheia} — não há box duplo para todos</span></td>
+          <td>${emBox(0, simplesCada * semDuplo)}</td></tr>`);
+      }
+      const falta = faltaS ? `<tr class="linha-nota"><td colspan="4"><span class="st-vendido">${conta(faltaS, "box simples", "box simples")} sem ter de onde tirar</span></td></tr>` : "";
+      return partes.join("") + falta;
     }).join("");
     const usaD = reparte.reduce((a, l) => a + l.ficaD, 0);
     const usaS = reparte.reduce((a, l) => a + l.ficaS, 0);
 
-    const sobras = [sobraD > 0 ? conta(sobraD, "duplo", "duplos") : "", sobraS > 0 ? conta(sobraS, "simples", "simples") : ""].filter(Boolean).join(" e ");
-    const troca = !faltamD ? ""
-      : faltamD === 1 ? " O duplo que falta sai como 2 simples."
-      : ` Os ${faltamD} duplos que faltam saem como ${faltamD * 2} simples, dois para cada.`;
+    const sobras = [sobraD > 0 ? conta(sobraD, "box duplo", "box duplos") : "", sobraS > 0 ? conta(sobraS, "box simples", "box simples") : ""].filter(Boolean).join(" e ");
     const recado = sobraS < 0
-      ? `Não fecha: ${-sobraS === 1 ? "falta 1 box simples" : `faltam ${-sobraS} box simples`} para atender os ${aptos} apartamentos em estoque.${troca}`
-      : `Fecha: dá para atender os ${aptos} apartamentos em estoque.${troca}`
+      ? `Não fecha: ${-sobraS === 1 ? "falta 1 box simples" : `faltam ${-sobraS} box simples`} para os ${aptos} apartamentos em estoque.`
+      : `Fecha: os ${aptos} apartamentos em estoque têm box para todos.`
         + (sobras ? ` Sobra${sobraD + sobraS > 1 ? "m" : ""} ${sobras}.` : " Não sobra nenhum box.");
 
     return `<section class="secao-vagas">
       <p class="titulo-lista">Vagas de garagem <span class="contagem">conferência do estoque, não muda com as abas · os box duplos vão para as tipologias na ordem desta lista</span></p>
       <p class="descricao ${sobraS < 0 ? "alerta" : "ok"}">${recado}</p>
       <table>
-        <thead><tr><th>Tipologia</th><th style="text-align:right">Em estoque</th><th>Cada uma leva</th>
-          <th style="text-align:right">Ficam com<br><span class="contagem">duplos</span></th>
-          <th style="text-align:right">Ficam com<br><span class="contagem">simples</span></th>
-          <th style="text-align:right">Vagas</th></tr></thead>
+        <thead><tr><th>Tipologia</th>
+          <th style="text-align:right">Apartamentos<br><span class="contagem">em estoque</span></th>
+          <th>O que cada um leva</th>
+          <th>Box que isso reserva</th></tr></thead>
         <tbody>${linhas}
-          <tr class="soma"><td>Reservados</td><td class="num">${aptos}</td><td></td>
-            <td class="num">${usaD}</td><td class="num">${usaS}</td><td class="num">${usaD * 2 + usaS}</td></tr>
+          <tr class="soma"><td>Total reservado</td><td class="num">${aptos}</td><td></td>
+            <td>${emBox(usaD, usaS)}</td></tr>
           <tr class="soma"><td>Tem em estoque</td><td></td><td></td>
-            <td class="num">${temD}</td><td class="num">${temS}</td><td class="num">${temD * 2 + temS}</td></tr>
+            <td>${emBox(temD, temS)}</td></tr>
           <tr class="soma saldo"><td>Sobra</td><td></td><td></td>
-            <td class="num ${cor(sobraD)}">${sinal(sobraD)}</td><td class="num ${cor(sobraS)}">${sinal(sobraS)}</td>
-            <td class="num ${cor(sobraD * 2 + sobraS)}">${sinal(sobraD * 2 + sobraS)}</td></tr>
+            <td class="${cor(sobraD * 2 + sobraS)}">${sobraD < 0 || sobraS < 0
+              ? [sobraD < 0 ? `faltam ${-sobraD} duplos` : "", sobraS < 0 ? `faltam ${-sobraS} simples` : ""].filter(Boolean).join(" e ")
+              : emBox(sobraD, sobraS)}</td></tr>
         </tbody>
       </table>
       ${renderOpcoesDeVenda(emp, regra, estoque, temD, temS)}
