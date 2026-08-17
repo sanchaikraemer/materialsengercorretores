@@ -176,6 +176,11 @@
     return `${path}${sep}v=${APP_VERSION.replace(/^v/, "")}`;
   };
 
+  // Aviso obrigatorio nas fotos: o estoque cadastrado e o predio inteiro, entao
+  // ha foto de unidade que ja foi vendida. Aparece na pagina, no PDF impresso e
+  // dentro do visor em tela cheia.
+  const AVISO_FOTOS = "As imagens são meramente ilustrativas e podem mostrar unidades já vendidas.";
+
   // ---------------- imagem em tela cheia ----------------
   // Mapa de loteamento e planta baixa nao se leem no tamanho do cartao. Aqui a
   // imagem abre inteira sobre fundo escuro, com um passo de zoom (o dobro, com
@@ -193,6 +198,7 @@
     visor.legenda = document.getElementById("lightbox-caption");
     visor.contador = document.getElementById("lightbox-counter");
     visor.arquivo = document.getElementById("lightbox-file");
+    visor.recado = document.getElementById("lightbox-note");
     visor.botaoZoom = document.getElementById("lightbox-zoom");
     visor.anterior = document.getElementById("lightbox-prev");
     visor.proximo = document.getElementById("lightbox-next");
@@ -228,10 +234,11 @@
     visor.proximo.hidden = !varias;
   }
 
-  function abrirVisor(itens, indice) {
+  function abrirVisor(itens, indice, recado) {
     if (!montarVisor()) return;
     visor.itens = (itens || []).filter((item) => item && item.src);
     if (!visor.itens.length) return;
+    visor.recado.textContent = recado || "";
     const inicio = Math.min(Math.max(Number(indice) || 0, 0), visor.itens.length - 1);
     mostrarNoVisor(inicio);
     visor.caixa.classList.add("open");
@@ -287,9 +294,9 @@
 
   // Abre o visor no clique e tambem pelo teclado (o alvo e uma div com role
   // de botao, entao Enter e espaco precisam funcionar na mao).
-  function ligarAberturaDoVisor(alvo, pegarItens, pegarIndice) {
+  function ligarAberturaDoVisor(alvo, pegarItens, pegarIndice, recado) {
     if (!alvo) return;
-    const abrir = () => abrirVisor(pegarItens(), pegarIndice());
+    const abrir = () => abrirVisor(pegarItens(), pegarIndice(), recado);
     alvo.addEventListener("click", abrir);
     alvo.addEventListener("keydown", (event) => {
       if (event.key === "Enter" || event.key === " ") { event.preventDefault(); abrir(); }
@@ -770,6 +777,7 @@
     const gallery = photoMedia.length ? `
       <section class="content-section">
         <div class="section-title-row"><h2>Imagens</h2><p>${photoMedia.length} ${photoMedia.length === 1 ? "imagem disponível" : "imagens disponíveis"}</p></div>
+        <p class="section-note">${AVISO_FOTOS}</p>
         <div class="gallery-showcase" data-gallery-showcase${stripWidth ? ` style="max-width:${stripWidth}px"` : ""}>
           <div class="gallery-featured" data-gallery-open role="button" tabindex="0" aria-label="Abrir a imagem em tela cheia">
             <img src="${escapeHtml(assetUrl(photoMedia[0].src))}" alt="${escapeHtml(photoMedia[0].legenda || emp.nome)}" data-gallery-featured>
@@ -896,7 +904,7 @@
     const featuredImage = detail.querySelector("[data-gallery-featured]");
     const featuredCounter = detail.querySelector("[data-gallery-counter]");
     let galleryIndex = 0;
-    ligarAberturaDoVisor(detail.querySelector("[data-gallery-open]"), () => photoMedia, () => galleryIndex);
+    ligarAberturaDoVisor(detail.querySelector("[data-gallery-open]"), () => photoMedia, () => galleryIndex, AVISO_FOTOS);
     detail.querySelectorAll("[data-gallery-thumb]").forEach((button) => {
       button.addEventListener("click", () => {
         const index = Number(button.dataset.galleryThumb);
