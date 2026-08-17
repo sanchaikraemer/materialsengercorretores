@@ -206,6 +206,12 @@
     .card .tipos { border-top: 1px solid var(--borda); margin-top: 6px; padding-top: 6px; }
     .card .tipos .linha { font-size: .78rem; }
     .card .tipos .linha span { padding-left: 10px; border-left: 2px solid var(--verde); }
+    /* A regra de garagem anda junto da tipologia, em letra menor. */
+    .card .regra { display: block; font-style: normal; font-size: .92em; opacity: .75; }
+    .card .vagas-cartao { border-top: 1px solid var(--borda); margin-top: 6px; padding-top: 6px; }
+    .card .vagas-cartao .veredito { font-size: .78rem; font-weight: 700; padding-top: 2px; }
+    .card .vagas-cartao .veredito.ok { color: var(--verde); }
+    .card .vagas-cartao .veredito.alerta { color: var(--vermelho); }
     .st-disponivel { color: var(--verde) !important; }
     .st-reservado { color: var(--amarelo) !important; }
     .st-vendido { color: var(--vermelho) !important; }
@@ -890,9 +896,16 @@
         const rot = i.estoque || i.grupo || "Outros";
         porTipo.set(rot, (porTipo.get(rot) || 0) + 1);
       });
+      // A regra de garagem de cada tipologia entra junto do estoque: e a conta
+      // que o dono faz de cabeca ao atender, e ela nao pode ficar so na tela
+      // de dentro do empreendimento.
+      const regraDoEmp = emp.vagasPorTipologia || {};
       const linhasTipo = porTipo.size > 1
-        ? `<div class="tipos">` + [...porTipo].map(([rot, n]) =>
-            `<div class="linha"><span>${escapeHtml(rot)}</span><strong>${n}</strong></div>`).join("") + `</div>`
+        ? `<div class="tipos">` + [...porTipo].map(([rot, n]) => {
+            const r = regraDoEmp[rot];
+            const leva = r ? [r.duplo ? conta(r.duplo, "duplo", "duplos") : "", r.simples ? conta(r.simples, "simples", "simples") : ""].filter(Boolean).join(" + ") : "";
+            return `<div class="linha"><span>${escapeHtml(rot)}${leva ? ` <em class="regra">${leva} cada</em>` : ""}</span><strong>${n}</strong></div>`;
+          }).join("") + `</div>`
         : "";
       // Os box entram como linha separada para nao se misturarem com as unidades.
       const boxes = boxesDoEmp(emp);
@@ -905,13 +918,17 @@
           // A divisao entre simples e duplos so faz sentido havendo box livre.
           + (boxLivres.length ? `<div class="linha sub"><span>${boxLivres.length - boxDuplos} simples · ${boxDuplos} duplos</span></div>` : "")
         : "";
+      // O veredito da conferencia de vagas, resumido: quantos box o estoque de
+      // apartamentos reserva e se o que ha em box cobre isso. A tabela inteira
+      // continua na tela do empreendimento.
+      const linhaVagas = renderVagasNoCartao(emp, regraDoEmp, boxes);
       const ativo = estado.empAberto === emp.id;
       // Quanto do estoque de unidades ja foi vendido. Box ficam de fora: sao
       // vendidos a parte e distorceriam o numero do empreendimento.
       const pct = Math.round(((contagem.vendido || 0) / itens.length) * 100);
       return `<button type="button" class="card${ativo ? " ativo" : ""}" data-emp="${escapeHtml(emp.id)}" aria-expanded="${ativo}">
         <h3>${escapeHtml(emp.nome)} <span class="pct${pct ? " tem" : ""}">${pct}% vendido</span></h3>${linhas}
-        <div class="linha" style="border-top:1px solid var(--borda);margin-top:6px;padding-top:6px"><span>Total</span><strong>${itens.length}</strong></div>${linhasTipo}${linhaBox}
+        <div class="linha" style="border-top:1px solid var(--borda);margin-top:6px;padding-top:6px"><span>Total</span><strong>${itens.length}</strong></div>${linhasTipo}${linhaBox}${linhaVagas}
         <span class="abrir">${ativo ? "Fechar" : "Abrir"}</span>
       </button>`;
     }).join("");
@@ -1150,6 +1167,29 @@
       reparte.push({ rot, n, ficaD, ficaS, trocados, unidadesTrocadas, faltaS });
     });
     return { aptos, precisaD, precisaS, faltamD, reparte, sobraD: livresD, sobraS: livresS };
+  }
+
+  // A mesma conferencia de renderVagas, encolhida para caber no cartao: quanto
+  // o estoque de apartamentos reserva de box e se fecha. Sem a regra da
+  // tipologia ou sem box cadastrado nao ha o que conferir.
+  function renderVagasNoCartao(emp, regra, boxes) {
+    if (!regra || !Object.keys(regra).length || !boxes.length) return "";
+    const { estoque, temD, temS } = estoqueDeVagas(emp);
+    const { aptos, reparte, faltamD, sobraD, sobraS } = conferirVagas(regra, estoque, temD, temS);
+    if (!aptos) return "";
+    const usaD = reparte.reduce((a, l) => a + l.ficaD, 0);
+    const usaS = reparte.reduce((a, l) => a + l.ficaS, 0);
+    const parte = [usaD ? conta(usaD, "duplo", "duplos") : "", usaS ? conta(usaS, "simples", "simples") : ""].filter(Boolean).join(" · ");
+    const sobras = [sobraD > 0 ? conta(sobraD, "duplo", "duplos") : "", sobraS > 0 ? conta(sobraS, "simples", "simples") : ""].filter(Boolean).join(" e ");
+    const recado = sobraS < 0
+      ? `Não fecha — ${-sobraS === 1 ? "falta 1 box simples" : `faltam ${-sobraS} box simples`}`
+      : `Fecha` + (sobras ? ` — sobra${sobraD + sobraS > 1 ? "m" : ""} ${sobras}` : " — não sobra box");
+    const troca = faltamD ? `<div class="linha sub"><span>${conta(faltamD, "duplo sai", "duplos saem")} como 2 simples</span></div>` : "";
+    return `<div class="vagas-cartao">
+      <div class="linha"><span>Box reservados<br><span class="regra">para os ${aptos} em estoque</span></span><strong>${usaD * 2 + usaS} vagas</strong></div>
+      ${parte ? `<div class="linha sub"><span>${parte}</span></div>` : ""}${troca}
+      <div class="linha veredito ${sobraS < 0 ? "alerta" : "ok"}"><span>${recado}</span></div>
+    </div>`;
   }
 
   // Confere se os box disponiveis cobrem os apartamentos que ainda estao em
