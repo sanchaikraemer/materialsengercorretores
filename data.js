@@ -281,6 +281,15 @@ const EMPREENDIMENTOS = [
     statusLabel: "Entrega em 2028",
     entrega: "Entrega em 2028",
     ri: ["RI nº 11-47.935"],
+    // Cada 3 suites leva 2 vagas — um box duplo. Como so ha 3 duplos livres
+    // para 4 apartamentos, o painel manda o quarto sair com 2 box simples,
+    // que e a conta que o dono ja faz. Os de 2 dormitorios levam 1 simples.
+    // A ordem importa: quem vem primeiro fica com os duplos.
+    vagasPorTipologia: {
+      "3 dormitórios (3 suítes)": { duplo: 1 },
+      "2 dormitórios (1 suíte)": { simples: 1 },
+      "2 dormitórios (2 suítes)": { simples: 1 },
+    },
     hero: "assets/evo-hero.jpg",
     folder: "assets/folder-evolutti.pdf",
     destaque: true,
