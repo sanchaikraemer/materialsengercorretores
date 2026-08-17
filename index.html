@@ -20,12 +20,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="icon" href="icons/favicon.ico?v=135" sizes="any">
-  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=135">
-  <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=135">
-  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=135">
+  <link rel="icon" href="icons/favicon.ico?v=136" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=136">
+  <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=136">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=136">
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="styles.css?v=135">
+  <link rel="stylesheet" href="styles.css?v=136">
 </head>
 <body>
   <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
@@ -259,9 +259,32 @@
     </div>
   </div>
 
+  <!-- Imagem em tela cheia. Mapa de loteamento e planta so sao legiveis
+       grandes: aqui a imagem abre inteira, com zoom no toque e um link para
+       o arquivo original (que o cliente pode salvar ou imprimir em PDF). -->
+  <div class="lightbox" id="lightbox" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Imagem ampliada">
+    <div class="lightbox-backdrop" data-close-lightbox></div>
+    <div class="lightbox-stage" id="lightbox-stage">
+      <img id="lightbox-image" alt="">
+    </div>
+    <div class="lightbox-topo">
+      <span class="lightbox-counter" id="lightbox-counter"></span>
+      <button class="icon-button lightbox-close" type="button" data-close-lightbox aria-label="Fechar">×</button>
+    </div>
+    <button class="lightbox-nav prev" type="button" id="lightbox-prev" aria-label="Imagem anterior">‹</button>
+    <button class="lightbox-nav next" type="button" id="lightbox-next" aria-label="Próxima imagem">›</button>
+    <div class="lightbox-rodape">
+      <p class="lightbox-caption" id="lightbox-caption"></p>
+      <div class="lightbox-tools">
+        <button class="button button-glass" type="button" id="lightbox-zoom">Aproximar</button>
+        <a class="button button-glass" id="lightbox-file" target="_blank" rel="noopener">Abrir o arquivo</a>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="data.js?v=135"></script>
-  <script src="app.js?v=135"></script>
+  <script src="data.js?v=136"></script>
+  <script src="app.js?v=136"></script>
 </body>
 </html>

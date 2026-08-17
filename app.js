@@ -176,6 +176,126 @@
     return `${path}${sep}v=${APP_VERSION.replace(/^v/, "")}`;
   };
 
+  // ---------------- imagem em tela cheia ----------------
+  // Mapa de loteamento e planta baixa nao se leem no tamanho do cartao. Aqui a
+  // imagem abre inteira sobre fundo escuro, com um passo de zoom (o dobro, com
+  // rolagem para percorrer) e o link do arquivo original, de onde o cliente
+  // salva ou imprime em PDF.
+  const visor = { itens: [], indice: 0, aberto: false, caixa: null };
+
+  function montarVisor() {
+    if (visor.caixa) return visor.caixa;
+    const caixa = document.getElementById("lightbox");
+    if (!caixa) return null;
+    visor.caixa = caixa;
+    visor.palco = document.getElementById("lightbox-stage");
+    visor.imagem = document.getElementById("lightbox-image");
+    visor.legenda = document.getElementById("lightbox-caption");
+    visor.contador = document.getElementById("lightbox-counter");
+    visor.arquivo = document.getElementById("lightbox-file");
+    visor.botaoZoom = document.getElementById("lightbox-zoom");
+    visor.anterior = document.getElementById("lightbox-prev");
+    visor.proximo = document.getElementById("lightbox-next");
+    return caixa;
+  }
+
+  function aproximarVisor(ligado, ponto) {
+    const palco = visor.palco;
+    palco.classList.toggle("zoom", ligado);
+    visor.botaoZoom.textContent = ligado ? "Afastar" : "Aproximar";
+    if (!ligado) { palco.scrollTo(0, 0); return; }
+    // Deixa o ponto tocado no meio da tela, senao o zoom cai sempre no canto.
+    requestAnimationFrame(() => {
+      const x = ponto ? ponto.x : 0.5;
+      const y = ponto ? ponto.y : 0.5;
+      palco.scrollLeft = x * palco.scrollWidth - palco.clientWidth / 2;
+      palco.scrollTop = y * palco.scrollHeight - palco.clientHeight / 2;
+    });
+  }
+
+  function mostrarNoVisor(indice) {
+    const item = visor.itens[indice];
+    if (!item) return;
+    visor.indice = indice;
+    aproximarVisor(false);
+    visor.imagem.src = assetUrl(item.src);
+    visor.imagem.alt = item.legenda || "";
+    visor.legenda.textContent = item.legenda || "";
+    visor.arquivo.href = assetUrl(item.src);
+    const varias = visor.itens.length > 1;
+    visor.contador.textContent = varias ? `${indice + 1} / ${visor.itens.length}` : "";
+    visor.anterior.hidden = !varias;
+    visor.proximo.hidden = !varias;
+  }
+
+  function abrirVisor(itens, indice) {
+    if (!montarVisor()) return;
+    visor.itens = (itens || []).filter((item) => item && item.src);
+    if (!visor.itens.length) return;
+    const inicio = Math.min(Math.max(Number(indice) || 0, 0), visor.itens.length - 1);
+    mostrarNoVisor(inicio);
+    visor.caixa.classList.add("open");
+    visor.caixa.setAttribute("aria-hidden", "false");
+    document.body.classList.add("no-scroll");
+    visor.aberto = true;
+  }
+
+  function fecharVisor() {
+    if (!visor.aberto) return;
+    aproximarVisor(false);
+    visor.caixa.classList.remove("open");
+    visor.caixa.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("no-scroll");
+    visor.aberto = false;
+  }
+
+  function andarVisor(passo) {
+    if (visor.itens.length < 2) return;
+    mostrarNoVisor((visor.indice + passo + visor.itens.length) % visor.itens.length);
+  }
+
+  function bindVisor() {
+    if (!montarVisor()) return;
+    visor.caixa.querySelectorAll("[data-close-lightbox]").forEach((el) => el.addEventListener("click", fecharVisor));
+    visor.anterior.addEventListener("click", () => andarVisor(-1));
+    visor.proximo.addEventListener("click", () => andarVisor(1));
+    visor.botaoZoom.addEventListener("click", () => aproximarVisor(!visor.palco.classList.contains("zoom")));
+    visor.imagem.addEventListener("click", (event) => {
+      const perto = visor.palco.classList.contains("zoom");
+      const area = visor.imagem.getBoundingClientRect();
+      aproximarVisor(!perto, { x: (event.clientX - area.left) / area.width, y: (event.clientY - area.top) / area.height });
+    });
+    document.addEventListener("keydown", (event) => {
+      if (!visor.aberto) return;
+      if (event.key === "Escape") fecharVisor();
+      else if (event.key === "ArrowLeft") andarVisor(-1);
+      else if (event.key === "ArrowRight") andarVisor(1);
+    });
+    // No celular, arrastar o dedo troca de imagem — menos quando esta
+    // aproximado, que ai o arrasto serve para percorrer a imagem.
+    let toqueX = null;
+    visor.palco.addEventListener("touchstart", (event) => {
+      toqueX = event.touches.length === 1 ? event.touches[0].clientX : null;
+    }, { passive: true });
+    visor.palco.addEventListener("touchend", (event) => {
+      if (toqueX === null || visor.palco.classList.contains("zoom")) { toqueX = null; return; }
+      const arrasto = (event.changedTouches[0] ? event.changedTouches[0].clientX : toqueX) - toqueX;
+      if (Math.abs(arrasto) > 60) andarVisor(arrasto < 0 ? 1 : -1);
+      toqueX = null;
+    }, { passive: true });
+  }
+
+  // Abre o visor no clique e tambem pelo teclado (o alvo e uma div com role
+  // de botao, entao Enter e espaco precisam funcionar na mao).
+  function ligarAberturaDoVisor(alvo, pegarItens, pegarIndice) {
+    if (!alvo) return;
+    const abrir = () => abrirVisor(pegarItens(), pegarIndice());
+    alvo.addEventListener("click", abrir);
+    alvo.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") { event.preventDefault(); abrir(); }
+    });
+  }
+
   function itemLabel(item) {
     if (item.kind === "unit") {
       const prefix = item.emp.categoria === "comercial" ? "Sala" : "Apto";
@@ -640,15 +760,21 @@
 
     const THUMB_W = 84;
     const THUMB_GAP = 10;
-    const stripWidth = photoMedia.length > 1 ? photoMedia.length * THUMB_W + (photoMedia.length - 1) * THUMB_GAP : 0;
+    // A largura das miniaturas nao pode mais encolher a imagem principal: com 3
+    // fotos a galeria inteira ficava com 272px e nao se lia nada. Agora a faixa
+    // de miniaturas se acomoda embaixo de uma imagem de tamanho decente.
+    const stripWidth = photoMedia.length > 1
+      ? Math.max(photoMedia.length * THUMB_W + (photoMedia.length - 1) * THUMB_GAP, 720)
+      : 0;
 
     const gallery = photoMedia.length ? `
       <section class="content-section">
         <div class="section-title-row"><h2>Imagens</h2><p>${photoMedia.length} ${photoMedia.length === 1 ? "imagem disponível" : "imagens disponíveis"}</p></div>
         <div class="gallery-showcase" data-gallery-showcase${stripWidth ? ` style="max-width:${stripWidth}px"` : ""}>
-          <div class="gallery-featured">
+          <div class="gallery-featured" data-gallery-open role="button" tabindex="0" aria-label="Abrir a imagem em tela cheia">
             <img src="${escapeHtml(assetUrl(photoMedia[0].src))}" alt="${escapeHtml(photoMedia[0].legenda || emp.nome)}" data-gallery-featured>
             ${photoMedia.length > 1 ? `<span class="gallery-counter" data-gallery-counter>1 / ${photoMedia.length}</span>` : ""}
+            <span class="image-zoom-hint">Toque para ver maior</span>
           </div>
           ${photoMedia.length > 1 ? `
             <div class="gallery-strip">
@@ -686,8 +812,9 @@
             ` : ""}
           </div>
           ${humanizedPlants.length ? `
-            <div class="plant-viewer-preview">
+            <div class="plant-viewer-preview" data-plant-open role="button" tabindex="0" aria-label="Abrir a planta em tela cheia">
               <img src="${escapeHtml(assetUrl(humanizedPlants[0].src))}" alt="${escapeHtml(humanizedPlants[0].legenda || emp.nome)}" data-plant-preview-image>
+              <span class="image-zoom-hint">Toque para ver maior</span>
             </div>
           ` : ""}
         </div>
@@ -768,11 +895,14 @@
     document.getElementById("print-detail").addEventListener("click", (event) => printEnterprise(emp, event));
     const featuredImage = detail.querySelector("[data-gallery-featured]");
     const featuredCounter = detail.querySelector("[data-gallery-counter]");
+    let galleryIndex = 0;
+    ligarAberturaDoVisor(detail.querySelector("[data-gallery-open]"), () => photoMedia, () => galleryIndex);
     detail.querySelectorAll("[data-gallery-thumb]").forEach((button) => {
       button.addEventListener("click", () => {
         const index = Number(button.dataset.galleryThumb);
         const item = photoMedia[index];
         if (!item || !featuredImage) return;
+        galleryIndex = index;
         featuredImage.src = assetUrl(item.src);
         featuredImage.alt = item.legenda || emp.nome;
         if (featuredCounter) featuredCounter.textContent = `${index + 1} / ${photoMedia.length}`;
@@ -781,10 +911,13 @@
       });
     });
     const plantPreviewImage = detail.querySelector("[data-plant-preview-image]");
+    let plantIndex = 0;
+    ligarAberturaDoVisor(detail.querySelector("[data-plant-open]"), () => humanizedPlants, () => plantIndex);
     detail.querySelectorAll("[data-plant-preview]").forEach((button) => {
       button.addEventListener("click", () => {
         const item = humanizedPlants[Number(button.dataset.plantPreview)];
         if (!item || !plantPreviewImage) return;
+        plantIndex = Number(button.dataset.plantPreview);
         plantPreviewImage.src = assetUrl(item.src);
         plantPreviewImage.alt = item.legenda || emp.nome;
         detail.querySelectorAll("[data-plant-preview]").forEach((thumb) => thumb.classList.remove("active"));
@@ -1971,6 +2104,7 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
   if (CLIENT_MODE) document.body.classList.add("client-mode");
   if (CLIENT_LIST_IDS) document.body.classList.add("client-list");
   buildInventory();
+  bindVisor();
   renderMetadata();
   renderFilters();
   bindGlobalEvents();

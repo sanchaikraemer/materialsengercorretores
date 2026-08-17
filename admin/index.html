@@ -92,6 +92,17 @@
     .passos a { color: var(--azul); }
     .nota { background: #e6f2f4; border: 1px solid rgba(23,143,160,.35); border-radius: 8px; padding: 10px 12px; font-size: .82rem; color: var(--dourado-escuro); margin-top: 14px; }
 
+    /* diário da chave: a prova do que aconteceu, em ordem */
+    .titulo-diario { font-size: 1rem; margin: 26px 0 6px; padding-top: 18px; border-top: 1px solid var(--borda); }
+    .diario { list-style: none; margin: 12px 0 14px; padding: 0; font-size: .84rem; max-height: 40vh; overflow-y: auto; }
+    .diario li { display: flex; flex-wrap: wrap; gap: 4px 10px; padding: 8px 10px; border-radius: 8px; background: rgba(32,42,50,.045); margin-bottom: 6px; }
+    .diario .quando { color: var(--texto-suave); min-width: 118px; }
+    .diario .marca { color: var(--texto-suave); font-family: ui-monospace, monospace; font-size: .78rem; width: 100%; }
+    .diario .r-cadastrada { color: var(--azul); font-weight: 700; }
+    .diario .r-funcionou { color: var(--verde); font-weight: 700; }
+    .diario .r-recusada { color: var(--vermelho); font-weight: 700; }
+    .diario-vazio { color: var(--texto-suave); font-size: .85rem; }
+
     /* campo de senha com botão de mostrar/ocultar */
     .campo-senha { position: relative; }
     .campo-senha input { padding-right: 46px; }
@@ -364,6 +375,7 @@
         <button type="button" class="olho" data-alvo="campo-token" aria-label="Mostrar token"></button>
       </div>
       <p class="erro" id="erro-token"></p>
+      <p class="sub" style="margin:10px 0 0"><a href="#" id="link-diario">Ver o que já aconteceu com a chave neste aparelho</a></p>
       <div class="nota">A chave fica guardada apenas neste aparelho (navegador). Para usar o painel no celular <em>e</em> no computador, leve a <strong>mesma</strong> chave para o outro aparelho pelo botão <strong>Chave</strong> lá em cima do painel. Cuidado: apagar a chave antiga no GitHub, ou usar <em>Regenerate token</em>, desliga o aparelho que ainda estava com ela.</div>
       <button class="botao" id="botao-token">Salvar e continuar</button>
     </div>
@@ -384,6 +396,11 @@
       <button class="botao" id="botao-copiar-chave">Copiar a chave</button>
       <button class="botao secundario" id="botao-trocar-chave" style="margin-left:8px">Cadastrar outra chave</button>
       <button class="botao secundario" id="botao-voltar-chave" style="margin-left:8px">Voltar</button>
+
+      <h2 class="titulo-diario">O que já aconteceu com a chave</h2>
+      <p class="sub">Toda vez que a chave é cadastrada, funciona ou é recusada, fica registrado aqui neste aparelho. É por esta lista que dá para saber se ela venceu, se foi apagada ou se é outra chave.</p>
+      <ol class="diario" id="chave-diario"></ol>
+      <button class="botao secundario" id="botao-copiar-diario">Copiar essa lista</button>
     </div>
   </div>
 
@@ -503,6 +520,10 @@
   // gerada de novo no GitHub.
   const CHAVE_ITEM = "senger-admin-token";
   const CHAVE_DESDE = "senger-admin-token-desde";
+  // Diario da chave: cada vez que ela e cadastrada, funciona ou e recusada,
+  // fica uma linha aqui. E o unico jeito de saber DEPOIS o que aconteceu — a
+  // chave morre no GitHub e nao deixa rastro nenhum neste aparelho.
+  const CHAVE_LOG = "senger-admin-chave-log";
 
   const estado = {
     token: localStorage.getItem(CHAVE_ITEM) || "",
@@ -606,8 +627,32 @@
 
   // ---------------- a chave do GitHub ----------------
 
+  // Identifica a chave sem revelar o segredo: "github_pat_" e sempre igual, e
+  // os quatro ultimos digitos bastam para dizer se e a MESMA chave de antes.
+  function impressaoDaChave(token) {
+    const t = String(token || "");
+    if (t.length < 16) return `chave curta demais (${t.length} letras)`;
+    return `${t.slice(0, 11)}…${t.slice(-4)} · ${t.length} letras`;
+  }
+
+  function lerDiario() {
+    try { return JSON.parse(localStorage.getItem(CHAVE_LOG) || "[]"); } catch (e) { return []; }
+  }
+
+  function anotarNoDiario(resultado, token) {
+    const linhas = lerDiario();
+    const marca = impressaoDaChave(token || estado.token);
+    const agora = new Date();
+    const ultima = linhas[linhas.length - 1];
+    // Nao repete a mesma anotacao no mesmo dia: o diario tem de caber na tela.
+    if (ultima && ultima.r === resultado && ultima.d === marca && ultima.q.slice(0, 10) === agora.toISOString().slice(0, 10)) return;
+    linhas.push({ q: agora.toISOString(), r: resultado, d: marca });
+    try { localStorage.setItem(CHAVE_LOG, JSON.stringify(linhas.slice(-40))); } catch (e) { /* modo privado */ }
+  }
+
   function guardarChave(token) {
     estado.token = token;
+    anotarNoDiario("cadastrada", token);
     try {
       localStorage.setItem(CHAVE_ITEM, token);
       localStorage.setItem(CHAVE_DESDE, new Date().toISOString());
@@ -1444,6 +1489,7 @@
       // novo — nada do que ele fez se perde.
       if (erro.status === 401) {
         const motivo = porQueAChaveParou();
+        anotarNoDiario("recusada");
         esquecerChave();
         mostrarTela("tela-token");
         $("erro-token").textContent = "A chave parou de funcionar bem na hora de publicar." + motivo + " Suas alterações não se perderam: cadastre a chave nova aqui e o painel volta com elas.";
@@ -1528,16 +1574,77 @@
 
   // ---- tela da chave: levar a MESMA chave para outro aparelho ----
 
-  $("botao-chave").addEventListener("click", () => {
+  const RESULTADO_TEXTO = {
+    cadastrada: "chave cadastrada aqui",
+    funcionou: "abriu o painel normalmente",
+    recusada: "o GitHub recusou a chave",
+  };
+
+  function textoDoDiario() {
+    return lerDiario().map((linha) => {
+      const q = new Date(linha.q);
+      const quando = `${q.toLocaleDateString("pt-BR")} ${q.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
+      return `${quando} — ${RESULTADO_TEXTO[linha.r] || linha.r} — ${linha.d}`;
+    }).join("\n");
+  }
+
+  function renderDiario() {
+    const lista = $("chave-diario");
+    const linhas = lerDiario();
+    if (!linhas.length) {
+      lista.innerHTML = '<li class="diario-vazio">Nada registrado ainda. A partir de agora, toda vez que a chave for cadastrada, funcionar ou for recusada, aparece uma linha aqui.</li>';
+      return;
+    }
+    lista.innerHTML = linhas.slice().reverse().map((linha) => {
+      const q = new Date(linha.q);
+      const quando = `${q.toLocaleDateString("pt-BR")} ${q.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
+      return `<li>
+        <span class="quando">${escapeHtml(quando)}</span>
+        <span class="r-${escapeHtml(linha.r)}">${escapeHtml(RESULTADO_TEXTO[linha.r] || linha.r)}</span>
+        <span class="marca">${escapeHtml(linha.d)}</span>
+      </li>`;
+    }).join("");
+  }
+
+  // De onde a tela da chave foi aberta: sem token, "Voltar" tem de devolver
+  // para o cadastro, e nao para um painel que nao carregou.
+  let telaAntesDaChave = "tela-painel";
+
+  function abrirTelaDaChave(origem) {
+    telaAntesDaChave = origem;
     const campo = $("campo-chave-atual");
+    const temChave = Boolean(estado.token);
     campo.value = estado.token;
     campo.type = "password";
     document.querySelector('.olho[data-alvo="campo-chave-atual"]').innerHTML = OLHO_ABERTO;
+    campo.closest(".campo-senha").style.display = temChave ? "" : "none";
+    $("botao-copiar-chave").style.display = temChave ? "" : "none";
+    $("botao-trocar-chave").style.display = temChave ? "" : "none";
     const idade = idadeDaChave();
-    $("chave-desde").textContent = idade
-      ? `Cadastrada neste aparelho em ${idade.desde.toLocaleDateString("pt-BR")} — faz ${emDias(idade.dias)}.`
-      : "Cadastrada neste aparelho antes de o painel passar a anotar a data.";
+    $("chave-desde").textContent = !temChave
+      ? "Não há chave guardada neste aparelho agora."
+      : idade
+        ? `Cadastrada neste aparelho em ${idade.desde.toLocaleDateString("pt-BR")} — faz ${emDias(idade.dias)}.`
+        : "Cadastrada neste aparelho antes de o painel passar a anotar a data.";
+    renderDiario();
     mostrarTela("tela-chave");
+  }
+
+  $("botao-chave").addEventListener("click", () => abrirTelaDaChave("tela-painel"));
+
+  $("link-diario").addEventListener("click", (e) => {
+    e.preventDefault();
+    abrirTelaDaChave("tela-token");
+  });
+
+  $("botao-copiar-diario").addEventListener("click", async () => {
+    const texto = textoDoDiario() || "Nada registrado ainda.";
+    try {
+      await navigator.clipboard.writeText(texto);
+      aviso("Lista copiada. É só colar na conversa.", "ok");
+    } catch (e) {
+      aviso("Não consegui copiar sozinho — tire uma foto da tela mesmo.", "falha");
+    }
   });
 
   $("botao-copiar-chave").addEventListener("click", async () => {
@@ -1556,7 +1663,7 @@
 
   $("botao-voltar-chave").addEventListener("click", () => {
     $("campo-chave-atual").value = "";
-    mostrarTela("tela-painel");
+    mostrarTela(telaAntesDaChave);
   });
 
   $("botao-trocar-chave").addEventListener("click", () => {
@@ -1591,6 +1698,7 @@
     mostrarTela("tela-painel");
     try {
       await carregarTudo();
+      anotarNoDiario("funcionou");
     } catch (e) {
       // So apaga a chave quando o GitHub diz que ela nao vale mais (401).
       // Queda de internet ou GitHub fora do ar nao pode fazer o dono
@@ -1598,6 +1706,7 @@
       // outra vez.
       if (e.status === 401) {
         const motivo = porQueAChaveParou();
+        anotarNoDiario("recusada");
         esquecerChave();
         mostrarTela("tela-token");
         $("erro-token").textContent = "A chave guardada neste aparelho não funciona mais." + motivo;
