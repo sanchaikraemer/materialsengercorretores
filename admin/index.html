@@ -88,6 +88,10 @@
     .botao:disabled { opacity: .5; cursor: not-allowed; }
     .erro { color: var(--vermelho); font-size: .85rem; margin-top: 10px; display: none; }
     .erro.visivel { display: block; }
+    .motivo { background: #fdf1f1; border: 1px solid rgba(190,60,60,.35); border-radius: 8px; padding: 10px 12px; font-size: .84rem; color: var(--vermelho); margin: 0 0 14px; display: none; }
+    .motivo.visivel { display: block; }
+    .dobra { margin-top: 14px; border-top: 1px solid var(--borda); padding-top: 12px; }
+    .dobra summary { cursor: pointer; font-size: .88rem; color: var(--azul); }
     .passos { margin: 16px 0 0 18px; color: var(--texto-suave); font-size: .88rem; line-height: 1.7; }
     .passos a { color: var(--azul); }
     .nota { background: #e6f2f4; border: 1px solid rgba(23,143,160,.35); border-radius: 8px; padding: 10px 12px; font-size: .82rem; color: var(--dourado-escuro); margin-top: 14px; }
@@ -101,6 +105,7 @@
     .diario .r-cadastrada { color: var(--azul); font-weight: 700; }
     .diario .r-funcionou { color: var(--verde); font-weight: 700; }
     .diario .r-recusada { color: var(--vermelho); font-weight: 700; }
+    .diario .r-trocada { color: var(--texto-suave); font-weight: 700; }
     .diario-vazio { color: var(--texto-suave); font-size: .85rem; }
 
     /* campo de senha com botão de mostrar/ocultar */
@@ -360,24 +365,33 @@
   <div class="tela centro" id="tela-token">
     <div class="caixa">
       <h1>Conectar ao GitHub</h1>
-      <p class="sub">Para o painel conseguir salvar as alterações no site, ele precisa de uma chave de acesso (token) do GitHub.</p>
-      <ol class="passos">
-        <li>Entre no GitHub com a conta <strong>sanchaikraemer</strong>.</li>
-        <li>Abra <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">esta página do GitHub</a>. Se aparecer uma tela de erro com um unicórnio rosa, é o GitHub que demorou demais: atualize a página que ela abre.</li>
-        <li>Em <em>Token name</em>, escreva <strong>Painel Senger</strong> (o nome é só para você reconhecer a chave depois).</li>
-        <li>Em <em>Expiration</em>, escolha <strong>No expiration</strong> (sem vencimento). É o que evita ter de repetir isso daqui a alguns meses.</li>
-        <li>Em <em>Repository access</em>, marque <em>Only select repositories</em> e escolha <strong>materialsengercorretores</strong>.</li>
-        <li>Confira em <em>Permissions → Repository permissions → Contents</em> se está <strong>Read and write</strong>.</li>
-        <li>Clique em <em>Generate token</em>, copie o código (começa com <code>github_pat_</code>) e cole abaixo.</li>
-      </ol>
-      <label for="campo-token">Token do GitHub</label>
+      <p class="sub">O painel precisa de uma chave de acesso do GitHub para salvar as alterações no site.</p>
+      <p class="motivo" id="motivo-chave"></p>
+      <div class="nota" style="margin-top:0">
+        <strong>Se você já tem a chave em outro aparelho, não precisa criar outra.</strong>
+        No aparelho que ainda entra no painel, toque em <strong>Chave</strong> lá em cima, depois em
+        <strong>Copiar</strong>, mande o código para você mesmo (WhatsApp, e-mail) e cole aqui embaixo.
+        A mesma chave funciona no celular e no computador ao mesmo tempo.
+      </div>
+      <details class="dobra">
+        <summary>Não tenho a chave em aparelho nenhum — criar uma nova no GitHub</summary>
+        <ol class="passos">
+          <li>Entre no GitHub com a conta <strong>sanchaikraemer</strong>.</li>
+          <li>Abra <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">esta página do GitHub</a>. Se aparecer uma tela de erro com um unicórnio rosa, é o GitHub que demorou demais: atualize a página que ela abre.</li>
+          <li>Em <em>Token name</em>, escreva um nome que ainda não exista — por exemplo <strong id="nome-sugerido">Painel Senger</strong>. Se o GitHub disser que o nome já está em uso, mude o nome; <strong>não</strong> use <em>Regenerate</em> na chave antiga, porque isso desliga o outro aparelho.</li>
+          <li>Em <em>Expiration</em>, escolha <strong>No expiration</strong> (sem vencimento). É o que evita ter de repetir isso daqui a alguns meses.</li>
+          <li>Em <em>Repository access</em>, marque <em>Only select repositories</em> e escolha <strong>materialsengercorretores</strong>.</li>
+          <li>Confira em <em>Permissions → Repository permissions → Contents</em> se está <strong>Read and write</strong>.</li>
+          <li>Clique em <em>Generate token</em>, copie o código (começa com <code>github_pat_</code>) e cole abaixo.</li>
+        </ol>
+      </details>
+      <label for="campo-token">Cole aqui a chave</label>
       <div class="campo-senha">
         <input type="password" id="campo-token" placeholder="github_pat_..." autocomplete="off">
         <button type="button" class="olho" data-alvo="campo-token" aria-label="Mostrar token"></button>
       </div>
       <p class="erro" id="erro-token"></p>
       <p class="sub" style="margin:10px 0 0"><a href="#" id="link-diario">Ver o que já aconteceu com a chave neste aparelho</a></p>
-      <div class="nota">A chave fica guardada apenas neste aparelho (navegador). Para usar o painel no celular <em>e</em> no computador, leve a <strong>mesma</strong> chave para o outro aparelho pelo botão <strong>Chave</strong> lá em cima do painel. Cuidado: apagar a chave antiga no GitHub, ou usar <em>Regenerate token</em>, desliga o aparelho que ainda estava com ela.</div>
       <button class="botao" id="botao-token">Salvar e continuar</button>
     </div>
   </div>
@@ -624,6 +638,7 @@
   function mostrarTela(id) {
     document.querySelectorAll(".tela").forEach((t) => t.classList.remove("ativa"));
     $(id).classList.add("ativa");
+    if (id === "tela-token") prepararTelaDoToken();
   }
 
   // ---------------- a chave do GitHub ----------------
@@ -649,6 +664,38 @@
     if (ultima && ultima.r === resultado && ultima.d === marca && ultima.q.slice(0, 10) === agora.toISOString().slice(0, 10)) return;
     linhas.push({ q: agora.toISOString(), r: resultado, d: marca });
     try { localStorage.setItem(CHAVE_LOG, JSON.stringify(linhas.slice(-40))); } catch (e) { /* modo privado */ }
+  }
+
+  // Diz, na propria tela, POR QUE a chave nao esta mais aqui. Sem isso o dono
+  // supoe sempre a mesma coisa — que precisa criar outra no GitHub — e criar
+  // outra nao resolve quando quem apagou foi o navegador.
+  function prepararTelaDoToken() {
+    const sugestao = $("nome-sugerido");
+    if (sugestao) {
+      const celular = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+      sugestao.textContent = celular ? "Painel Senger celular" : "Painel Senger computador";
+    }
+    const motivo = $("motivo-chave");
+    if (!motivo) return;
+    // O caminho do 401 ja escreve a explicacao dele em erro-token.
+    if ($("erro-token").classList.contains("visivel")) {
+      motivo.classList.remove("visivel");
+      return;
+    }
+    const linhas = lerDiario();
+    const ultima = linhas[linhas.length - 1];
+    let texto = "";
+    if (!linhas.length) {
+      texto = "Este aparelho nunca guardou uma chave (ou o navegador apagou os dados do site). Se o painel abre em outro aparelho, traga a chave de lá em vez de criar outra.";
+    } else if (ultima.r === "recusada") {
+      texto = "Da última vez, o GitHub recusou a chave que estava aqui. Isso acontece quando a chave foi apagada no GitHub ou passou por Regenerate.";
+    } else if (ultima.r === "trocada") {
+      texto = "Você pediu para trocar a chave deste aparelho.";
+    } else {
+      texto = "A chave que estava guardada aqui sumiu sem o GitHub ter recusado nada — quem apagou foi o navegador (limpeza de dados, janela anônima ou a opção de apagar dados ao fechar). Criar outra chave no GitHub não evita que isso se repita; colar a chave do outro aparelho resolve na hora.";
+    }
+    motivo.textContent = texto;
+    motivo.classList.add("visivel");
   }
 
   function guardarChave(token) {
@@ -1579,6 +1626,7 @@
     cadastrada: "chave cadastrada aqui",
     funcionou: "abriu o painel normalmente",
     recusada: "o GitHub recusou a chave",
+    trocada: "você pediu para trocar a chave",
   };
 
   function textoDoDiario() {
@@ -1669,6 +1717,7 @@
 
   $("botao-trocar-chave").addEventListener("click", () => {
     $("campo-chave-atual").value = "";
+    anotarNoDiario("trocada");
     esquecerChave();
     $("campo-token").value = "";
     $("erro-token").classList.remove("visivel");
@@ -1738,6 +1787,7 @@
     trocar.style.marginLeft = "8px";
     trocar.textContent = "Cadastrar outra chave";
     trocar.addEventListener("click", () => {
+      anotarNoDiario("trocada");
       esquecerChave();
       area.innerHTML = "Carregando os dados do site…";
       mostrarTela("tela-token");
