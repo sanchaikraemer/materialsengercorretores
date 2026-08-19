@@ -791,7 +791,7 @@ const EMPREENDIMENTOS = [
         ],
       },
       {
-        tipo: "3 dormitórios (1 suíte) c/ móveis",
+        tipo: "3 dormitórios (1 suíte)",
         area: "87 m² global · 66 m² privativo",
         garagem: "1 Box de garagem",
         planta: "qual-planta-3d",
