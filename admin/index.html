@@ -1488,7 +1488,11 @@
       return linhaDeStatus(emp.id, item, [
         escapeHtml(item.rotulo) + obs,
         item.vagas === 2 ? "Duplo — 2 vagas" : "Simples — 1 vaga",
-        item.apto ? `${nome.prefixo} ${escapeHtml(item.apto)}` : `<span class="contagem">—</span>`,
+        // O box do Personalite as vezes foi com uma sala do terreo, e nao com
+        // um apartamento: quando o nome ja vem escrito, ele vale como esta.
+        item.apto
+          ? (/^\d/.test(String(item.apto)) ? `${nome.prefixo} ${escapeHtml(item.apto)}` : escapeHtml(item.apto))
+          : `<span class="contagem">—</span>`,
         `<span class="num">${metro(item.areaPriv)}</span>`,
         `<span class="num">${metro(item.areaGlobal)}</span>`,
       ]);
