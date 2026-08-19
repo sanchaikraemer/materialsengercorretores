@@ -1021,7 +1021,7 @@
         <div class="conteudo">
           <div class="abas">${abasDeStatus()}${abaDeBoxes(emp)}</div>
           <table>
-            <thead><tr><th>Unidade</th><th style="text-align:right">Preço</th>${boxes.length ? "<th>Garagem</th>" : ""}<th>Status</th></tr></thead>
+            <thead><tr><th>Unidade</th><th style="text-align:right">Preço</th>${boxes.length ? "<th>Garagem<br><span class='contagem'>box que a unidade leva</span></th>" : ""}<th>Status</th></tr></thead>
             <tbody>${linhas}</tbody>
           </table>${renderVagas(emp)}${tabelaBox}
         </div>
@@ -1050,19 +1050,28 @@
     </tr>`;
   }
 
+  // Quantos box, e de que tipo: "1 box simples", "1 box duplo + 1 box simples".
+  // E assim que o dono fala da garagem de cada unidade.
+  function tipoDeBox(duplo, simples) {
+    return [duplo ? conta(duplo, "box duplo", "box duplos") : "", simples ? conta(simples, "box simples", "box simples") : ""]
+      .filter(Boolean).join(" + ");
+  }
+
   // O que a unidade leva de garagem: os box que ja foram com ela, se houver;
-  // senao, quantas vagas ela leva pela regra da tipologia.
+  // senao, o que ela leva pela regra da tipologia. Em qualquer um dos casos
+  // aparece o tipo do box, e o total em vagas fica embaixo, em letra menor.
   function celulaGaragem(item, regra, vinculados) {
     if (vinculados && vinculados.length) {
+      const duplos = vinculados.filter((b) => b.vagas === 2).length;
       const vagas = vinculados.reduce((soma, b) => soma + b.vagas, 0);
-      const lista = vinculados.map((b) => `Box ${b.box}${b.vagas === 2 ? " (duplo)" : ""}`).join(", ");
-      return `${lista} <span class="contagem">${vagas} vaga${vagas > 1 ? "s" : ""}</span>`;
+      const lista = vinculados.map((b) => `Box ${b.box}`).join(", ");
+      return `${lista} <span class="contagem">${tipoDeBox(duplos, vinculados.length - duplos)} · ${conta(vagas, "vaga", "vagas")}</span>`;
     }
     const r = regra[item.estoque || item.grupo];
     if (!r) return `<span class="contagem">—</span>`;
     const vagas = (r.duplo || 0) * 2 + (r.simples || 0);
     const falta = item.status === "vendido";
-    return `<span class="${falta ? "st-vendido" : "contagem"}">${vagas} vaga${vagas > 1 ? "s" : ""}${falta ? " · sem box vinculado" : ""}</span>`;
+    return `${tipoDeBox(r.duplo || 0, r.simples || 0)} <span class="${falta ? "st-vendido" : "contagem"}">${conta(vagas, "vaga", "vagas")}${falta ? " · sem box vinculado" : ""}</span>`;
   }
 
   function abasDeStatus() {
