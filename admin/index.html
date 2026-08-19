@@ -874,8 +874,16 @@
       areaPriv: b.areaPriv,
       areaGlobal: b.areaGlobal,
       obs: b.obs || "",
+      // Vaga PNE nao se vende nem se da a ninguem: fica no cadastro para o
+      // predio bater, mas nunca entra na conta de garagem.
+      pne: !!b.pne,
       status: b.status || "disponivel",
     }));
+  }
+
+  // Os box que de fato estao livres para vender. A vaga PNE nunca esta.
+  function boxesLivres(emp, lista) {
+    return (lista || boxesDoEmp(emp)).filter((b) => !b.pne && statusAtual(emp.id, b) === "disponivel");
   }
 
   function chaveDoItem(empId, item) {
@@ -1005,7 +1013,7 @@
       linhas += `<tr class="vazio"><td colspan="${colunas}">Nenhuma unidade nesta situação.</td></tr>`;
       // Os box do empreendimento vem logo abaixo das unidades, dentro do mesmo bloco.
       const tabelaBox = renderTabelaBoxes(emp);
-      const boxLivres = boxes.filter((b) => statusAtual(emp.id, b) === "disponivel").length;
+      const boxLivres = boxesLivres(emp, boxes).length;
       const resumo = `${disponiveis} de ${itens.length} disponíveis`
         + (boxes.length ? ` · ${boxLivres} de ${boxes.length} box` : "");
       return `<details class="emp" data-emp="${escapeHtml(emp.id)}" data-filtro="disponivel">
@@ -1033,7 +1041,7 @@
     const status = statusAtual(empId, item);
     const mudou = Boolean(opDeStatus(chave));
     const opcoes = STATUS_OPCOES.map(([v, l]) => `<option value="${v}"${v === status ? " selected" : ""}>${l}</option>`).join("");
-    return `<tr class="linha-${status}${mudou ? " mudou" : ""}" data-status="${status}">
+    return `<tr class="linha-${status}${mudou ? " mudou" : ""}" data-status="${status}"${item.pne ? ' data-pne="1"' : ""}>
       ${colunas.map((c) => `<td>${c}</td>`).join("")}
       <td><div class="status-celula st-${status}">
         <span class="bolinha"></span>
@@ -1130,11 +1138,15 @@
     });
 
     if (secaoBox) {
-      const livres = contagemBox.disponivel || 0;
-      const duplos = [...secaoBox.querySelectorAll("tbody tr[data-status='disponivel']")]
+      // A vaga PNE aparece na tabela mas nunca conta como livre.
+      const pneTotal = secaoBox.querySelectorAll("tbody tr[data-pne]").length;
+      const pneLivres = secaoBox.querySelectorAll("tbody tr[data-status='disponivel'][data-pne]").length;
+      const livres = (contagemBox.disponivel || 0) - pneLivres;
+      const duplos = [...secaoBox.querySelectorAll("tbody tr[data-status='disponivel']:not([data-pne])")]
         .filter((tr) => tr.children[1].textContent.startsWith("Duplo")).length;
       secaoBox.querySelector(".contagem").textContent =
-        `${livres} de ${total(contagemBox)} disponíveis · ${livres - duplos} simples e ${duplos} duplos`;
+        `${livres} de ${total(contagemBox)} disponíveis · ${livres - duplos} simples e ${duplos} duplos`
+        + (pneTotal ? ` · ${pneTotal === 1 ? "1 vaga PNE fora da conta" : `${pneTotal} vagas PNE fora da conta`}` : "");
     }
     function total(obj) { return Object.values(obj).reduce((a, v) => a + v, 0); }
   }
@@ -1158,7 +1170,7 @@
       const rot = i.estoque || i.grupo;
       estoque.set(rot, (estoque.get(rot) || 0) + 1);
     });
-    const boxes = boxesDoEmp(emp).filter((b) => statusAtual(emp.id, b) === "disponivel");
+    const boxes = boxesLivres(emp);
     return { estoque, temD: boxes.filter((b) => b.vagas === 2).length, temS: boxes.filter((b) => b.vagas === 1).length };
   }
 
@@ -1204,10 +1216,11 @@
   function renderGaragemNoCartao(emp, regra, porTipo) {
     const boxes = boxesDoEmp(emp);
     if (!boxes.length) return "";
-    const livres = boxes.filter((b) => statusAtual(emp.id, b) === "disponivel");
+    const livres = boxesLivres(emp, boxes);
     const duplosLivres = livres.filter((b) => b.vagas === 2).length;
     const simplesLivres = livres.length - duplosLivres;
     const vendidos = boxes.filter((b) => statusAtual(emp.id, b) === "vendido").length;
+    const pne = boxes.filter((b) => b.pne).length;
     const vagasLivres = duplosLivres * 2 + simplesLivres;
     const composicao = [
       simplesLivres ? conta(simplesLivres, "simples", "simples") : "",
@@ -1220,6 +1233,7 @@
       + `, que dão <b>${conta(vagasLivres, "vaga", "vagas")}</b>.`];
     const rodape = () => {
       if (vendidos) detalhes.push(`${conta(vendidos, "box já vendido", "box já vendidos")}.`);
+      if (pne) detalhes.push(`${conta(pne, "vaga PNE não entra", "vagas PNE não entram")} na conta.`);
       return `<div class="garagem-cartao">
         <div class="rotulo">Garagem</div>${frase}
         <div class="detalhes">${detalhes.join("<br>")}</div>
@@ -1405,14 +1419,17 @@
     if (!boxes.length) return "";
     const nome = nomes(emp);
     const metro = (n) => (n == null ? "—" : Number(n).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " m²");
-    const livres = boxes.filter((b) => statusAtual(emp.id, b) === "disponivel");
+    const livres = boxesLivres(emp, boxes);
     const duplos = livres.filter((b) => b.vagas === 2).length;
-    // Dentro da aba, os box vem separados por situacao, nunca corridos.
+    const pne = boxes.filter((b) => b.pne);
+    // Dentro da aba, os box vem separados por situacao, nunca corridos. A vaga
+    // PNE fica num bloco proprio, fora das situacoes, para nao ser contada.
     const ordenados = [];
     STATUS_OPCOES.forEach(([valor, , plural]) => {
-      const doStatus = boxes.filter((b) => statusAtual(emp.id, b) === valor);
+      const doStatus = boxes.filter((b) => !b.pne && statusAtual(emp.id, b) === valor);
       if (doStatus.length) ordenados.push({ cabecalho: `${plural} (${doStatus.length})` }, ...doStatus);
     });
+    if (pne.length) ordenados.push({ cabecalho: `Vaga PNE (${pne.length}) — não pode ser vendida` }, ...pne);
     const linhas = ordenados.map((item) => {
       if (item.cabecalho) return `<tr class="linha-grupo"><td colspan="6" class="grupo-titulo">${escapeHtml(item.cabecalho)}</td></tr>`;
       const obs = item.obs ? ` <span class="contagem">${escapeHtml(item.obs)}</span>` : "";
@@ -1425,7 +1442,7 @@
       ]);
     }).join("");
     return `<section class="secao-box">
-      <p class="titulo-lista">Box de garagem <span class="contagem">${livres.length} de ${boxes.length} disponíveis · ${livres.length - duplos} simples e ${duplos} duplos</span></p>
+      <p class="titulo-lista">Box de garagem <span class="contagem">${livres.length} de ${boxes.length} disponíveis · ${livres.length - duplos} simples e ${duplos} duplos${pne.length ? ` · ${conta(pne.length, "vaga PNE fora da conta", "vagas PNE fora da conta")}` : ""}</span></p>
       <p class="descricao">Controle interno: os box não aparecem no site, nos PDFs nem nas mensagens.</p>
       <table>
         <thead><tr><th>Box</th><th>Tipo</th><th>${nome.Titulo}</th><th style="text-align:right">Área privativa</th><th style="text-align:right">Área global</th><th>Status</th></tr></thead>

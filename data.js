@@ -618,7 +618,9 @@ const EMPREENDIMENTOS = [
       { box: "12", vagas: 1, areaPriv: 13.52, areaGlobal: 18.74, status: "vendido", apto: "604" },
       { box: "13", vagas: 1, areaPriv: 14.56, areaGlobal: 20.17, status: "disponivel" },
       { box: "14", vagas: 1, areaPriv: 15.34, areaGlobal: 21.26, status: "vendido", apto: "601" },
-      { box: "15", vagas: 1, status: "disponivel", obs: "Vaga PNE" },
+      // Vaga PNE: existe no predio, mas nao se vende nem se usa. O painel a
+      // deixa fora da conta de garagem.
+      { box: "15", vagas: 1, status: "disponivel", pne: true, obs: "Vaga PNE" },
       { box: "16", vagas: 1, areaPriv: 13.78, areaGlobal: 19.1, status: "vendido", apto: "602" },
       { box: "17", vagas: 1, areaPriv: 15.6, areaGlobal: 21.61, status: "vendido", apto: "503" },
       { box: "18", vagas: 1, areaPriv: 15.08, areaGlobal: 20.9, status: "vendido", apto: "704" },
