@@ -166,7 +166,9 @@
     section.bloco .descricao { color: var(--texto-suave); font-size: .85rem; margin-bottom: 16px; }
 
     /* dashboard */
-    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+    /* align-items: start para cada cartao ter a sua altura: com a lista de
+       unidades dentro, um cartao alto deixaria os vizinhos cheios de vazio. */
+    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; align-items: start; }
     .card {
       background: var(--fundo);
       border: 1px solid var(--borda);
@@ -176,7 +178,7 @@
     /* O cartao e um botao: clicar nele abre o empreendimento logo abaixo. */
     button.card {
       font: inherit; color: inherit; text-align: left; cursor: pointer;
-      width: 100%; height: 100%; display: flex; flex-direction: column;
+      width: 100%; display: flex; flex-direction: column;
     }
     button.card:hover { border-color: var(--dourado); }
     button.card:focus-visible { outline: 2px solid var(--dourado); outline-offset: 2px; }
@@ -208,6 +210,17 @@
     .card .tipos .linha span { padding-left: 10px; border-left: 2px solid var(--verde); }
     /* A regra de garagem anda junto da tipologia, em letra menor. */
     .card .regra { display: block; font-style: normal; font-size: .92em; opacity: .75; }
+    /* Unidade por unidade: o numero da sala ou do apto e, do lado, o box que
+       ela leva. E a lista que o dono le no balcao. */
+    .card .por-unidade { border-top: 1px solid var(--borda); margin-top: 8px; padding-top: 6px; }
+    .card .por-unidade .rotulo {
+      font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+      color: var(--texto-suave); padding-bottom: 3px;
+    }
+    .card .por-unidade .linha { font-size: .78rem; }
+    .card .por-unidade .linha span { font-weight: 600; color: var(--texto); white-space: nowrap; }
+    .card .por-unidade .linha em { font-style: normal; text-align: right; }
+    .card .por-unidade .linha em b { font-weight: 600; color: var(--texto); }
     /* Garagem: a resposta em uma frase, com o sinal do lado, e os numeros
        embaixo em letra menor. */
     .card .garagem-cartao { border-top: 1px solid var(--borda); margin-top: 8px; padding-top: 6px; }
@@ -949,13 +962,16 @@
       // apartamentos em estoque pedem e a sobra. A tabela inteira continua na
       // tela do empreendimento.
       const blocoGaragem = renderGaragemNoCartao(emp, regraDoEmp, porTipo);
+      // A lista que o dono pediu: cada unidade em estoque com o box que leva,
+      // sem precisar abrir o empreendimento.
+      const listaUnidades = renderUnidadesNoCartao(emp, regraDoEmp, itens);
       const ativo = estado.empAberto === emp.id;
       // Quanto do estoque de unidades ja foi vendido. Box ficam de fora: sao
       // vendidos a parte e distorceriam o numero do empreendimento.
       const pct = Math.round(((contagem.vendido || 0) / itens.length) * 100);
       return `<button type="button" class="card${ativo ? " ativo" : ""}" data-emp="${escapeHtml(emp.id)}" aria-expanded="${ativo}">
         <h3>${escapeHtml(emp.nome)} <span class="pct${pct ? " tem" : ""}">${pct}% vendido</span></h3>${linhas}
-        <div class="linha" style="border-top:1px solid var(--borda);margin-top:6px;padding-top:6px"><span>Total</span><strong>${itens.length}</strong></div>${linhasTipo}${blocoGaragem}
+        <div class="linha" style="border-top:1px solid var(--borda);margin-top:6px;padding-top:6px"><span>Total</span><strong>${itens.length}</strong></div>${linhasTipo}${listaUnidades}${blocoGaragem}
         <span class="abrir">${ativo ? "Fechar" : "Abrir"}</span>
       </button>`;
     }).join("");
@@ -1212,6 +1228,33 @@
       reparte.push({ rot, n, r, comDuplo, semDuplo, ficaD, ficaS, trocados, unidadesTrocadas, faltaS });
     });
     return { aptos, precisaD, precisaS, faltamD, reparte, sobraD: livresD, sobraS: livresS };
+  }
+
+  // Cada unidade em estoque com o box que ela leva, no proprio cartao: "Sala
+  // 705 — 1 box simples". So aparece onde ha box cadastrado; as vendidas ficam
+  // na lista de dentro do empreendimento.
+  function renderUnidadesNoCartao(emp, regra, itens) {
+    const boxes = boxesDoEmp(emp);
+    if (!boxes.length) return "";
+    const boxDoApto = {};
+    boxes.forEach((b) => { if (b.apto) (boxDoApto[b.apto] = boxDoApto[b.apto] || []).push(b); });
+    const emEstoque = itens.filter((i) => statusAtual(emp.id, i) === "disponivel");
+    if (!emEstoque.length) return "";
+    const linhas = emEstoque.map((i) => {
+      const vinculados = boxDoApto[i.apto];
+      let leva;
+      if (vinculados && vinculados.length) {
+        const duplos = vinculados.filter((b) => b.vagas === 2).length;
+        leva = `<b>${vinculados.map((b) => "Box " + b.box).join(", ")}</b> · ${tipoDeBox(duplos, vinculados.length - duplos)}`;
+      } else {
+        const r = regra[i.estoque || i.grupo];
+        leva = r ? `<b>${tipoDeBox(r.duplo || 0, r.simples || 0)}</b>` : "sem vaga na regra";
+      }
+      return `<div class="linha"><span>${escapeHtml(i.rotulo)}</span><em>${leva}</em></div>`;
+    }).join("");
+    return `<div class="por-unidade">
+      <div class="rotulo">Garagem por unidade</div>${linhas}
+    </div>`;
   }
 
   // A garagem do cartao: a resposta antes da conta. Primeiro a frase que o
