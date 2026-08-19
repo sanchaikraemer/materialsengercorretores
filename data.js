@@ -218,7 +218,7 @@ const EMPREENDIMENTOS = [
       { box: "119", vagas: 1, areaPriv: 20.1, areaGlobal: 25.43, status: "vendido", apto: "1801" },
       { box: "201", vagas: 1, areaPriv: 17.98, areaGlobal: 22.74, status: "disponivel" },
       { box: "202", vagas: 1, areaPriv: 17.98, areaGlobal: 22.74, status: "disponivel" },
-      { box: "203", vagas: 2, areaPriv: 56.66, areaGlobal: 75.84, status: "disponivel" },
+      { box: "203", vagas: 2, areaPriv: 41.13, areaGlobal: 52.03, status: "disponivel" },
       { box: "204", vagas: 2, areaPriv: 48.12, areaGlobal: 62.91, status: "disponivel" },
       { box: "205", vagas: 1, areaPriv: 16.94, areaGlobal: 21.43, status: "disponivel" },
       { box: "206", vagas: 1, areaPriv: 18.58, areaGlobal: 23.5, status: "disponivel" },
@@ -776,7 +776,7 @@ const EMPREENDIMENTOS = [
       { box: "126", vagas: 2, areaPriv: 26, status: "disponivel" },
       { box: "201", vagas: 2, areaPriv: 26.62, status: "vendido", apto: "1301" },
       { box: "202", vagas: 1, areaPriv: 20.64, status: "disponivel", obs: "Vaga PCD", pne: true },
-      { box: "203", vagas: 1, status: "disponivel", obs: "Planta sem a area do box" },
+      { box: "203", vagas: 1, status: "disponivel", obs: "Sem área na planta — cerca de 19,7 m² pelo desenho" },
       { box: "204", vagas: 1, areaPriv: 14.98, status: "vendido", apto: "402" },
       { box: "205", vagas: 2, areaPriv: 25.51, status: "vendido", apto: "301" },
       { box: "206", vagas: 1, areaPriv: 19.83, status: "vendido", apto: "402" },
@@ -1075,7 +1075,7 @@ const EMPREENDIMENTOS = [
         area: "69 m² global · 53 m² privativo",
         garagem: "1 Box de garagem",
         planta: "qual-planta-69",
-        unidades: [{ apto: "701B", preco: 510000, status: "disponivel" }],
+        unidades: [{ apto: "701B", preco: 510000, status: "alugado" }],
       },
       {
         tipo: "2 dormitórios — já alugados",
@@ -1095,7 +1095,6 @@ const EMPREENDIMENTOS = [
         planta: "qual-planta-3d",
         obs: "Aluguel R$ 1.600,00 · Condomínio e IPTU por conta do inquilino.",
         unidades: [
-          { apto: "501A", preco: 580000, status: "alugado" },
           { apto: "601A", preco: 590000, status: "alugado" },
           { apto: "801A", preco: 610000, status: "alugado" },
         ],
@@ -1108,6 +1107,7 @@ const EMPREENDIMENTOS = [
         unidades: [
           { apto: "201A", preco: 550000, status: "disponivel" },
           { apto: "401A", preco: 580000, status: "disponivel", tags: ["Semimobiliado"] },
+          { apto: "501A", status: "vendido" },
           { apto: "701A", preco: 590000, status: "disponivel" },
         ],
       },
