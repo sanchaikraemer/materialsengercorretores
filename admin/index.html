@@ -827,6 +827,14 @@
     $("conteudo").style.display = "block";
   }
 
+  // Predio comercial nao tem apartamento: no Premium Office as unidades sao
+  // salas. O painel fala do jeito que o dono fala em cada empreendimento.
+  function nomes(emp) {
+    return emp.categoria === "comercial"
+      ? { prefixo: "Sala", sing: "sala", plur: "salas", os: "as", Os: "As", Titulo: "Sala", TituloPlur: "Salas" }
+      : { prefixo: "Apto", sing: "apartamento", plur: "apartamentos", os: "os", Os: "Os", Titulo: "Apartamento", TituloPlur: "Apartamentos" };
+  }
+
   // Itens editáveis de um empreendimento, nas três formas que o data.js usa.
   function itensDoEmp(emp) {
     const itens = [];
@@ -835,8 +843,9 @@
       (grupo.unidades || []).forEach((u) => {
         const ocorrencia = vistosApto[u.apto] || 0;
         vistosApto[u.apto] = ocorrencia + 1;
-        // "404" vira "Apto 404"; "Loja 101" ja vem com o nome pronto.
-        const rotulo = /^\d/.test(String(u.apto)) ? "Apto " + u.apto : String(u.apto);
+        // "404" vira "Apto 404", "705" vira "Sala 705" no comercial; "Loja 101"
+        // ja vem com o nome pronto.
+        const rotulo = /^\d/.test(String(u.apto)) ? nomes(emp).prefixo + " " + u.apto : String(u.apto);
         // "estoque" e a tipologia em que a unidade conta no cartao. So existe
         // onde a divisao comercial nao bate com a do site: as Casas Suspensas
         // do Renaissance sao um grupo so, mas contam com o andar delas.
@@ -1222,6 +1231,8 @@
     const { estoque, temD, temS } = estoqueDeVagas(emp);
     const { aptos, reparte, sobraD, sobraS } = conferirVagas(regra, estoque, temD, temS);
     if (!aptos) return rodape();
+    const n = nomes(emp);
+    const quantos = `${n.os} ${aptos} ${aptos === 1 ? n.sing : n.plur}`;
 
     // O que os apartamentos pedem em vagas: trocar um duplo por dois simples
     // nao muda esse total, so muda de que box a vaga sai.
@@ -1234,20 +1245,21 @@
     const oQueFalta = -sobraS === 1 ? "Falta 1 box simples" : `Faltam ${-sobraS} box simples`;
     const dito = falta
       ? presoEmDuplo
-        ? `<em class="ruim">${oQueFalta}</em> para os ${aptos} apartamentos que faltam vender — o que sobra é box duplo, e ele não se divide.`
-        : `<em class="ruim">${sobraVagas === -1 ? "Falta 1 vaga" : `Faltam ${-sobraVagas} vagas`}</em> para os ${aptos} apartamentos que faltam vender.`
+        ? `<em class="ruim">${oQueFalta}</em> para ${quantos} que faltam vender — o que sobra é box duplo, e ele não se divide.`
+        : `<em class="ruim">${sobraVagas === -1 ? "Falta 1 vaga" : `Faltam ${-sobraVagas} vagas`}</em> para ${quantos} que faltam vender.`
       : sobraVagas
-        ? `Tem garagem para os ${aptos} apartamentos que faltam vender — e ainda <em>${sobraVagas === 1 ? "sobra 1 vaga" : `sobram ${sobraVagas} vagas`}</em>.`
-        : `Tem garagem para os ${aptos} apartamentos que faltam vender, <em class="limite">mas sem sobrar nenhuma vaga</em>.`;
+        ? `Tem garagem para ${quantos} que faltam vender — e ainda <em>${sobraVagas === 1 ? "sobra 1 vaga" : `sobram ${sobraVagas} vagas`}</em>.`
+        : `Tem garagem para ${quantos} que faltam vender, <em class="limite">mas sem sobrar nenhuma vaga</em>.`;
     frase = `<div class="frase">
       <span class="sinal${falta ? " ruim" : ""}" aria-hidden="true">${falta ? "!" : "✓"}</span>
       <p>${dito}</p>
     </div>`;
 
-    detalhes.push(`Os apartamentos pedem <b>${conta(pedem, "vaga", "vagas")}</b>.`);
+    detalhes.push(`${n.Os} ${n.plur} pedem <b>${conta(pedem, "vaga", "vagas")}</b>.`);
     // Quem pediu box duplo e nao tinha: sai com dois simples no lugar.
     const trocam = reparte.reduce((a, l) => a + l.semDuplo, 0);
-    if (trocam) detalhes.push(`${conta(trocam, "deles fica", "deles ficam")} com 2 box simples no lugar do box duplo.`);
+    const del = n.os === "as" ? "delas" : "deles";
+    if (trocam) detalhes.push(`${conta(trocam, `${del} fica`, `${del} ficam`)} com 2 box simples no lugar do box duplo.`);
     // O que esta em estoque mas nao tem vaga na regra (sala comercial, por
     // exemplo) fica de fora — e precisa estar dito, senao o numero de
     // apartamentos daqui nao bate com o "Disponível" logo acima.
@@ -1267,6 +1279,7 @@
 
     const { estoque, temD, temS } = estoqueDeVagas(emp);
     const { aptos, reparte, sobraD, sobraS } = conferirVagas(regra, estoque, temD, temS);
+    const n = nomes(emp);
     const cor = (n) => (n < 0 ? "st-vendido" : n > 0 ? "st-disponivel" : "");
 
     // Cada linha conta APARTAMENTOS, e o box que eles levam vem escrito por
@@ -1304,10 +1317,10 @@
     const vagasTem = temD * 2 + temS;
     const vagasPedem = usaD * 2 + usaS;
     const recado = sobraS < 0
-      ? `Não fecha: há ${vagasTem} vagas livres e os ${aptos} apartamentos em estoque pedem ${vagasPedem}.`
+      ? `Não fecha: há ${vagasTem} vagas livres e ${n.os} ${aptos} ${n.plur} em estoque pedem ${vagasPedem}.`
         + ` ${-sobraS === 1 ? "Falta 1 box simples" : `Faltam ${-sobraS} box simples`}`
         + (sobraD > 0 ? " — o que sobra é box duplo, e ele não se divide." : ".")
-      : `Fecha: há ${vagasTem} vagas livres, em ${conta(temD + temS, "box", "box")}, e os ${aptos} apartamentos em estoque pedem ${vagasPedem}.`
+      : `Fecha: há ${vagasTem} vagas livres, em ${conta(temD + temS, "box", "box")}, e ${n.os} ${aptos} ${n.plur} em estoque pedem ${vagasPedem}.`
         + (sobras ? ` Sobra${sobraD + sobraS > 1 ? "m" : ""} ${sobras}.` : " Não sobra nenhum box.");
 
     return `<section class="secao-vagas">
@@ -1315,7 +1328,7 @@
       <p class="descricao ${sobraS < 0 ? "alerta" : "ok"}">${recado}</p>
       <table>
         <thead><tr><th>Tipologia</th>
-          <th style="text-align:right">Apartamentos<br><span class="contagem">em estoque</span></th>
+          <th style="text-align:right">${n.TituloPlur}<br><span class="contagem">em estoque</span></th>
           <th>O que cada um leva</th>
           <th>Box que isso reserva</th></tr></thead>
         <tbody>${linhas}
@@ -1337,6 +1350,7 @@
   // seguintes a descoberto. Simula cada combinação e refaz a conta com o que
   // sobraria — é a pergunta do dono na hora de fechar negócio.
   function renderOpcoesDeVenda(emp, regra, estoque, temD, temS) {
+    const n = nomes(emp);
     const linhas = Object.entries(regra).map(([rot, r]) => {
       const nesta = estoque.get(rot) || 0;
       if (!nesta) return "";
@@ -1360,7 +1374,7 @@
         const nome = [o.d ? conta(o.d, "box duplo", "box duplos") : "", o.s ? conta(o.s, "box simples", "box simples") : ""].filter(Boolean).join(" + ")
           + (padrao ? ` <span class="contagem">(o de sempre)</span>` : o.d * 2 + o.s > vagas ? ` <span class="contagem">(uma vaga a mais)</span>` : "");
         const veredito = impossivel ? `<span class="st-vendido">não há box assim em estoque</span>`
-          : falta ? `<span class="st-vendido">deixa ${conta(-c.sobraS, "apartamento", "apartamentos")} sem vaga</span>`
+          : falta ? `<span class="st-vendido">deixa ${conta(-c.sobraS, n.sing, n.plur)} sem vaga</span>`
           : c.sobraD + c.sobraS === 0 ? `<span class="aviso-limite">no limite, sem folga</span>`
           : `<span class="st-disponivel">pode</span>`;
         const sobra = impossivel ? "—"
@@ -1373,7 +1387,7 @@
     }).join("");
     if (!linhas) return "";
     return `<p class="titulo-lista" style="border-top:1px solid var(--borda);margin-top:16px">Ao vender, o que dar de garagem
-      <span class="contagem">o que sobra é o que ainda cobre os outros apartamentos</span></p>
+      <span class="contagem">o que sobra é o que ainda cobre ${n.os} outr${n.os === "as" ? "as" : "os"} ${n.plur}</span></p>
       <table>
         <thead><tr><th>Tipologia</th><th>Se der…</th><th>Resultado</th><th style="text-align:right">Sobra depois</th></tr></thead>
         <tbody>${linhas}</tbody>
@@ -1389,6 +1403,7 @@
   function renderTabelaBoxes(emp) {
     const boxes = boxesDoEmp(emp);
     if (!boxes.length) return "";
+    const nome = nomes(emp);
     const metro = (n) => (n == null ? "—" : Number(n).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " m²");
     const livres = boxes.filter((b) => statusAtual(emp.id, b) === "disponivel");
     const duplos = livres.filter((b) => b.vagas === 2).length;
@@ -1404,7 +1419,7 @@
       return linhaDeStatus(emp.id, item, [
         escapeHtml(item.rotulo) + obs,
         item.vagas === 2 ? "Duplo — 2 vagas" : "Simples — 1 vaga",
-        item.apto ? `Apto ${escapeHtml(item.apto)}` : `<span class="contagem">—</span>`,
+        item.apto ? `${nome.prefixo} ${escapeHtml(item.apto)}` : `<span class="contagem">—</span>`,
         `<span class="num">${metro(item.areaPriv)}</span>`,
         `<span class="num">${metro(item.areaGlobal)}</span>`,
       ]);
@@ -1413,7 +1428,7 @@
       <p class="titulo-lista">Box de garagem <span class="contagem">${livres.length} de ${boxes.length} disponíveis · ${livres.length - duplos} simples e ${duplos} duplos</span></p>
       <p class="descricao">Controle interno: os box não aparecem no site, nos PDFs nem nas mensagens.</p>
       <table>
-        <thead><tr><th>Box</th><th>Tipo</th><th>Apartamento</th><th style="text-align:right">Área privativa</th><th style="text-align:right">Área global</th><th>Status</th></tr></thead>
+        <thead><tr><th>Box</th><th>Tipo</th><th>${nome.Titulo}</th><th style="text-align:right">Área privativa</th><th style="text-align:right">Área global</th><th>Status</th></tr></thead>
         <tbody>${linhas}</tbody>
       </table>
     </section>`;
