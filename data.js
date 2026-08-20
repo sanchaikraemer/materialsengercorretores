@@ -287,6 +287,10 @@ const EMPREENDIMENTOS = [
     // A ordem importa: quem vem primeiro fica com os duplos.
     vagasPorTipologia: {
       "3 dormitórios (3 suítes)": { duplo: 1 },
+      // Os dois do 9o pavimento ja foram vendidos, entao esta linha nao muda a
+      // conferencia de hoje — ela existe para o painel saber o que a unidade
+      // leva, que e o que o proprio grupo diz em "garagem: 01 box duplo".
+      "9º pavimento": { duplo: 1 },
       "2 dormitórios (1 suíte)": { simples: 1 },
       "2 dormitórios (2 suítes)": { simples: 1 },
     },
