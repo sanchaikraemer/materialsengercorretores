@@ -1320,21 +1320,34 @@
     const { aptos, reparte, sobraD, sobraS, semNada } = conferirVagas(regra, estoque, temD, temS);
     if (!aptos) return rodape();
     const n = nomes(emp);
-    const quantos = `${n.os} ${aptos} ${aptos === 1 ? n.sing : n.plur}`;
+    // "os 24 apartamentos" no plural, "o apartamento" no singular — o "os 1"
+    // saia torto na tela do Prime, que tem uma unidade so.
+    const quantos = aptos === 1
+      ? `${n.os === "as" ? "a" : "o"} ${n.sing}`
+      : `${n.os} ${aptos} ${n.plur}`;
+    const queFaltam = aptos === 1 ? "que falta vender" : "que faltam vender";
 
     // Quantos BOX os apartamentos levam. Contar em vagas aqui enganaria: duas
     // vagas que sobram dentro de um box duplo atendem um apartamento so.
     const levam = reparte.reduce((a, l) => a + l.ficaD + l.ficaS, 0);
     const sobraBox = sobraD + sobraS;
+    // A sobra sai discriminada: saber que sobram 2 box nao basta, o dono
+    // precisa saber se sao simples ou duplos para saber o que ainda da para
+    // oferecer. So quando sobram dos dois tipos e que vale abrir o total.
+    const sobraDita = sobraD && sobraS
+      ? `sobram ${sobraBox} box: ${conta(sobraS, "simples", "simples")} e ${conta(sobraD, "duplo", "duplos")}`
+      : sobraD
+        ? (sobraD === 1 ? "sobra 1 box duplo" : `sobram ${sobraD} box duplos`)
+        : (sobraS === 1 ? "sobra 1 box simples" : `sobram ${sobraS} box simples`);
     // So falta garagem quando sobra apartamento sem box nenhum. Box duplo no
     // lugar de simples nao e falta: o apartamento sai com garagem do mesmo
     // jeito, so passa uma vaga.
     const falta = semNada > 0;
     const dito = falta
-      ? `<em class="ruim">${conta(semNada, `${n.sing} sem box`, `${n.plur} sem box`)}</em> de ${quantos} que faltam vender — acabaram os box.`
+      ? `<em class="ruim">${conta(semNada, `${n.sing} sem box`, `${n.plur} sem box`)}</em> — acabaram os box antes de cobrir ${quantos} ${queFaltam}.`
       : sobraBox
-        ? `Tem garagem para ${quantos} que faltam vender — e ainda <em>${sobraBox === 1 ? "sobra 1 box" : `sobram ${sobraBox} box`}</em>.`
-        : `Tem garagem para ${quantos} que faltam vender, <em class="limite">mas sem sobrar nenhum box</em>.`;
+        ? `Tem garagem para ${quantos} ${queFaltam} — e ainda <em>${sobraDita}</em>.`
+        : `Tem garagem para ${quantos} ${queFaltam}, <em class="limite">mas sem sobrar nenhum box</em>.`;
     frase = `<div class="frase">
       <span class="sinal${falta ? " ruim" : ""}" aria-hidden="true">${falta ? "!" : "✓"}</span>
       <p>${dito}</p>
