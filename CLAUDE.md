@@ -71,6 +71,9 @@ Sempre **truncadas**, nunca arredondadas para cima: 99,6188 m² vira "99 m²", e
   box duplo tem as duas vagas uma atrás da outra e vai inteiro para um
   apartamento só — nunca se reparte entre dois. Somar vagas soltas dá um número
   que parece fechar sem fechar.
+- A aba dos box mostra, quando há, o que **falta preencher no cadastro**: box
+  vendido sem a unidade que o levou, unidade vendida sem box vinculado, box sem
+  área. É por aí que se vê o que ainda precisa de planta ou tabela.
 - A troca vale **dos dois lados**, decisão do dono: faltando box duplo, dois
   simples fazem o lugar dele; faltando box simples, um duplo faz o lugar dele
   (passa uma vaga, mas o apartamento sai com garagem). **Só falta garagem quando
