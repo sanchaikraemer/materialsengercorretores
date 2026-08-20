@@ -481,7 +481,8 @@
         <section class="bloco">
           <h2>Estoque por empreendimento</h2>
           <p class="descricao">A contagem que não aparece no site — só aqui no painel.
-            Na garagem a conta é sempre em <strong>vagas</strong>: box simples vale 1 vaga, box duplo vale 2.</p>
+            Na garagem a conta é em <strong>box</strong>: cada box vai inteiro para um apartamento.
+            O box duplo tem as duas vagas uma atrás da outra, então ele não se reparte entre dois apartamentos.</p>
           <div class="cards" id="dashboard"></div>
         </section>
 
@@ -1280,8 +1281,10 @@
   // menor, para conferir so quem quiser. A conta inteira continua na tela do
   // empreendimento.
   //
-  // Tudo aqui e contado em VAGAS: box simples vale 1, box duplo vale 2. E a
-  // unica unidade em que os numeros fecham entre si.
+  // Tudo aqui e contado em BOX, nao em vagas: cada box vai inteiro para um
+  // apartamento. O duplo tem as duas vagas uma atras da outra, entao ele nao se
+  // reparte entre dois apartamentos — somar vagas soltas daria um numero que
+  // parece fechar sem fechar de verdade.
   function renderGaragemNoCartao(emp, regra, porTipo) {
     const boxes = boxesDoEmp(emp);
     if (!boxes.length) return "";
@@ -1296,10 +1299,12 @@
       duplosLivres ? conta(duplosLivres, "duplo", "duplos") : "",
     ].filter(Boolean).join(" e ");
     // Cada detalhe e uma frase inteira: o dono le de cima para baixo sem
-    // precisar juntar numero solto com rotulo.
+    // precisar juntar numero solto com rotulo. As vagas vem depois dos box e
+    // entre parenteses: elas dizem quantos carros cabem, nao quantos
+    // apartamentos atende.
     const detalhes = [`Livres: <b>${conta(livres.length, "box", "box")}</b>`
       + (composicao ? ` — ${composicao}` : "")
-      + `, que dão <b>${conta(vagasLivres, "vaga", "vagas")}</b>.`];
+      + ` <span class="contagem">(${conta(vagasLivres, "vaga", "vagas")} de carro)</span>.`];
     const rodape = () => {
       if (vendidos) detalhes.push(`${conta(vendidos, "box já vendido", "box já vendidos")}.`);
       if (pne) detalhes.push(`${conta(pne, "vaga PNE não entra", "vagas PNE não entram")} na conta.`);
@@ -1317,26 +1322,25 @@
     const n = nomes(emp);
     const quantos = `${n.os} ${aptos} ${aptos === 1 ? n.sing : n.plur}`;
 
-    // O que os apartamentos pedem em vagas: trocar um duplo por dois simples
-    // nao muda esse total, so muda de que box a vaga sai. Trocar um simples por
-    // um duplo passa uma vaga, e ela ja esta contada aqui.
-    const pedem = reparte.reduce((a, l) => a + l.ficaD * 2 + l.ficaS, 0);
-    const sobraVagas = sobraD * 2 + sobraS;
+    // Quantos BOX os apartamentos levam. Contar em vagas aqui enganaria: duas
+    // vagas que sobram dentro de um box duplo atendem um apartamento so.
+    const levam = reparte.reduce((a, l) => a + l.ficaD + l.ficaS, 0);
+    const sobraBox = sobraD + sobraS;
     // So falta garagem quando sobra apartamento sem box nenhum. Box duplo no
     // lugar de simples nao e falta: o apartamento sai com garagem do mesmo
     // jeito, so passa uma vaga.
     const falta = semNada > 0;
     const dito = falta
       ? `<em class="ruim">${conta(semNada, `${n.sing} sem box`, `${n.plur} sem box`)}</em> de ${quantos} que faltam vender — acabaram os box.`
-      : sobraVagas
-        ? `Tem garagem para ${quantos} que faltam vender — e ainda <em>${sobraVagas === 1 ? "sobra 1 vaga" : `sobram ${sobraVagas} vagas`}</em>.`
-        : `Tem garagem para ${quantos} que faltam vender, <em class="limite">mas sem sobrar nenhuma vaga</em>.`;
+      : sobraBox
+        ? `Tem garagem para ${quantos} que faltam vender — e ainda <em>${sobraBox === 1 ? "sobra 1 box" : `sobram ${sobraBox} box`}</em>.`
+        : `Tem garagem para ${quantos} que faltam vender, <em class="limite">mas sem sobrar nenhum box</em>.`;
     frase = `<div class="frase">
       <span class="sinal${falta ? " ruim" : ""}" aria-hidden="true">${falta ? "!" : "✓"}</span>
       <p>${dito}</p>
     </div>`;
 
-    detalhes.push(`${n.Os} ${n.plur} pedem <b>${conta(pedem, "vaga", "vagas")}</b>.`);
+    detalhes.push(`${n.Os} ${n.plur} levam <b>${conta(levam, "box", "box")}</b>.`);
     // As duas trocas, ditas por extenso: quem pediu duplo e nao tinha sai com
     // dois simples, e quem pediu simples e nao tinha sai com um duplo.
     const trocam = reparte.reduce((a, l) => a + l.semDuplo, 0);
@@ -1416,14 +1420,16 @@
     // conta que aparece no cartao la de cima.
     const vagasTem = temD * 2 + temS;
     const vagasPedem = usaD * 2 + usaS;
+    const boxTem = temD + temS;
+    const boxUsa = usaD + usaS;
     const recado = semNada
-      ? `Não fecha: há ${vagasTem} vagas livres, em ${conta(temD + temS, "box", "box")}, e ${n.os} ${aptos} ${n.plur} em estoque não cabem todos.`
+      ? `Não fecha: há ${conta(boxTem, "box livre", "box livres")} e ${n.os} ${aptos} ${n.plur} em estoque não cabem todos.`
         + ` ${conta(semNada, `${n.sing} fica`, `${n.plur} ficam`)} sem box.`
-      : `Fecha: há ${vagasTem} vagas livres, em ${conta(temD + temS, "box", "box")}, e ${n.os} ${aptos} ${n.plur} em estoque pedem ${vagasPedem}.`
+      : `Fecha: há ${conta(boxTem, "box livre", "box livres")} e ${n.os} ${aptos} ${n.plur} em estoque levam ${boxUsa}.`
         + (sobras ? ` Sobra${sobraD + sobraS > 1 ? "m" : ""} ${sobras}.` : " Não sobra nenhum box.");
 
     return `<section class="secao-vagas">
-      <p class="titulo-lista">Vagas de garagem <span class="contagem">box simples = 1 vaga, box duplo = 2 · a conferência olha só o que está em estoque, não muda com as abas · os box vão para as tipologias na ordem desta lista: quem pede duplo e não tem sai com 2 simples, e quem pede simples e não tem sai com 1 duplo</span></p>
+      <p class="titulo-lista">Garagem por apartamento <span class="contagem">a conta é em box, e cada box vai inteiro para um apartamento — o duplo tem as duas vagas uma atrás da outra e não se reparte entre dois · a conferência olha só o que está em estoque, não muda com as abas · os box vão para as tipologias na ordem desta lista: quem pede duplo e não tem sai com 2 simples, e quem pede simples e não tem sai com 1 duplo</span></p>
       <p class="descricao ${semNada ? "alerta" : "ok"}">${recado}</p>
       <table>
         <thead><tr><th>Tipologia</th>
@@ -1432,11 +1438,11 @@
           <th>Box que isso reserva</th></tr></thead>
         <tbody>${linhas}
           <tr class="soma"><td>Total reservado</td><td class="num">${aptos}</td><td></td>
-            <td>${emBox(usaD, usaS)} <span class="contagem">${vagasPedem} vagas</span></td></tr>
+            <td>${emBox(usaD, usaS)} <span class="contagem">${conta(boxUsa, "box", "box")} · ${vagasPedem} vagas de carro</span></td></tr>
           <tr class="soma"><td>Tem em estoque</td><td></td><td></td>
-            <td>${emBox(temD, temS)} <span class="contagem">${vagasTem} vagas</span></td></tr>
+            <td>${emBox(temD, temS)} <span class="contagem">${conta(boxTem, "box", "box")} · ${vagasTem} vagas de carro</span></td></tr>
           <tr class="soma saldo"><td>Sobra</td><td></td><td></td>
-            <td class="${cor(sobraD * 2 + sobraS)}">${emBox(sobraD, sobraS)} <span class="contagem">${sobraD * 2 + sobraS} vaga${sobraD * 2 + sobraS === 1 ? "" : "s"}</span></td></tr>
+            <td class="${cor(sobraD + sobraS)}">${emBox(sobraD, sobraS)} <span class="contagem">${conta(sobraD + sobraS, "box", "box")}${sobraD ? " · cada duplo atende 1 apartamento" : ""}</span></td></tr>
         </tbody>
       </table>
       ${renderOpcoesDeVenda(emp, regra, estoque, temD, temS)}
@@ -1452,9 +1458,10 @@
       const nesta = estoque.get(rot) || 0;
       if (!nesta) return "";
       const vagas = (r.duplo || 0) * 2 + (r.simples || 0);
-      // Todas as combinacoes que somam as vagas da tipologia, mais a que usa so
-      // duplos quando o numero e impar — nesse caso ela passa uma vaga, mas e
-      // uma venda que o dono faz. A combinacao da regra vem primeiro.
+      // Todas as combinacoes que somam as vagas de carro da tipologia, mais a
+      // que usa so duplos quando o numero e impar — nesse caso ela passa uma
+      // vaga, mas e uma venda que o dono faz. Todos os box da combinacao vao
+      // para o MESMO apartamento. A combinacao da regra vem primeiro.
       const opcoes = [];
       for (let d = Math.floor(vagas / 2); d >= 0; d--) opcoes.push({ d, s: vagas - d * 2 });
       if (vagas % 2) opcoes.push({ d: (vagas + 1) / 2, s: 0 });
@@ -1474,19 +1481,21 @@
           : falta ? `<span class="st-vendido">deixa ${conta(c.semNada, n.sing, n.plur)} sem box</span>`
           : c.sobraD + c.sobraS === 0 ? `<span class="aviso-limite">no limite, sem folga</span>`
           : `<span class="st-disponivel">pode</span>`;
+        // A sobra se diz em BOX: e quantos outros apartamentos ainda dao para
+        // atender, nao quantos carros cabem no que restou.
         const sobra = impossivel ? "—"
           : [c.sobraD ? `${c.sobraD} duplo${c.sobraD > 1 ? "s" : ""}` : "", c.sobraS ? `${c.sobraS} simples` : ""].filter(Boolean).join(" e ") || "nada";
         return `<tr>
-          ${i === 0 ? `<td rowspan="${opcoes.length}">${escapeHtml(rot)}<br><span class="contagem">${nesta} em estoque · ${conta(vagas, "vaga", "vagas")}</span></td>` : ""}
+          ${i === 0 ? `<td rowspan="${opcoes.length}">${escapeHtml(rot)}<br><span class="contagem">${nesta} em estoque · ${conta(vagas, "vaga de carro", "vagas de carro")} cada</span></td>` : ""}
           <td>${nome}</td><td>${veredito}</td><td class="num">${sobra}</td>
         </tr>`;
       }).join("");
     }).join("");
     if (!linhas) return "";
     return `<p class="titulo-lista" style="border-top:1px solid var(--borda);margin-top:16px">Ao vender, o que dar de garagem
-      <span class="contagem">o que sobra é o que ainda cobre ${n.os} outr${n.os === "as" ? "as" : "os"} ${n.plur}</span></p>
+      <span class="contagem">os box da linha vão todos para o mesmo ${n.sing} · o que sobra é o que ainda cobre ${n.os} outr${n.os === "as" ? "as" : "os"} ${n.plur}</span></p>
       <table>
-        <thead><tr><th>Tipologia</th><th>Se der…</th><th>Resultado</th><th style="text-align:right">Sobra depois</th></tr></thead>
+        <thead><tr><th>Tipologia</th><th>Se der…</th><th>Resultado</th><th style="text-align:right">Box que sobra depois</th></tr></thead>
         <tbody>${linhas}</tbody>
       </table>`;
   }
