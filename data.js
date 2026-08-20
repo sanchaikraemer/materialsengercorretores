@@ -700,9 +700,17 @@ const EMPREENDIMENTOS = [
         area: "212 m² global · 149 m² privativo",
         garagem: "Box duplo",
         unidades: [
+          { apto: "301", status: "vendido" },
+          { apto: "401", status: "vendido" },
           { apto: "501", preco: 1420000, status: "disponivel" },
+          { apto: "601", status: "vendido" },
+          { apto: "701", status: "vendido" },
           { apto: "801", preco: 1440000, status: "disponivel" },
           { apto: "901", preco: 1460000, status: "disponivel" },
+          { apto: "1001", status: "vendido" },
+          { apto: "1101", status: "vendido" },
+          { apto: "1201", status: "vendido" },
+          { apto: "1301", status: "vendido" },
         ],
       },
       {
@@ -710,11 +718,17 @@ const EMPREENDIMENTOS = [
         area: "212 m² global · 149 m² privativo",
         garagem: "Box duplo",
         unidades: [
+          { apto: "302", status: "vendido" },
+          { apto: "402", status: "vendido" },
+          { apto: "502", status: "vendido" },
           { apto: "602", preco: 1440000, status: "disponivel" },
           { apto: "702", preco: 1460000, status: "disponivel" },
+          { apto: "802", status: "vendido" },
           { apto: "902", preco: 1480000, status: "disponivel" },
           { apto: "1002", preco: 1500000, status: "disponivel" },
           { apto: "1102", preco: 1520000, status: "disponivel" },
+          { apto: "1202", status: "vendido" },
+          { apto: "1302", status: "vendido" },
         ],
       },
       {
@@ -725,16 +739,23 @@ const EMPREENDIMENTOS = [
           { apto: "304", preco: 870000, status: "disponivel", tags: ["Casa Suspensa"], areaUnit: "165 m² global · 121 m² privativo" },
           { apto: "404", preco: 850000, status: "disponivel" },
           { apto: "504", preco: 860000, status: "disponivel" },
+          { apto: "604", status: "vendido" },
           { apto: "704", preco: 880000, status: "disponivel" },
+          { apto: "804", status: "vendido" },
           { apto: "904", preco: 900000, status: "disponivel" },
+          { apto: "1004", status: "vendido" },
           { apto: "1104", preco: 920000, status: "disponivel" },
           { apto: "1204", preco: 930000, status: "disponivel" },
+          { apto: "1304", status: "vendido" },
         ],
       },
       {
         tipo: "2 dormitórios (1 suíte)",
         area: "127 m² global · 91 m² privativo",
         garagem: "01 box",
+        // Falta o 303 neste final: ele nao esta no estoque e nenhum box vendido
+        // aponta para ele, entao nao da para dizer se foi vendido ou se ainda
+        // esta a venda. Fica de fora ate a construtora confirmar.
         unidades: [
           { apto: "403", preco: 820000, status: "disponivel" },
           { apto: "503", preco: 830000, status: "disponivel" },
@@ -745,6 +766,7 @@ const EMPREENDIMENTOS = [
           { apto: "1003", preco: 880000, status: "disponivel" },
           { apto: "1103", preco: 890000, status: "disponivel" },
           { apto: "1203", preco: 900000, status: "disponivel" },
+          { apto: "1303", status: "vendido" },
         ],
       },
     ],
