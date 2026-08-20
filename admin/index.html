@@ -324,6 +324,10 @@
     .secao-box, .secao-vagas { margin-top: 18px; border-top: 1px solid var(--borda); }
     .secao-vagas .descricao { margin: 0 0 10px; }
     .secao-vagas .descricao.alerta { color: var(--vermelho); font-weight: 600; }
+    /* O que falta preencher no cadastro dos box: nao e erro de venda, e buraco
+       de cadastro, entao fica em aviso e nao em vermelho de alerta. */
+    .secao-box .pendencias { margin: 0 0 10px; font-size: 13px; color: var(--texto-suave); }
+    .secao-box .pendencias b { color: var(--vermelho); }
     .secao-vagas .descricao.ok { color: var(--verde); font-weight: 600; }
     .secao-vagas tr.soma td { font-weight: 700; background: rgba(32,42,50,.03); }
     .secao-vagas tr.saldo td { border-top: 2px solid var(--borda); }
@@ -1519,6 +1523,33 @@
 
   // Tabela de box de garagem de um empreendimento. Fica dentro do bloco do
   // proprio empreendimento, logo depois das unidades. Nunca vai para o site.
+  // O que falta preencher no cadastro dos box deste empreendimento. Buraco de
+  // cadastro nao aparece sozinho: box vendido sem apartamento e apartamento
+  // vendido sem box passam despercebidos na lista, e e justamente o que impede
+  // a conferencia de garagem de valer. Aqui eles ficam ditos na tela.
+  function pendenciasDeBox(emp, boxes) {
+    const regra = emp.vagasPorTipologia || {};
+    const comBox = new Set(boxes.filter((b) => b.apto).map((b) => String(b.apto)));
+    const n = nomes(emp);
+    const semApto = boxes.filter((b) => !b.pne && statusAtual(emp.id, b) !== "disponivel" && !b.apto).length;
+    // So conta a unidade cuja tipologia leva box pela regra: sala comercial sem
+    // vaga na regra nao e pendencia, e assim mesmo.
+    const semBox = itensDoEmp(emp).filter((i) => {
+      if (statusAtual(emp.id, i) === "disponivel") return false;
+      const rot = i.estoque || i.grupo;
+      return Boolean(regra[rot]) && !comBox.has(String(i.apto));
+    }).length;
+    const semAreaPriv = boxes.filter((b) => b.areaPriv == null).length;
+    const semAreaGlobal = boxes.filter((b) => b.areaGlobal == null && !b.pne).length;
+    const itens = [];
+    if (semApto) itens.push(`<b>${conta(semApto, "box vendido sem a unidade", "box vendidos sem a unidade")}</b> que levou`);
+    if (semBox) itens.push(`<b>${conta(semBox, `${n.sing} vendid${n.os === "as" ? "a" : "o"} sem box`, `${n.plur} vendid${n.os === "as" ? "as" : "os"} sem box`)}</b> vinculado`);
+    if (semAreaPriv) itens.push(`${conta(semAreaPriv, "box sem área privativa", "box sem área privativa")}`);
+    if (semAreaGlobal) itens.push(`${conta(semAreaGlobal, "box sem área global", "box sem área global")}`);
+    if (!itens.length) return "";
+    return `<p class="pendencias">Falta preencher no cadastro: ${itens.join(" · ")}.</p>`;
+  }
+
   function renderTabelaBoxes(emp) {
     const boxes = boxesDoEmp(emp);
     if (!boxes.length) return "";
@@ -1553,6 +1584,7 @@
     return `<section class="secao-box">
       <p class="titulo-lista">Box de garagem <span class="contagem">${livres.length} de ${boxes.length} disponíveis · ${livres.length - duplos} simples e ${duplos} duplos${pne.length ? ` · ${conta(pne.length, "vaga PNE fora da conta", "vagas PNE fora da conta")}` : ""}</span></p>
       <p class="descricao">Controle interno: os box não aparecem no site, nos PDFs nem nas mensagens.</p>
+      ${pendenciasDeBox(emp, boxes)}
       <table>
         <thead><tr><th>Box</th><th>Tipo</th><th>${nome.Titulo}</th><th style="text-align:right">Área privativa</th><th style="text-align:right">Área global</th><th>Status</th></tr></thead>
         <tbody>${linhas}</tbody>
