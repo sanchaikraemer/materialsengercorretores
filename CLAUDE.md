@@ -67,8 +67,11 @@ Sempre **truncadas**, nunca arredondadas para cima: 99,6188 m² vira "99 m²", e
   unidade ou no grupo) e cai para `grupo.tipo` quando não há — é assim que as
   Casas Suspensas do Renaissance contam junto com o andar delas.
 - `vagasPorTipologia` liga cada rótulo de estoque aos box que a unidade leva, e
-  o painel confere se as vagas fecham. **Faltando box duplo, dois simples fazem
-  o lugar dele** — decisão do dono.
+  o painel confere se as vagas fecham. A troca vale **dos dois lados**, decisão
+  do dono: faltando box duplo, dois simples fazem o lugar dele; faltando box
+  simples, um duplo faz o lugar dele (passa uma vaga, mas é um box de verdade e
+  o apartamento sai com garagem). **Só falta garagem quando acaba o box** — box
+  duplo sobrando nunca é falta.
 
 ## Testar o painel
 
