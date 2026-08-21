@@ -250,6 +250,49 @@
     .st-vendido { color: var(--vermelho) !important; }
     .st-alugado { color: var(--azul) !important; }
 
+    /* Quantos pontos deste empreendimento ainda faltam preencher. Fica no
+       rodape do cartao, em aviso: nao impede a venda, mas o dono precisa ver. */
+    .card .falta-cadastro {
+      margin-top: 8px; padding-top: 6px; border-top: 1px dashed var(--borda);
+      font-size: .76rem; font-weight: 600; color: var(--amarelo);
+    }
+
+    /* o que falta no cadastro */
+    .resumo-cadastro { font-size: .9rem; font-weight: 600; margin-bottom: 14px; color: var(--amarelo); }
+    .resumo-cadastro.tudo-ok { color: var(--verde); }
+    .pend-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; align-items: start; }
+    .pend-emp { background: var(--fundo); border: 1px solid var(--borda); border-radius: 10px; padding: 14px; }
+    .pend-emp h3 {
+      font-size: .92rem; margin-bottom: 8px;
+      display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+    }
+    .pend-emp h3 .quantos {
+      flex: none; font-family: "Inter", system-ui, sans-serif; font-size: .72rem;
+      font-weight: 700; white-space: nowrap; color: var(--amarelo);
+      background: var(--cartao); border: 1px solid rgba(168,112,31,.35);
+      border-radius: 999px; padding: 3px 9px;
+    }
+    .pend-emp ul { list-style: none; }
+    .pend-emp li {
+      position: relative; padding: 4px 0 4px 15px;
+      font-size: .82rem; line-height: 1.45; color: var(--texto-suave);
+    }
+    /* Bolinha amarela no que e so cadastro; vermelha no que ja aparece torto
+       para quem esta atendendo. */
+    .pend-emp li::before {
+      content: ""; position: absolute; left: 0; top: 11px;
+      width: 6px; height: 6px; border-radius: 50%; background: var(--amarelo);
+    }
+    .pend-emp li.grave::before { background: var(--vermelho); }
+    .pend-emp li b { color: var(--vermelho); font-weight: 600; }
+    .pend-emp .abrir {
+      display: inline-block; margin-top: 10px; padding: 0;
+      border: none; background: none; font: inherit; font-size: .78rem;
+      font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+      color: var(--dourado); cursor: pointer;
+    }
+    .pend-emp .abrir:hover { color: var(--dourado-escuro); }
+
     /* incc */
     .form-incc { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; align-items: end; }
     .form-incc label { display: block; font-size: .82rem; color: var(--texto-suave); margin-bottom: 6px; }
@@ -488,6 +531,17 @@
             Na garagem a conta é em <strong>box</strong>: cada box vai inteiro para um apartamento.
             O box duplo tem as duas vagas uma atrás da outra, então ele não se reparte entre dois apartamentos.</p>
           <div class="cards" id="dashboard"></div>
+        </section>
+
+        <!-- O que falta no cadastro -->
+        <section class="bloco">
+          <h2>O que falta no cadastro</h2>
+          <p class="descricao">Tudo o que ainda depende de planta, de tabela ou de foto. Nada aqui atrapalha o site
+            &mdash; ele funciona do mesmo jeito. Estes campos n&atilde;o se mexem por aqui: copie a lista e mande para
+            quem cuida do cadastro.</p>
+          <p class="resumo-cadastro" id="cadastro-resumo">&mdash;</p>
+          <div class="pend-lista" id="cadastro"></div>
+          <button class="botao secundario" id="botao-copiar-cadastro">Copiar essa lista</button>
         </section>
 
         <!-- INCC -->
@@ -926,6 +980,7 @@
     const meta = estado.dados.META;
     $("info-versao").textContent = `v${estado.versao} · ${meta.mesTabela} · INCC ${meta.incc.valor} (${meta.incc.variacao})`;
     renderDashboard();
+    renderCadastro();
     renderEmps();
     renderPendentes();
   }
@@ -970,13 +1025,20 @@
       // A lista que o dono pediu: cada unidade em estoque com o box que leva,
       // sem precisar abrir o empreendimento.
       const listaUnidades = renderUnidadesNoCartao(emp, regraDoEmp, itens);
+      // Quantos pontos deste empreendimento ainda faltam preencher. A lista
+      // inteira fica no bloco de cima; aqui vai so o numero, para o dono saber
+      // de qual empreendimento ela fala sem ter de comparar nome por nome.
+      const faltando = pendenciasDoEmp(emp).length;
+      const marcaCadastro = faltando
+        ? `<div class="falta-cadastro">${conta(faltando, "ponto a preencher no cadastro", "pontos a preencher no cadastro")}</div>`
+        : "";
       const ativo = estado.empAberto === emp.id;
       // Quanto do estoque de unidades ja foi vendido. Box ficam de fora: sao
       // vendidos a parte e distorceriam o numero do empreendimento.
       const pct = Math.round(((contagem.vendido || 0) / itens.length) * 100);
       return `<button type="button" class="card${ativo ? " ativo" : ""}" data-emp="${escapeHtml(emp.id)}" aria-expanded="${ativo}">
         <h3>${escapeHtml(emp.nome)} <span class="pct${pct ? " tem" : ""}">${pct}% vendido</span></h3>${linhas}
-        <div class="linha" style="border-top:1px solid var(--borda);margin-top:6px;padding-top:6px"><span>Total</span><strong>${itens.length}</strong></div>${linhasTipo}${listaUnidades}${blocoGaragem}
+        <div class="linha" style="border-top:1px solid var(--borda);margin-top:6px;padding-top:6px"><span>Total</span><strong>${itens.length}</strong></div>${linhasTipo}${listaUnidades}${blocoGaragem}${marcaCadastro}
         <span class="abrir">${ativo ? "Fechar" : "Abrir"}</span>
       </button>`;
     }).join("");
@@ -991,6 +1053,62 @@
       });
     });
   }
+
+  // A lista do que falta preencher, empreendimento por empreendimento. Fica no
+  // alto do painel porque e a unica tela em que esses buracos aparecem: o site
+  // nao os mostra, e no meio da lista de unidades eles se perdem.
+  function renderCadastro() {
+    const comFalta = estado.dados.EMPREENDIMENTOS
+      .map((emp) => ({ emp, faltas: pendenciasDoEmp(emp) }))
+      .filter((item) => item.faltas.length);
+    const total = comFalta.reduce((soma, item) => soma + item.faltas.length, 0);
+    const resumo = $("cadastro-resumo");
+    resumo.classList.toggle("tudo-ok", total === 0);
+    resumo.textContent = total === 0
+      ? "Está tudo preenchido — não falta nada no cadastro."
+      : `${conta(total, "ponto a preencher", "pontos a preencher")} em ${conta(comFalta.length, "empreendimento", "empreendimentos")}.`;
+    $("botao-copiar-cadastro").style.display = total ? "" : "none";
+    const alvo = $("cadastro");
+    alvo.innerHTML = comFalta.map(({ emp, faltas }) => `<div class="pend-emp">
+        <h3>${escapeHtml(emp.nome)} <span class="quantos">${faltas.length} a preencher</span></h3>
+        <ul>${faltas.map((f) => `<li${f.grave ? ` class="grave"` : ""}>${f.texto}</li>`).join("")}</ul>
+        <button type="button" class="abrir" data-emp="${escapeHtml(emp.id)}">Abrir o empreendimento</button>
+      </div>`).join("");
+    alvo.querySelectorAll("button.abrir").forEach((botao) => {
+      botao.addEventListener("click", () => {
+        estado.empAberto = botao.dataset.emp;
+        renderDashboard();
+        mostrarEmpAberto(true);
+      });
+    });
+  }
+
+  // A mesma lista em texto simples: e assim que ela sai do celular do dono e
+  // chega em quem vai preencher o cadastro.
+  function textoDoCadastro() {
+    const semTags = (html) => {
+      const caixa = document.createElement("div");
+      caixa.innerHTML = html;
+      return caixa.textContent;
+    };
+    const linhas = ["O que falta no cadastro — site Senger"];
+    estado.dados.EMPREENDIMENTOS.forEach((emp) => {
+      const faltas = pendenciasDoEmp(emp);
+      if (!faltas.length) return;
+      linhas.push("", `${emp.nome}:`);
+      faltas.forEach((f) => linhas.push(`- ${semTags(f.texto)}`));
+    });
+    return linhas.length > 1 ? linhas.join("\n") : "Está tudo preenchido — não falta nada no cadastro.";
+  }
+
+  $("botao-copiar-cadastro").addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(textoDoCadastro());
+      aviso("Lista copiada. É só colar na conversa.", "ok");
+    } catch (e) {
+      aviso("Não consegui copiar sozinho — tire uma foto da tela mesmo.", "falha");
+    }
+  });
 
   // Só o empreendimento escolhido no cartão fica na tela.
   function mostrarEmpAberto(rolar) {
@@ -1521,17 +1639,17 @@
     return `${n} ${n === 1 ? sing : plur}`;
   }
 
-  // Tabela de box de garagem de um empreendimento. Fica dentro do bloco do
-  // proprio empreendimento, logo depois das unidades. Nunca vai para o site.
   // O que falta preencher no cadastro dos box deste empreendimento. Buraco de
   // cadastro nao aparece sozinho: box vendido sem apartamento e apartamento
   // vendido sem box passam despercebidos na lista, e e justamente o que impede
   // a conferencia de garagem de valer. Aqui eles ficam ditos na tela.
   function pendenciasDeBox(emp, boxes) {
+    const lista = boxes || boxesDoEmp(emp);
+    if (!lista.length) return [];
     const regra = emp.vagasPorTipologia || {};
-    const comBox = new Set(boxes.filter((b) => b.apto).map((b) => String(b.apto)));
+    const comBox = new Set(lista.filter((b) => b.apto).map((b) => String(b.apto)));
     const n = nomes(emp);
-    const semApto = boxes.filter((b) => !b.pne && statusAtual(emp.id, b) !== "disponivel" && !b.apto).length;
+    const semApto = lista.filter((b) => !b.pne && statusAtual(emp.id, b) !== "disponivel" && !b.apto).length;
     // So conta a unidade cuja tipologia leva box pela regra: sala comercial sem
     // vaga na regra nao e pendencia, e assim mesmo.
     const semBox = itensDoEmp(emp).filter((i) => {
@@ -1539,17 +1657,113 @@
       const rot = i.estoque || i.grupo;
       return Boolean(regra[rot]) && !comBox.has(String(i.apto));
     }).length;
-    const semAreaPriv = boxes.filter((b) => b.areaPriv == null).length;
-    const semAreaGlobal = boxes.filter((b) => b.areaGlobal == null && !b.pne).length;
+    const semAreaPriv = lista.filter((b) => b.areaPriv == null).length;
+    const semAreaGlobal = lista.filter((b) => b.areaGlobal == null && !b.pne).length;
     const itens = [];
-    if (semApto) itens.push(`<b>${conta(semApto, "box vendido sem a unidade", "box vendidos sem a unidade")}</b> que levou`);
-    if (semBox) itens.push(`<b>${conta(semBox, `${n.sing} vendid${n.os === "as" ? "a" : "o"} sem box`, `${n.plur} vendid${n.os === "as" ? "as" : "os"} sem box`)}</b> vinculado`);
-    if (semAreaPriv) itens.push(`${conta(semAreaPriv, "box sem área privativa", "box sem área privativa")}`);
-    if (semAreaGlobal) itens.push(`${conta(semAreaGlobal, "box sem área global", "box sem área global")}`);
-    if (!itens.length) return "";
-    return `<p class="pendencias">Falta preencher no cadastro: ${itens.join(" · ")}.</p>`;
+    if (semApto) itens.push({ texto: `<b>${conta(semApto, "box vendido sem a unidade", "box vendidos sem a unidade")}</b> que levou`, grave: true });
+    if (semBox) itens.push({ texto: `<b>${conta(semBox, `${n.sing} vendid${n.os === "as" ? "a" : "o"} sem box`, `${n.plur} vendid${n.os === "as" ? "as" : "os"} sem box`)}</b> vinculado`, grave: true });
+    if (semAreaPriv) itens.push({ texto: conta(semAreaPriv, "box sem área privativa", "box sem área privativa"), grave: false });
+    if (semAreaGlobal) itens.push({ texto: conta(semAreaGlobal, "box sem área global", "box sem área global"), grave: false });
+    return itens;
   }
 
+  // A mesma lista dos box, dita dentro da aba dos box — ali o dono ja esta
+  // olhando a garagem, e o que falta tem de estar ao lado dela.
+  function linhaPendenciasDeBox(emp, boxes) {
+    const itens = pendenciasDeBox(emp, boxes);
+    if (!itens.length) return "";
+    return `<p class="pendencias">Falta preencher no cadastro: ${itens.map((i) => i.texto).join(" · ")}.</p>`;
+  }
+
+  // Sala e loja nem sempre levam box, e a garagem em branco ali e assim mesmo:
+  // ficam de fora das cobrancas de garagem.
+  function ehComercial(rotulo) {
+    return /\b(sala|salas|loja|lojas)\b/i.test(String(rotulo || ""));
+  }
+
+  // Tudo o que falta preencher no cadastro de um empreendimento — nao so os
+  // box. Buraco de cadastro nao aparece sozinho: tipologia sem metragem,
+  // unidade sem planta ligada e empreendimento sem foto passam despercebidos
+  // no meio da lista. Nada disso se edita pelo painel; a lista existe para o
+  // dono saber o que ainda precisa pedir de planta, de tabela ou de foto.
+  function pendenciasDoEmp(emp) {
+    const itens = [];
+    const marca = (texto, grave) => itens.push({ texto, grave: !!grave });
+    const todos = itensDoEmp(emp);
+    if (!todos.length) return itens;
+    const n = nomes(emp);
+    // Cada empreendimento usa uma forma de estoque so — unidades, terrenos ou
+    // "outros" —, e o nome do que se vende sai dela.
+    const forma = todos[0].tipo;
+    const quantos = (qtd) => forma === "terreno" ? conta(qtd, "lote", "lotes")
+      : forma === "outro" ? conta(qtd, "imóvel", "imóveis")
+      : conta(qtd, n.sing, n.plur);
+    const vendidos = (qtd) => {
+      const genero = forma === "unidade" && n.os === "as" ? "a" : "o";
+      return `vendid${genero}${qtd === 1 ? "" : "s"}`;
+    };
+    // Tipologia repetida (o mesmo tipo em dois andares) conta uma vez so, e a
+    // lista para em tres nomes: e um aviso, nao um relatorio.
+    const dizerTipologias = (lista) => {
+      const unicos = [...new Set(lista)];
+      const mostra = unicos.slice(0, 3).map((r) => `“${escapeHtml(r)}”`).join(", ");
+      const nome = unicos.length === 1 ? "tipologia" : "tipologias";
+      return `${nome} ${unicos.length > 3 ? `${mostra} e mais ${unicos.length - 3}` : mostra}`;
+    };
+
+    // 1. Preco. O que esta a venda sem preco sai no site como "Sob consulta";
+    // o que foi vendido nao pode ficar com o preco de tabela, que ja nao vale.
+    const semPreco = todos.filter((i) => statusAtual(emp.id, i) === "disponivel" && !i.preco).length;
+    if (semPreco) marca(`<b>${quantos(semPreco)} à venda sem preço</b> — no site aparecem como “Sob consulta”`, true);
+    // So para unidade: no lote o preco de tabela continua valendo depois da
+    // venda, e no apartamento nao — o comprador mexe na planta e o valor vira
+    // outro. E a razao de a unidade vendida ficar sem preco no cadastro.
+    const precoDeVendido = forma === "unidade"
+      ? todos.filter((i) => statusAtual(emp.id, i) === "vendido" && i.preco).length
+      : 0;
+    if (precoDeVendido) marca(`<b>${quantos(precoDeVendido)} ${vendidos(precoDeVendido)} ainda com o preço na tabela</b> — depois da venda o valor de tabela não vale mais`, true);
+
+    // 2. A tipologia: metragem, planta e garagem. A planta ligada e o que faz o
+    // link de uma unidade mostrar a planta dela, e nao as do predio inteiro.
+    const semArea = [];
+    const semPlanta = [];
+    const semGaragem = [];
+    (emp.grupos || []).forEach((g) => {
+      const rotulo = g.estoque || g.tipo;
+      const unidades = g.unidades || [];
+      if (!g.area) semArea.push(rotulo);
+      if (!g.planta && !unidades.every((u) => u.planta)) semPlanta.push(rotulo);
+      if (!g.garagem && !ehComercial(rotulo)) semGaragem.push(rotulo);
+    });
+    if (semArea.length) marca(`${dizerTipologias(semArea)} sem a metragem`);
+    if (semPlanta.length) marca(`${dizerTipologias(semPlanta)} sem planta ligada — quem abre o link da unidade vê as plantas de todas as outras junto`);
+    if (semGaragem.length) marca(`${dizerTipologias(semGaragem)} sem a garagem informada`);
+
+    // 3. A regra de garagem. Sem ela a tipologia fica fora da conferencia dos
+    // box — o painel nao sabe quantos ela leva e nao pode dizer se fecha.
+    const boxes = boxesDoEmp(emp);
+    if (boxes.length) {
+      const regra = emp.vagasPorTipologia || {};
+      const foraDaRegra = [...new Set(todos.map((i) => i.estoque || i.grupo).filter(Boolean))]
+        .filter((rotulo) => !regra[rotulo] && !ehComercial(rotulo));
+      if (foraDaRegra.length) marca(`${dizerTipologias(foraDaRegra)} sem a regra de quantos box levam — ficam fora da conferência da garagem`);
+    }
+
+    // 4. O que o corretor ve na ficha do empreendimento. "Outros Imoveis" fica
+    // de fora: la cada imovel tem a sua propria ficha, e nao ha ficha do grupo.
+    if (emp.id !== "outros") {
+      if (!emp.hero) marca("sem foto de capa", true);
+      if (!(emp.galeria || []).length) marca("sem fotos na galeria", true);
+      // Registro de incorporacao e coisa de predio: loteamento nao tem.
+      if ((emp.grupos || []).length && !(emp.ri || []).length) marca("sem o registro de incorporação — na ficha sai “Não informado”");
+    }
+
+    return itens.concat(pendenciasDeBox(emp, boxes));
+  }
+
+
+  // Tabela de box de garagem de um empreendimento. Fica dentro do bloco do
+  // proprio empreendimento, logo depois das unidades. Nunca vai para o site.
   function renderTabelaBoxes(emp) {
     const boxes = boxesDoEmp(emp);
     if (!boxes.length) return "";
@@ -1584,7 +1798,7 @@
     return `<section class="secao-box">
       <p class="titulo-lista">Box de garagem <span class="contagem">${livres.length} de ${boxes.length} disponíveis · ${livres.length - duplos} simples e ${duplos} duplos${pne.length ? ` · ${conta(pne.length, "vaga PNE fora da conta", "vagas PNE fora da conta")}` : ""}</span></p>
       <p class="descricao">Controle interno: os box não aparecem no site, nos PDFs nem nas mensagens.</p>
-      ${pendenciasDeBox(emp, boxes)}
+      ${linhaPendenciasDeBox(emp, boxes)}
       <table>
         <thead><tr><th>Box</th><th>Tipo</th><th>${nome.Titulo}</th><th style="text-align:right">Área privativa</th><th style="text-align:right">Área global</th><th>Status</th></tr></thead>
         <tbody>${linhas}</tbody>
@@ -1621,6 +1835,9 @@
         aplicarFiltro(det);
         atualizarVagas(det);
         renderDashboard();
+        // Marcar como vendido muda o que falta: a unidade passa a precisar de
+        // box vinculado e nao pode mais ficar com o preco de tabela.
+        renderCadastro();
         renderPendentes();
       });
     });
