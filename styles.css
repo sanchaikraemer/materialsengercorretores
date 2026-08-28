@@ -499,7 +499,36 @@ img { max-width: 100%; display: block; }
 .unit-group { margin-bottom: 16px; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); }
 /* v103 — modelo A: a tipologia ganha uma faixa na cor da marca e a area aparece
    uma unica vez, em etiquetas. Os cartoes de unidade nao repetem mais essa area. */
-.unit-group-header { padding: 16px 19px; color: #fff; background: linear-gradient(135deg, var(--brand-dark), var(--brand)); }
+/* v161 — a tipologia (ou a quadra) e uma gaveta: fechada, as opcoes cabem
+   todas numa tela; o corretor abre so a que o cliente pediu. */
+.unit-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 19px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--brand-dark), var(--brand));
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+.unit-group-header::-webkit-details-marker { display: none; }
+.unit-group-header:hover { background: linear-gradient(135deg, #0d6675, var(--brand-dark)); }
+.unit-group-header:focus-visible { outline: 3px solid var(--brand); outline-offset: -3px; }
+.unit-group-main { min-width: 0; flex: 1; }
+.unit-group-aside { flex: 0 0 auto; display: grid; justify-items: end; gap: 4px; text-align: right; }
+.unit-group-preco { display: grid; justify-items: end; gap: 1px; }
+.unit-group-desde { white-space: nowrap; font-size: 10.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: rgba(255, 255, 255, .75); }
+.unit-group-aside .price-value { color: #fff; font-size: 17px; white-space: nowrap; }
+/* A setinha gira ao abrir e o texto troca — os dois dizem a mesma coisa, um
+   para quem olha e outro para quem le. */
+.unit-group-toggle { display: flex; align-items: center; gap: 5px; white-space: nowrap; font-size: 11.5px; font-weight: 700; color: rgba(255, 255, 255, .88); }
+.unit-group-toggle::before { content: "Ver unidades"; }
+.unit-group[data-abre="lotes"] .unit-group-toggle::before { content: "Ver lotes"; }
+.unit-group[open] .unit-group-toggle::before, .unit-group[data-abre="lotes"][open] .unit-group-toggle::before { content: "Ocultar"; }
+.unit-group-toggle::after { content: ""; width: 8px; height: 8px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-2px) rotate(45deg); transition: transform .2s ease; }
+.unit-group[open] .unit-group-toggle::after { transform: translateY(1px) rotate(-135deg); }
 .unit-group-header h3 { margin: 0; font-size: 19px; line-height: 1.2; letter-spacing: -.01em; }
 .unit-group-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 11px; }
 .unit-group-chips span { padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,.2); font-size: 11.5px; font-weight: 600; }
@@ -738,6 +767,11 @@ img { max-width: 100%; display: block; }
 .unit-result-foot .price-value { font-size: 17px; }
 
 @media (max-width: 720px) {
+  /* No celular o cabecalho da gaveta empilha: tipologia em cima, valor e a
+     setinha embaixo, lado a lado. */
+  .unit-group-header { flex-direction: column; align-items: stretch; gap: 10px; }
+  .unit-group-aside { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, .22); }
+  .unit-group-preco { display: flex; align-items: baseline; gap: 7px; }
   .unit-result { flex-direction: column; gap: 10px; }
   .unit-result-media { flex: none; width: 100%; height: 128px; }
   .unit-result-foot { align-items: flex-start; }
@@ -763,9 +797,15 @@ img { max-width: 100%; display: block; }
 
 /* v160 — "Meus números": o que este aparelho fez. Entrada discreta no rodape,
    porque e conferencia ocasional, nao ferramenta de atendimento. */
-.footer-tools { display: flex; justify-content: flex-end; padding-top: 10px; }
-.footer-numbers { color: rgba(255, 255, 255, .55); font-size: 12.5px; }
-.footer-numbers:hover { color: #fff; }
+.footer-tools { display: flex; justify-content: center; padding-top: 20px; }
+.footer-numbers {
+  padding: 10px 22px;
+  border: 1px solid rgba(255, 255, 255, .35);
+  border-radius: 999px;
+  color: #fff;
+  font-size: 13.5px;
+}
+.footer-numbers:hover { background: rgba(255, 255, 255, .12); }
 .client-mode .footer-tools { display: none; }
 
 .numbers-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 14px 24px 4px; }

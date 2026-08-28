@@ -87,6 +87,22 @@ preço, ainda que fossem unidades diferentes.
 No link do cliente a visão é sempre a de empreendimentos, do jeito que ele
 recebeu.
 
+## O quadro de unidades é uma gaveta
+
+Cada tipologia (e, no loteamento, cada quadra) é um `<details>` que abre ao
+toque. O Renaissance tem sete tipologias e 49 apartamentos: numa lista só, achar
+o que o cliente pediu era rolar sem fim. Fechadas, as tipologias cabem numa
+tela — 51% menos rolagem no Renaissance, 74% no loteamento.
+
+O cabeçalho mostra a tipologia, as áreas e **a partir de quanto** — nunca
+quantas unidades há, que a v107 tirou do site de propósito.
+
+Já abre aberta quando há **uma tipologia só** (não há o que escolher) ou no
+**link do cliente** (ele recebeu unidades escolhidas, não um catálogo). Link de
+unidade (`?u=`) e unidade aberta pela lista abrem a gaveta certa antes de rolar
+até ela — sem isso a linha não tem posição na tela. O PDF sai sempre completo:
+a folha é montada à parte, fora do quadro.
+
 ## O corretor dentro do link
 
 Os dados de "Meu contato" ficam no aparelho do corretor; a página que o cliente
