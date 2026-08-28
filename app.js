@@ -1220,7 +1220,10 @@
     // para o cliente ver o empreendimento e os diferenciais antes do preco.
     const unitCode = new URLSearchParams(location.search).get("u");
     if (unitCode) {
-      detail.querySelectorAll(`[data-unit-code="${CSS.escape(unitCode)}"]`).forEach((el) => el.classList.add("unit-highlight"));
+      detail.querySelectorAll(`[data-unit-code="${CSS.escape(unitCode)}"]`).forEach((el) => {
+        el.classList.add("unit-highlight");
+        abrirGaveta(el);
+      });
     }
 
     // v160 — unidade aberta pela lista de unidades: aqui o corretor JA sabe qual
@@ -1233,7 +1236,9 @@
     if (foco && foco.emp.id !== emp.id) state.foco = null;
     if (foco && foco.emp.id === emp.id) {
       const alvos = detail.querySelectorAll(`[data-unit-code="${CSS.escape(String(foco.code))}"]`);
-      alvos.forEach((el) => el.classList.add("unit-highlight"));
+      // A gaveta da tipologia precisa estar aberta antes de rolar ate a linha,
+      // senao ela nao tem posicao na tela.
+      alvos.forEach((el) => { el.classList.add("unit-highlight"); abrirGaveta(el); });
       // O primeiro alvo visivel: a tabela e os cartoes do celular convivem no
       // HTML, e so um dos dois esta na tela.
       const visivel = [...alvos].find((el) => el.getClientRects().length);
@@ -1245,6 +1250,12 @@
     window.scrollTo({ top: 0, behavior: "auto" });
   }
 
+  // Abre a gaveta (tipologia ou quadra) que contem esta linha.
+  function abrirGaveta(el) {
+    const gaveta = el.closest("details.unit-group");
+    if (gaveta) gaveta.open = true;
+  }
+
   function renderInventory(emp, focusItems = null) {
     if ((emp.grupos || []).length) return renderUnitGroups(emp, focusItems);
     if ((emp.terrenos || []).length) return renderLandInventory(emp, focusItems);
@@ -1253,29 +1264,40 @@
   }
 
   function renderUnitGroups(emp, focusItems = null) {
-    const groups = emp.grupos || [];
     const focusKeys = focusItems ? new Set(focusItems.map((f) => f.key)) : null;
+
+    // filter(Boolean) tira as vendidas: elas ficam no data.js mas fora do itemMap.
+    const blocos = (emp.grupos || []).map((group, groupIndex) => {
+      let units = (group.unidades || []).map((unit, unitIndex) => itemMap.get(`${emp.id}:unit:${groupIndex}:${unitIndex}`)).filter(Boolean);
+      if (focusKeys) units = units.filter((it) => focusKeys.has(it.key));
+      return units.length ? { group, groupIndex, units } : null;
+    }).filter(Boolean);
+
+    // v161 — cada tipologia vira uma gaveta que abre. O Renaissance tem sete
+    // tipologias e 49 apartamentos: numa lista so, achar o que o cliente pediu
+    // era rolar a tela sem fim. Fechadas, as tipologias cabem todas numa tela e
+    // o corretor abre a que interessa. Com uma tipologia so nao ha o que
+    // escolher, e no link do cliente ele recebeu unidades escolhidas, nao um
+    // catalogo: nos dois casos ja abre aberta.
+    const abertoDeSaida = blocos.length <= 1 || Boolean(focusKeys);
+
     return `
       <section class="content-section" id="unidades">
-        <div class="section-title-row"><h2>${focusItems ? (focusItems.length > 1 ? "Suas unidades" : "Sua unidade") : "Unidades e valores"}</h2><p>Selecione opções para encaminhar ao cliente</p></div>
-        ${groups.map((group, groupIndex) => {
-          // filter(Boolean) tira as vendidas: elas ficam no data.js mas fora do itemMap.
-          let units = (group.unidades || []).map((unit, unitIndex) => itemMap.get(`${emp.id}:unit:${groupIndex}:${unitIndex}`)).filter(Boolean);
-          if (focusKeys) units = units.filter((it) => focusKeys.has(it.key));
-          if (!units.length) return "";
+        <div class="section-title-row"><h2>${focusItems ? (focusItems.length > 1 ? "Suas unidades" : "Sua unidade") : "Unidades e valores"}</h2><p>Toque na tipologia para ver as unidades</p></div>
+        ${blocos.map(({ group, units }) => {
           // v103 — a area da tipologia fica so no cabecalho. A coluna Area da tabela
           // aparece apenas quando alguma unidade tem area diferente da do grupo.
           const showArea = true;
           const showGarage = units.some((it) => normalizeText(it.garage) !== normalizeText(group.garagem || ""));
           return `
-            <article class="unit-group">
-              ${renderGroupHeader(group)}
+            <details class="unit-group"${abertoDeSaida ? " open" : ""}>
+              ${renderGroupHeader(group, units)}
               <table class="units-table">
                 <thead><tr><th>Unidade</th>${showArea ? "<th>Área</th>" : ""}${showGarage ? "<th>Garagem</th>" : ""}<th>Status</th><th>Valor</th><th></th></tr></thead>
                 <tbody>${units.map((item) => renderUnitRow(item, showArea, showGarage)).join("")}</tbody>
               </table>
               <div class="mobile-units">${units.map(renderMobileUnit).join("")}</div>
-            </article>
+            </details>
           `;
         }).join("")}
       </section>
@@ -1298,17 +1320,34 @@
   const otherTags = (item) => (item.tags || []).filter((tag) => !isCasaSuspensa(tag));
 
   // v103 — modelo A: faixa colorida com o tipo em destaque e a area/garagem em etiquetas.
-  function renderGroupHeader(group) {
+  function renderGroupHeader(group, units = []) {
     const chips = String(group.area || "")
       .split("·")
       .map((part) => part.trim())
       .filter(Boolean);
     if (group.garagem) chips.push(String(group.garagem).trim());
     return `
-      <div class="unit-group-header">
-        <h3>${escapeHtml(group.tipo)}</h3>
-        ${chips.length ? `<div class="unit-group-chips">${chips.map((chip) => `<span>${escapeHtml(chip)}</span>`).join("")}</div>` : ""}
-        ${group.obs ? `<p class="unit-group-obs">${escapeHtml(group.obs)}</p>` : ""}
+      <summary class="unit-group-header">
+        <div class="unit-group-main">
+          <h3>${escapeHtml(group.tipo)}</h3>
+          ${chips.length ? `<div class="unit-group-chips">${chips.map((chip) => `<span>${escapeHtml(chip)}</span>`).join("")}</div>` : ""}
+          ${group.obs ? `<p class="unit-group-obs">${escapeHtml(group.obs)}</p>` : ""}
+        </div>
+        ${cantoDaGaveta(units)}
+      </summary>
+    `;
+  }
+
+  // O canto direito do cabecalho: o menor valor da tipologia e a setinha.
+  // v107 continua valendo — NAO se diz quantas unidades ha, so a partir de
+  // quanto. Dizer quantas sobraram tira a urgencia da venda.
+  function cantoDaGaveta(units = []) {
+    const precos = units.map((it) => it.price).filter((preco) => preco > 0);
+    const desde = precos.length ? Math.min(...precos) : 0;
+    return `
+      <div class="unit-group-aside">
+        ${desde ? `<span class="unit-group-preco"><span class="unit-group-desde">A partir de</span><strong class="price-value">${money(desde)}</strong></span>` : ""}
+        <span class="unit-group-toggle"></span>
       </div>
     `;
   }
@@ -1356,14 +1395,39 @@
   function renderLandInventory(emp, focusItems = null) {
     const focusKeys = focusItems ? new Set(focusItems.map((f) => f.key)) : null;
     const items = focusKeys ? itemsFor(emp).filter((it) => focusKeys.has(it.key)) : itemsFor(emp);
+
+    // v161 — a quadra faz aqui o papel da tipologia: o Nova Vila Rica III tem 83
+    // lotes, e numa tabela unica achar o da quadra certa era rolar sem fim.
+    const quadras = new Map();
+    items.forEach((item) => {
+      const chave = String(item.quadra || "");
+      if (!quadras.has(chave)) quadras.set(chave, []);
+      quadras.get(chave).push(item);
+    });
+    const abertoDeSaida = quadras.size <= 1 || Boolean(focusKeys);
+
     return `
       <section class="content-section" id="unidades">
-        <div class="section-title-row"><h2>Lotes e valores</h2><p>Disponibilidade por quadra e lote</p></div>
-        <table class="units-table">
-          <thead><tr><th>Lote</th><th>Área</th><th>Rua</th><th>Status</th><th>Valor</th><th></th></tr></thead>
-          <tbody>${items.map((item) => renderOpportunityRow(item, item.rua)).join("")}</tbody>
-        </table>
-        <div class="mobile-units">${items.map((item) => renderMobileOpportunity(item, item.rua)).join("")}</div>
+        <div class="section-title-row"><h2>Lotes e valores</h2><p>Toque na quadra para ver os lotes</p></div>
+        ${[...quadras.entries()].map(([quadra, lotes]) => `
+          <details class="unit-group" data-abre="lotes"${abertoDeSaida ? " open" : ""}>
+            <summary class="unit-group-header">
+              <div class="unit-group-main">
+                <h3>${quadra ? `Quadra ${escapeHtml(quadra)}` : "Lotes"}</h3>
+                ${(() => {
+                  const ruas = unique(lotes.map((lote) => lote.rua));
+                  return ruas.length ? `<div class="unit-group-chips">${ruas.map((rua) => `<span>${escapeHtml(rua)}</span>`).join("")}</div>` : "";
+                })()}
+              </div>
+              ${cantoDaGaveta(lotes)}
+            </summary>
+            <table class="units-table">
+              <thead><tr><th>Lote</th><th>Área</th><th>Rua</th><th>Status</th><th>Valor</th><th></th></tr></thead>
+              <tbody>${lotes.map((item) => renderOpportunityRow(item, item.rua)).join("")}</tbody>
+            </table>
+            <div class="mobile-units">${lotes.map((item) => renderMobileOpportunity(item, item.rua)).join("")}</div>
+          </details>
+        `).join("")}
       </section>
     `;
   }
