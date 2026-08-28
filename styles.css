@@ -795,36 +795,6 @@ img { max-width: 100%; display: block; }
 .client-mode #print-list { display: none !important; }
 .client-mode.client-list .detail-back { display: inline-flex !important; }
 
-/* v160 — "Meus números": o que este aparelho fez. Entrada discreta no rodape,
-   porque e conferencia ocasional, nao ferramenta de atendimento. */
-.footer-tools { display: flex; justify-content: center; padding-top: 20px; }
-.footer-numbers {
-  padding: 10px 22px;
-  border: 1px solid rgba(255, 255, 255, .35);
-  border-radius: 999px;
-  color: #fff;
-  font-size: 13.5px;
-}
-.footer-numbers:hover { background: rgba(255, 255, 255, .12); }
-.client-mode .footer-tools { display: none; }
-
-.numbers-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 14px 24px 4px; }
-.numbers-tile { padding: 14px 12px; text-align: center; background: var(--brand-soft); border: 1px solid var(--line); border-radius: 12px; }
-.numbers-tile strong { display: block; font-size: 26px; line-height: 1.1; color: var(--brand-dark); }
-.numbers-tile span { display: block; margin-top: 5px; color: var(--muted); font-size: 12px; line-height: 1.35; }
-.numbers-title { margin: 0 0 8px; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
-.numbers-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 9px 0; border-top: 1px solid var(--line); font-size: 14.5px; }
-.numbers-counts { flex: 0 0 auto; color: var(--muted); font-size: 12.5px; }
-.numbers-vazio { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
-.numbers-list { margin: 10px 24px 0; min-height: 0; overflow-y: auto; }
-
-@media (max-width: 520px) {
-  .numbers-summary { grid-template-columns: 1fr; }
-  .numbers-tile { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; text-align: left; padding: 11px 14px; }
-  .numbers-tile strong { font-size: 22px; }
-  .numbers-tile span { margin-top: 0; text-align: right; }
-}
-
 /* v160 — botao fixo "Falar com o corretor" na pagina do cliente. So aparece no
    modo cliente e so quando o link trouxe o WhatsApp de quem enviou. Verde do
    WhatsApp de proposito: o cliente reconhece o botao antes de ler. */

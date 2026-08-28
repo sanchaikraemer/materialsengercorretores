@@ -169,6 +169,15 @@
     /* align-items: start para cada cartao ter a sua altura: com a lista de
        unidades dentro, um cartao alto deixaria os vizinhos cheios de vazio. */
     .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; align-items: start; }
+    /* Movimento do portfolio: o numero grande na frente do que ele conta. */
+    .uso-resumo { margin-bottom: 16px; }
+    .uso-tile { display: flex; align-items: baseline; gap: 10px; background: var(--fundo); border: 1px solid var(--borda); border-radius: 10px; padding: 14px; }
+    .uso-tile strong { font-size: 1.7rem; line-height: 1; color: var(--dourado-escuro); }
+    .uso-tile span { color: var(--texto-suave); font-size: .85rem; line-height: 1.3; }
+    .uso-titulo { margin: 0 0 6px; color: var(--texto-suave); font-size: .72rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
+    .uso-linha { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 9px 0; border-top: 1px solid var(--borda); font-size: .92rem; }
+    .uso-linha span:last-child { flex: none; color: var(--texto-suave); font-size: .8rem; }
+    .uso-vazio { margin: 0 0 14px; color: var(--texto-suave); font-size: .88rem; line-height: 1.55; }
     .card {
       background: var(--fundo);
       border: 1px solid var(--borda);
@@ -528,6 +537,18 @@
             Na garagem a conta é em <strong>box</strong>: cada box vai inteiro para um apartamento.
             O box duplo tem as duas vagas uma atrás da outra, então ele não se reparte entre dois apartamentos.</p>
           <div class="cards" id="dashboard"></div>
+        </section>
+
+        <!-- Movimento do portfolio -->
+        <section class="bloco">
+          <h2>Movimento do portfólio</h2>
+          <p class="descricao">O que <strong>este aparelho</strong> fez no site: quantos empreendimentos abriu,
+            quantos imóveis mandou para cliente e quantos PDFs gerou. O site anota sozinho, sem mostrar nada
+            para ninguém &mdash; a conta só aparece aqui.</p>
+          <p class="resumo-cadastro" id="uso-periodo">&mdash;</p>
+          <div class="cards uso-resumo" id="uso-resumo"></div>
+          <div id="uso-lista"></div>
+          <button class="botao secundario" id="botao-zerar-uso">Zerar a contagem</button>
         </section>
 
         <!-- O que falta no cadastro -->
@@ -977,9 +998,67 @@
     const meta = estado.dados.META;
     $("info-versao").textContent = `v${estado.versao} · ${meta.mesTabela} · INCC ${meta.incc.valor} (${meta.incc.variacao})`;
     renderDashboard();
+    renderUso();
     renderCadastro();
     renderEmps();
     renderPendentes();
+  }
+
+  // v162 — o movimento do portfolio. Quem ANOTA e o site (app.js, funcao
+  // registrar): cada vez que alguem abre um empreendimento, manda um imovel ao
+  // cliente ou gera um PDF, ele soma na chave "senger-uso" deste aparelho.
+  // Quem MOSTRA e este painel, e so ele: o portfolio e pagina aberta, qualquer
+  // um alcanca, e movimento de venda nao se expoe. Painel e site vivem no mesmo
+  // endereco, entao esta e a mesma chave que o site escreveu.
+  //
+  // A conta e sempre DESTE aparelho. Nao ha servidor no meio: o que os
+  // corretores fazem fica no celular de cada um.
+  const USO_CHAVE = "senger-uso";
+
+  function usoLer() {
+    try {
+      const bruto = JSON.parse(localStorage.getItem(USO_CHAVE) || "{}") || {};
+      return {
+        desde: bruto.desde || "",
+        emp: bruto.emp && typeof bruto.emp === "object" ? bruto.emp : {},
+        meses: bruto.meses && typeof bruto.meses === "object" ? bruto.meses : {},
+      };
+    } catch (e) {
+      return { desde: "", emp: {}, meses: {} };
+    }
+  }
+
+  const usoSoma = (uso, tipo) => Object.values(uso.meses)
+    .reduce((soma, mes) => soma + (mes[tipo] || 0), 0);
+
+  function renderUso() {
+    const uso = usoLer();
+    const nomeDoEmp = {};
+    estado.dados.EMPREENDIMENTOS.forEach((emp) => { nomeDoEmp[emp.id] = emp.nome; });
+
+    const desde = uso.desde ? new Date(`${uso.desde}T12:00:00`) : null;
+    $("uso-periodo").textContent = desde && !Number.isNaN(desde.getTime())
+      ? `Contando desde ${desde.toLocaleDateString("pt-BR")}.`
+      : "Ainda não há nada contado neste aparelho.";
+
+    $("uso-resumo").innerHTML = [
+      ["Empreendimentos abertos", usoSoma(uso, "abriu")],
+      ["Imóveis enviados a cliente", usoSoma(uso, "enviou")],
+      ["PDFs gerados", usoSoma(uso, "pdf")],
+    ].map(([rotulo, valor]) => `<div class="uso-tile"><strong>${valor}</strong><span>${rotulo}</span></div>`).join("");
+
+    const ranking = Object.entries(uso.emp)
+      .filter(([id]) => nomeDoEmp[id])
+      .sort((a, b) => (b[1].abriu || 0) - (a[1].abriu || 0) || (b[1].enviou || 0) - (a[1].enviou || 0));
+
+    $("uso-lista").innerHTML = ranking.length
+      ? `<p class="uso-titulo">Mais procurados</p>${ranking.map(([id, contas]) => `
+          <div class="uso-linha">
+            <span>${escapeHtml(nomeDoEmp[id])}</span>
+            <span>${contas.abriu || 0} ${(contas.abriu || 0) === 1 ? "abertura" : "aberturas"} · ${contas.enviou || 0} ${(contas.enviou || 0) === 1 ? "envio" : "envios"}</span>
+          </div>`).join("")}`
+      : `<p class="uso-vazio">Nada registrado ainda neste aparelho. Abra um empreendimento no site, ou mande um
+         imóvel para um cliente, e o movimento aparece aqui.</p>`;
   }
 
   function renderDashboard() {
@@ -1105,6 +1184,15 @@
     } catch (e) {
       aviso("Não consegui copiar sozinho — tire uma foto da tela mesmo.", "falha");
     }
+  });
+
+  $("botao-zerar-uso").addEventListener("click", () => {
+    if (!confirm("Zerar a contagem de movimento deste aparelho? Não dá para desfazer.")) return;
+    try {
+      localStorage.setItem(USO_CHAVE, JSON.stringify({ desde: new Date().toISOString().slice(0, 10), emp: {}, meses: {} }));
+    } catch (e) { /* modo privado: nao ha o que zerar */ }
+    renderUso();
+    aviso("Contagem zerada. Ela recomeça a partir de hoje.", "ok");
   });
 
   // Só o empreendimento escolhido no cartão fica na tela.

@@ -111,14 +111,16 @@ nome, WhatsApp e CRECI viajam no próprio endereço (`c=`, `w=`, `cr=`) e viram 
 botão verde **"Falar com…"** fixo na página do cliente. Sem `w=` no link, o
 botão não aparece.
 
-## Meus números
+## Movimento do portfólio
 
-O rodapé tem "Meus números": quantos empreendimentos este aparelho abriu,
-quantos imóveis enviou e quantos PDFs gerou, com o ranking dos mais procurados.
-Fica **só no aparelho** — o site é estático, não há servidor para onde mandar
-nada, e o que o cliente faz no link dele acontece longe daqui. O corretor manda
-o resumo ao dono pelo botão "Enviar meus números"; é assim que o movimento de
-todos se junta.
+O site **anota sozinho e não mostra nada**: cada empreendimento aberto, imóvel
+enviado ao cliente e PDF gerado soma na chave `senger-uso` do aparelho
+(`registrar()`, no `app.js`). Quem **mostra** é o painel administrativo, e só
+ele — o portfólio é página aberta, e movimento de venda não se expõe. Painel e
+site vivem no mesmo endereço, então o painel lê a mesma chave.
+
+A conta é sempre **daquele aparelho**: não há servidor no meio, e o que os
+corretores fazem fica no celular de cada um.
 
 ## Metragens no site
 
