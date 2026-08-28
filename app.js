@@ -89,7 +89,12 @@
   // no link dele acontece no aparelho DELE, longe daqui. Entao o que da para
   // saber com honestidade e o que ESTE aparelho fez: quais empreendimentos o
   // corretor abriu, quantas vezes enviou imovel ao cliente e quantos PDFs
-  // gerou. Fica so aqui, e ele manda o resumo ao dono quando quiser.
+  // gerou.
+  //
+  // v162 — a gravacao acontece aqui, mas quem MOSTRA e o painel administrativo.
+  // O site nao tem tela nenhuma para isso: movimento e assunto do dono, e o
+  // portfolio e uma pagina aberta, que qualquer um alcanca. Painel e site vivem
+  // no mesmo endereco, entao o painel le esta mesma chave.
   const USO_CHAVE = "senger-uso";
   const USO_MESES = 6;
 
@@ -124,8 +129,6 @@
     Object.keys(uso.meses).sort().slice(0, -USO_MESES).forEach((velho) => delete uso.meses[velho]);
     storage.set(USO_CHAVE, JSON.stringify(uso));
   }
-
-  const usoTotal = (uso, tipo) => Object.values(uso.meses).reduce((soma, m) => soma + (m[tipo] || 0), 0);
 
   // Numero de WhatsApp com o codigo do pais. O corretor digita "(54) 99901-3331";
   // o wa.me precisa de 5554999013331.
@@ -2547,103 +2550,6 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
     atualizarBotao();
   }
 
-  // v160 — a janela "Meus números". Mostra o que este aparelho fez e deixa o
-  // corretor mandar o resumo ao dono, que e como o movimento de todos se junta
-  // sem servidor nenhum no meio.
-  function renderNumbers() {
-    const uso = usoLer();
-    const abriu = usoTotal(uso, "abriu");
-    const enviou = usoTotal(uso, "enviou");
-    const pdf = usoTotal(uso, "pdf");
-
-    const desde = new Date(`${uso.desde}T12:00:00`);
-    setText("numbers-period", Number.isNaN(desde.getTime())
-      ? "Contando desde o primeiro uso neste aparelho."
-      : `Contando desde ${desde.toLocaleDateString("pt-BR")}. Fica só neste aparelho — ninguém mais vê.`);
-
-    setHtml("numbers-summary", [
-      ["Empreendimentos abertos", abriu],
-      ["Imóveis enviados a cliente", enviou],
-      ["PDFs gerados", pdf],
-    ].map(([rotulo, valor]) => `
-      <div class="numbers-tile"><strong>${valor}</strong><span>${escapeHtml(rotulo)}</span></div>
-    `).join(""));
-
-    const ranking = Object.entries(uso.emp)
-      .map(([id, contas]) => ({ emp: findEnterprise(id), ...contas }))
-      .filter((linha) => linha.emp)
-      .sort((a, b) => (b.abriu || 0) - (a.abriu || 0) || (b.enviou || 0) - (a.enviou || 0));
-
-    setHtml("numbers-list", ranking.length ? `
-      <h3 class="numbers-title">Mais procurados</h3>
-      ${ranking.map((linha) => `
-        <div class="numbers-row">
-          <span>${escapeHtml(linha.emp.nome)}</span>
-          <span class="numbers-counts">${plural(linha.abriu || 0, "abertura", "aberturas")} · ${plural(linha.enviou || 0, "envio", "envios")}</span>
-        </div>
-      `).join("")}
-    ` : `<p class="numbers-vazio">Ainda não há movimento registrado neste aparelho. Abra um empreendimento ou envie um imóvel a um cliente e os números aparecem aqui.</p>`);
-  }
-
-  function numbersMessage() {
-    const uso = usoLer();
-    const { nome } = corretorDados();
-    const linhas = [`*Uso do portfólio${nome ? ` — ${nome}` : ""}*`];
-    const desde = new Date(`${uso.desde}T12:00:00`);
-    if (!Number.isNaN(desde.getTime())) linhas.push(`Desde ${desde.toLocaleDateString("pt-BR")}`);
-    linhas.push("",
-      `Empreendimentos abertos: ${usoTotal(uso, "abriu")}`,
-      `Imóveis enviados a cliente: ${usoTotal(uso, "enviou")}`,
-      `PDFs gerados: ${usoTotal(uso, "pdf")}`);
-
-    const ranking = Object.entries(uso.emp)
-      .map(([id, contas]) => ({ emp: findEnterprise(id), ...contas }))
-      .filter((linha) => linha.emp)
-      .sort((a, b) => (b.abriu || 0) - (a.abriu || 0));
-    if (ranking.length) {
-      linhas.push("", "*Mais procurados*");
-      ranking.forEach((linha) => linhas.push(`• ${linha.emp.nome}: ${linha.abriu || 0} aberturas, ${linha.enviou || 0} envios`));
-    }
-    return linhas.join("\n");
-  }
-
-  function bindNumbersEvents() {
-    const abrir = document.getElementById("open-numbers");
-    const modal = document.getElementById("numbers-modal");
-    if (!abrir || !modal) return;
-    // Na pagina do cliente isto nao existe: e ferramenta da equipe.
-    if (CLIENT_MODE) { abrir.hidden = true; return; }
-
-    const fechar = () => {
-      modal.classList.remove("open");
-      modal.setAttribute("aria-hidden", "true");
-      document.body.classList.remove("no-scroll");
-    };
-    abrir.addEventListener("click", () => {
-      renderNumbers();
-      modal.classList.add("open");
-      modal.setAttribute("aria-hidden", "false");
-      document.body.classList.add("no-scroll");
-    });
-    modal.querySelectorAll("[data-close-numbers]").forEach((el) => el.addEventListener("click", fechar));
-
-    document.getElementById("numbers-send").addEventListener("click", () => {
-      const texto = numbersMessage();
-      fechar();
-      if (navigator.share) {
-        navigator.share({ title: "Uso do portfólio", text: texto }).catch(() => openShareModal(texto));
-        return;
-      }
-      openShareModal(texto);
-    });
-
-    document.getElementById("numbers-reset").addEventListener("click", () => {
-      storage.set(USO_CHAVE, JSON.stringify({ desde: new Date().toISOString().slice(0, 10), emp: {}, meses: {} }));
-      renderNumbers();
-      showToast("Números zerados.");
-    });
-  }
-
   function registerServiceWorker() {
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
       navigator.serviceWorker.register("sw.js?v=45").catch(() => {});
@@ -2657,7 +2563,6 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
   renderMetadata();
   renderFilters();
   bindGlobalEvents();
-  bindNumbersEvents();
   updateSelectionUi();
   renderPortfolio();
   renderRoute();
