@@ -24,12 +24,14 @@
 <meta name="twitter:description" content="Piscina, academia e 3 salões de festas — pronto para morar e financiável.">
 <meta name="twitter:image" content="https://sanchaikraemer.github.io/materialsengercorretores/assets/preview/quality.jpg">
 <script>
-  // Manda pro portfolio antes de a ponte aparecer, levando junto ?u= e ?sel=.
+  // Manda pro portfolio antes de a ponte aparecer, levando junto tudo que veio
+  // no endereco (?u=, ?sel=, e o ?w= com o WhatsApp de quem enviou).
   // replace() em vez de href: o "voltar" do celular nao fica preso nesta pagina.
   (function () {
     var qs = location.search.replace(/^\?/, "");
     var raiz = location.pathname.replace(/\/l\/[^/]*\/?$/, "/");
-    location.replace(raiz + "?cliente" + (qs ? "&" + qs : "") + "#emp-quality");
+    var extra = qs;
+    location.replace(raiz + "?cliente" + (extra ? "&" + extra : "") + "#emp-quality");
   })();
 </script>
 <style>
@@ -57,7 +59,8 @@
     (function () {
       var qs = location.search.replace(/^\?/, "");
       var raiz = location.pathname.replace(/\/l\/[^/]*\/?$/, "/");
-      document.getElementById("ir").href = raiz + "?cliente" + (qs ? "&" + qs : "") + "#emp-quality";
+      var extra = qs;
+      document.getElementById("ir").href = raiz + "?cliente" + (extra ? "&" + extra : "") + "#emp-quality";
     })();
   </script>
 </body>

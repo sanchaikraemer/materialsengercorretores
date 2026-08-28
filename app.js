@@ -56,6 +56,86 @@
     return [quem, fone].filter(Boolean).join(" — ");
   }
 
+  // v160 — quem manda o link vai DENTRO dele. Os dados do corretor ficam salvos
+  // no aparelho dele; a pagina que o cliente abre e a mesma, so que rodando no
+  // aparelho do CLIENTE, que nao sabe quem enviou. Entao nome, WhatsApp e CRECI
+  // viajam no proprio endereco (c=, w=, cr=) e viram o botao "Falar com..." la
+  // na ponta. Antes disso o unico telefone da pagina do cliente era o da
+  // construtora, no rodape: quem trabalhou o atendimento ficava de fora.
+  function corretorQuery() {
+    const { nome, fone, creci } = corretorDados();
+    const digitos = String(fone || "").replace(/\D/g, "");
+    // Sem telefone nao ha para onde mandar o cliente — o link segue limpo.
+    if (!digitos) return "";
+    const partes = [`w=${digitos}`];
+    if (nome) partes.push(`c=${encodeURIComponent(nome)}`);
+    if (creci) partes.push(`cr=${encodeURIComponent(creci)}`);
+    return partes.join("&");
+  }
+
+  const comCorretor = (query = "") => [query, corretorQuery()].filter(Boolean).join("&");
+
+  // Link enviado sem o WhatsApp preenchido chega ao cliente sem o botao de
+  // resposta. Avisa uma vez por uso do app, sem atrapalhar quem ja preencheu.
+  let avisouSemContato = false;
+  function avisarSemContato() {
+    if (avisouSemContato || corretorQuery()) return;
+    avisouSemContato = true;
+    showToast("Preencha 'Meu contato' para o cliente conseguir te chamar.");
+  }
+
+  // v160 — os numeros de uso do aparelho. O site e um arquivo estatico no
+  // GitHub Pages: nao ha servidor para onde mandar nada, e o que o cliente faz
+  // no link dele acontece no aparelho DELE, longe daqui. Entao o que da para
+  // saber com honestidade e o que ESTE aparelho fez: quais empreendimentos o
+  // corretor abriu, quantas vezes enviou imovel ao cliente e quantos PDFs
+  // gerou. Fica so aqui, e ele manda o resumo ao dono quando quiser.
+  const USO_CHAVE = "senger-uso";
+  const USO_MESES = 6;
+
+  const mesDe = (data = new Date()) => `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}`;
+
+  function usoLer() {
+    try {
+      const bruto = JSON.parse(storage.get(USO_CHAVE, "{}")) || {};
+      return {
+        desde: bruto.desde || new Date().toISOString().slice(0, 10),
+        emp: bruto.emp && typeof bruto.emp === "object" ? bruto.emp : {},
+        meses: bruto.meses && typeof bruto.meses === "object" ? bruto.meses : {},
+      };
+    } catch (_) {
+      return { desde: new Date().toISOString().slice(0, 10), emp: {}, meses: {} };
+    }
+  }
+
+  function registrar(tipo, empId = "") {
+    // No link do cliente nao se registra nada: quem esta ali nao e a equipe.
+    if (CLIENT_MODE) return;
+    const uso = usoLer();
+    const mes = mesDe();
+    if (empId) {
+      uso.emp[empId] = uso.emp[empId] || {};
+      uso.emp[empId][tipo] = (uso.emp[empId][tipo] || 0) + 1;
+    }
+    uso.meses[mes] = uso.meses[mes] || {};
+    uso.meses[mes][tipo] = (uso.meses[mes][tipo] || 0) + 1;
+    // Guarda so os ultimos meses: o registro serve para acompanhar o movimento,
+    // nao para virar arquivo morto no aparelho.
+    Object.keys(uso.meses).sort().slice(0, -USO_MESES).forEach((velho) => delete uso.meses[velho]);
+    storage.set(USO_CHAVE, JSON.stringify(uso));
+  }
+
+  const usoTotal = (uso, tipo) => Object.values(uso.meses).reduce((soma, m) => soma + (m[tipo] || 0), 0);
+
+  // Numero de WhatsApp com o codigo do pais. O corretor digita "(54) 99901-3331";
+  // o wa.me precisa de 5554999013331.
+  function waHref(fone, texto = "") {
+    let n = String(fone || "").replace(/\D/g, "");
+    if (!n) return "";
+    if (n.length <= 11) n = `55${n}`;
+    return `https://wa.me/${n}${texto ? `?text=${encodeURIComponent(texto)}` : ""}`;
+  }
+
   // v105 — dormitorios da tipologia, para o filtro do portfolio. "2 dormitorios (1 suite)"
   // vale 2; quando o tipo so fala em suites ("3 suites + lavabo"), elas sao os dormitorios.
   // Sala comercial nao tem dormitorio.
@@ -65,16 +145,6 @@
     if (dormitorios) return Number(dormitorios[1]);
     const suites = texto.match(/(\d+)\s*su[ií]te/i);
     return suites ? Number(suites[1]) : null;
-  }
-
-  function dormitoriosDoEmp(emp) {
-    const total = new Set();
-    (emp.grupos || []).forEach((group) => {
-      if (!(group.unidades || []).some((unit) => isMarketable(unit.status || "disponivel"))) return;
-      const quantos = dormitoriosDe(group.tipo);
-      if (quantos) total.add(quantos);
-    });
-    return total;
   }
 
   const CATEGORY_LABELS = {
@@ -88,7 +158,6 @@
   const STATUS_LABELS = {
     disponivel: "Disponível",
     alugado: "Alugado",
-    reservado: "Reservado",
     vendido: "Vendido",
   };
 
@@ -99,6 +168,13 @@
     rooms: "todos",
     price: "todos",
     sort: "destaque",
+    // v160 — "predios" (a vitrine de sempre) ou "unidades" (a lista de
+    // apartamentos de varios predios lado a lado). O cliente pergunta em
+    // apartamento; ate agora a unica resposta possivel era em predio.
+    view: storage.get("senger-view", "predios") === "unidades" ? "unidades" : "predios",
+    // Unidade que o corretor abriu pela lista: a ficha do empreendimento rola
+    // ate ela e a destaca, do mesmo jeito que o link ?u= faz para o cliente.
+    foco: null,
     selected: new Set(JSON.parse(storage.get("senger-selection", "[]"))),
     // Empreendimentos marcados para a lista enviada ao cliente. Vazio = todos os filtrados.
     picks: new Set(JSON.parse(storage.get("senger-picks", "[]"))),
@@ -131,6 +207,19 @@
       porEmp.get(empId).add(code);
     });
     return porEmp.size ? porEmp : null;
+  })();
+
+  // O corretor que enviou o link, lido do endereco. So existe no modo cliente.
+  const CORRETOR_DO_LINK = (() => {
+    if (!CLIENT_MODE) return null;
+    const params = new URLSearchParams(location.search);
+    const fone = String(params.get("w") || "").replace(/\D/g, "");
+    if (!fone) return null;
+    return {
+      fone,
+      nome: String(params.get("c") || "").trim(),
+      creci: String(params.get("cr") || "").trim(),
+    };
   })();
 
   const CLIENT_LIST_IDS = (() => {
@@ -167,7 +256,17 @@
     .toLowerCase();
 
   const unique = (values) => [...new Set(values.filter(Boolean))];
-  const isMarketable = (status) => !["vendido", "reservado"].includes(status || "disponivel");
+
+  // v160 — o codigo da unidade vira pedaco de endereco: "701 B" -> "701-b".
+  // Tem que dar exatamente o mesmo resultado do slug() do tools/gerar-pontes.js,
+  // senao o link enviado aponta para uma ponte que nao existe.
+  const codigoSlug = (texto) => String(texto || "")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  // A construtora nao reserva unidade: os status sao disponivel, alugado e vendido.
+  // Alugado continua na oferta — e o produto pronto para o investidor, que compra
+  // com o inquilino dentro. So o vendido sai da vitrine.
+  const isMarketable = (status) => (status || "disponivel") !== "vendido";
   const safeUrl = (url) => /^https?:\/\//i.test(url || "") ? url : `https://${url}`;
 
   const assetUrl = (path) => {
@@ -394,6 +493,8 @@
       enterpriseItems.set(emp.id, items);
     });
 
+    empSearchCache.clear();
+    itemSearchCache.clear();
     state.selected = new Set([...state.selected].filter((key) => itemMap.has(key)));
     saveSelection();
   }
@@ -425,18 +526,62 @@
     return media;
   }
 
-  function portfolioSearchText(emp) {
-    const inventory = itemsFor(emp).map((item) => [
-      itemLabel(item), item.area, item.garage, item.rua, item.local, item.description,
-      ...(item.tags || []), item.group?.tipo, item.notes,
-    ].join(" ")).join(" ");
-    return normalizeText([
-      emp.nome, emp.cidade, emp.categoria, emp.statusLabel, emp.entrega,
-      emp.tagline, emp.localizacao, condicoesDe(emp),
-      ...(emp.diferenciais || []).flatMap((d) => [d.titulo, d.desc]),
-      inventory,
-    ].join(" "));
+  // v160 — a busca passa a ter dois niveis. O texto DO PREDIO responde
+  // "Renaissance", "Carazinho", "piscina"; o texto DA UNIDADE responde "501",
+  // "2 suites", "decorado". Antes era tudo um caco so, entao procurar pelo
+  // apartamento 501 devolvia o predio inteiro sem dizer onde ele estava.
+  const empSearchCache = new Map();
+  const itemSearchCache = new Map();
+
+  function empSearchText(emp) {
+    if (!empSearchCache.has(emp.id)) {
+      empSearchCache.set(emp.id, normalizeText([
+        emp.nome, emp.cidade, emp.categoria, emp.statusLabel, emp.entrega,
+        emp.tagline, emp.localizacao, condicoesDe(emp),
+        ...(emp.diferenciais || []).flatMap((d) => [d.titulo, d.desc]),
+      ].join(" ")));
+    }
+    return empSearchCache.get(emp.id);
   }
+
+  function itemSearchText(item) {
+    if (!itemSearchCache.has(item.key)) {
+      itemSearchCache.set(item.key, normalizeText([
+        itemLabel(item), item.code, item.area, item.garage, item.rua, item.local,
+        item.description, ...(item.tags || []), item.group?.tipo, item.notes,
+      ].join(" ")));
+    }
+    return itemSearchCache.get(item.key);
+  }
+
+  function portfolioSearchText(emp) {
+    return [empSearchText(emp), ...itemsFor(emp).map(itemSearchText)].join(" ");
+  }
+
+  // A unidade combina com o que o corretor pediu? Cidade e etapa sao do predio;
+  // dormitorios, faixa de valor e busca livre sao conferidos aqui, unidade por
+  // unidade. Terreno e "outros imoveis" nao tem tipologia: o filtro de
+  // dormitorios simplesmente nao se aplica a eles.
+  function itemMatches(item, query = normalizeText(state.query)) {
+    if (state.rooms !== "todos" && dormitoriosDe(item.group?.tipo || "") !== Number(state.rooms)) return false;
+    if (state.price !== "todos") {
+      const [minRaw, maxRaw] = state.price.split("-");
+      const min = Number(minRaw) || 0;
+      const max = maxRaw === "inf" ? Infinity : Number(maxRaw);
+      if (!(item.price > 0 && item.price >= min && item.price <= max)) return false;
+    }
+    if (query && !empSearchText(item.emp).includes(query) && !itemSearchText(item).includes(query)) return false;
+    return true;
+  }
+
+  // As unidades de um empreendimento que sobrevivem aos filtros de unidade.
+  function matchingItems(emp, query = normalizeText(state.query)) {
+    return marketableItems(emp).filter((item) => itemMatches(item, query));
+  }
+
+  // Ha algum filtro que fale de unidade? E o que decide se o cartao mostra
+  // "3 unidades combinam" no lugar do "a partir de" do predio inteiro.
+  const filtroDeUnidade = () => Boolean(state.query) || state.rooms !== "todos" || state.price !== "todos";
 
   function renderMetadata() {
     const cities = unique(EMPREENDIMENTOS.flatMap((emp) => emp.cidade.split(" · ")));
@@ -497,6 +642,14 @@
     document.getElementById("clear-filters").addEventListener("click", clearFilters);
     document.getElementById("empty-clear").addEventListener("click", clearFilters);
 
+    document.querySelectorAll("#view-switch [data-view]").forEach((botao) => {
+      botao.addEventListener("click", () => {
+        state.view = botao.dataset.view === "unidades" ? "unidades" : "predios";
+        storage.set("senger-view", state.view);
+        renderPortfolio();
+      });
+    });
+
     const filterToggle = document.getElementById("filter-toggle");
     filterToggle.addEventListener("click", () => {
       const body = document.getElementById("filters-body");
@@ -521,24 +674,16 @@
     renderPortfolio();
   }
 
-  function priceRangeMatches(emp) {
-    if (state.price === "todos") return true;
-    const [minRaw, maxRaw] = state.price.split("-");
-    const min = Number(minRaw) || 0;
-    const max = maxRaw === "inf" ? Infinity : Number(maxRaw);
-    return marketableItems(emp).some((item) => item.price > 0 && item.price >= min && item.price <= max);
-  }
-
   function filteredEnterprises() {
     const query = normalizeText(state.query);
     const result = EMPREENDIMENTOS.filter((emp) => {
       if (CLIENT_LIST_IDS && !CLIENT_LIST_IDS.includes(emp.id)) return false;
       if (state.city !== "todos" && !emp.cidade.split(" · ").includes(state.city)) return false;
       if (state.stage !== "todos" && emp.status !== state.stage) return false;
-      if (state.rooms !== "todos" && !dormitoriosDoEmp(emp).has(Number(state.rooms))) return false;
-      if (marketableItems(emp).length === 0) return false;
-      if (!priceRangeMatches(emp)) return false;
-      if (query && !portfolioSearchText(emp).includes(query)) return false;
+      // Antes cada filtro era conferido por conta propria: bastava existir
+      // ALGUMA unidade de 2 dormitorios e ALGUMA na faixa de preco, ainda que
+      // fossem unidades diferentes. Agora tem que ser a mesma unidade.
+      if (matchingItems(emp, query).length === 0) return false;
       return true;
     });
 
@@ -550,21 +695,128 @@
     });
   }
 
-  function cardImage(emp) {
-    return emp.hero || "assets/fachada.jpg";
+  // v160 — as unidades de todos os empreendimentos que passam nos filtros,
+  // numa lista so. E a resposta para "2 dormitorios em Carazinho ate 400 mil",
+  // que antes obrigava o corretor a abrir predio por predio e caçar dentro.
+  function unidadesFiltradas() {
+    const query = normalizeText(state.query);
+    const predios = filteredEnterprises();
+    const itens = [];
+    predios.forEach((emp) => itens.push(...matchingItems(emp, query)));
+
+    // A ordem dos predios ja veio pronta de filteredEnterprises(): a lista de
+    // unidades so respeita a mesma sequencia quando nao se ordena por valor.
+    const ordemDoPredio = new Map(predios.map((emp, i) => [emp.id, i]));
+    const semPreco = (item) => (item.price > 0 ? 0 : 1);
+    return itens.sort((a, b) => {
+      // Unidade sem preco vai para o fim das ordenacoes por valor: "Sob
+      // consulta" no topo do "menor preco" nao ajuda ninguem.
+      if (state.sort === "menor-preco") return semPreco(a) - semPreco(b) || a.price - b.price;
+      if (state.sort === "maior-preco") return semPreco(a) - semPreco(b) || b.price - a.price;
+      if (state.sort === "nome") {
+        return a.emp.nome.localeCompare(b.emp.nome, "pt-BR")
+          || String(a.code).localeCompare(String(b.code), "pt-BR", { numeric: true });
+      }
+      return (ordemDoPredio.get(a.emp.id) ?? 0) - (ordemDoPredio.get(b.emp.id) ?? 0)
+        || String(a.code).localeCompare(String(b.code), "pt-BR", { numeric: true });
+    });
   }
 
+  function cardImage(emp) {
+    return emp.hero || "assets/fachada.webp";
+  }
+
+  const plural = (n, um, muitos) => `${n} ${n === 1 ? um : muitos}`;
+
+  // A visao de unidades e ferramenta do corretor: no link do cliente a vitrine
+  // continua sendo a de empreendimentos, do jeito que ele recebeu.
+  const visaoDeUnidades = () => state.view === "unidades" && !CLIENT_MODE;
+
   function renderPortfolio() {
-    const grid = document.getElementById("portfolio-grid");
     const enterprises = filteredEnterprises();
-    document.getElementById("empty-state").hidden = enterprises.length > 0;
+    const unidades = CLIENT_MODE ? [] : unidadesFiltradas();
+    const porUnidade = visaoDeUnidades();
+    const lista = porUnidade ? unidades : enterprises;
+    document.getElementById("empty-state").hidden = lista.length > 0;
+
+    // A contagem diz sempre as DUAS coisas: e o que faz o corretor descobrir
+    // que existe a lista de unidades sem ter que adivinhar.
     setHtml("results-count", CLIENT_LIST_IDS
       ? `Seleção preparada para você — <strong>${enterprises.length}</strong> ${enterprises.length === 1 ? "empreendimento" : "empreendimentos"}. Toque em um deles para ver fotos, valores e disponibilidade.`
-      : `<strong>${enterprises.length}</strong> ${enterprises.length === 1 ? "empreendimento encontrado" : "empreendimentos encontrados"}`);
+      : CLIENT_MODE
+        ? `<strong>${enterprises.length}</strong> ${enterprises.length === 1 ? "empreendimento" : "empreendimentos"}`
+        : `<strong>${plural(unidades.length, "unidade", "unidades")}</strong> em ${plural(enterprises.length, "empreendimento", "empreendimentos")}`);
 
+    const alternador = document.getElementById("view-switch");
+    if (alternador) {
+      alternador.hidden = Boolean(CLIENT_MODE);
+      alternador.querySelectorAll("[data-view]").forEach((botao) => {
+        const ativo = botao.dataset.view === (porUnidade ? "unidades" : "predios");
+        botao.classList.toggle("active", ativo);
+        botao.setAttribute("aria-pressed", String(ativo));
+      });
+    }
+
+    if (porUnidade) { renderUnitResults(unidades); return; }
+    renderEnterpriseCards(enterprises);
+  }
+
+  // v160 — a lista de unidades de varios empreendimentos, lado a lado. Cada
+  // linha ja traz de que predio e, para o corretor comparar sem abrir nada.
+  function renderUnitResults(unidades) {
+    const grid = document.getElementById("portfolio-grid");
+    grid.classList.add("unit-results");
+    grid.innerHTML = unidades.map((item) => {
+      const selecionado = state.selected.has(item.key);
+      const detalhes = [item.group?.tipo, item.area, item.rua || item.local].filter(Boolean);
+      return `
+        <article class="unit-result">
+          <a class="unit-result-media" href="#emp-${item.emp.id}" data-open-unit="${escapeHtml(item.key)}" aria-hidden="true" tabindex="-1">
+            <img src="${escapeHtml(assetUrl(cardImage(item.emp)))}" alt="" loading="lazy">
+          </a>
+          <div class="unit-result-body">
+            <span class="unit-result-emp">${escapeHtml(item.emp.nome)} · ${escapeHtml(item.emp.cidade)}</span>
+            <h3><a href="#emp-${item.emp.id}" data-open-unit="${escapeHtml(item.key)}">${escapeHtml(itemLabel(item))}</a>
+              ${item.status !== "disponivel" ? `<span class="status-pill status-${item.status}">${escapeHtml(STATUS_LABELS[item.status] || item.status)}</span>` : ""}
+            </h3>
+            ${detalhes.length ? `<p>${escapeHtml(detalhes.join(" · "))}</p>` : ""}
+            <div class="unit-result-foot">
+              <strong class="price-value">${money(item.price)}</strong>
+              <div class="unit-actions">
+                <button class="unit-action" type="button" data-share-item="${escapeHtml(item.key)}">Compartilhar</button>
+                <button class="selection-control ${selecionado ? "selected" : ""}" type="button" data-select-item="${escapeHtml(item.key)}">${selecionado ? "Selecionado" : "Selecionar"}</button>
+              </div>
+            </div>
+          </div>
+        </article>
+      `;
+    }).join("");
+
+    grid.querySelectorAll("[data-open-unit]").forEach((link) => link.addEventListener("click", () => {
+      // Guarda qual unidade foi aberta: a ficha do empreendimento rola ate ela.
+      state.foco = link.dataset.openUnit;
+    }));
+    bindInventoryEvents(grid);
+    updatePicksUi();
+  }
+
+  function renderEnterpriseCards(enterprises) {
+    const grid = document.getElementById("portfolio-grid");
+    grid.classList.remove("unit-results");
+    const query = normalizeText(state.query);
+    const porUnidade = filtroDeUnidade();
     const filtrando = state.picks.size > 0;
     grid.innerHTML = enterprises.map((emp) => {
-      const minimum = minPrice(emp);
+      // v160 — com filtro de unidade ligado, o cartao fala das unidades que
+      // COMBINAM: quantas sao e a partir de quanto. Antes anunciava o menor
+      // preco do predio inteiro, que podia ser de uma unidade fora do filtro —
+      // o cliente ouvia um valor que a busca dele nao devolvia.
+      const combinam = porUnidade ? matchingItems(emp, query) : null;
+      const precos = (combinam || marketableItems(emp)).map((it) => it.price).filter((p) => p > 0);
+      const valorDoCartao = precos.length ? Math.min(...precos) : 0;
+      const rotuloDoPreco = combinam
+        ? `${plural(combinam.length, "unidade combina", "unidades combinam")} · a partir de`
+        : "A partir de";
       const statusClass = emp.status === "pronto" ? "pronto" : "obra";
       const typeLabel = CATEGORY_LABELS[emp.categoria] || emp.categoria;
       const napista = state.picks.has(emp.id);
@@ -584,7 +836,7 @@
                 <span class="card-price-icon" aria-hidden="true">
                   <svg viewBox="0 0 24 24" focusable="false"><path d="M4 21V8.5L12 4l8 4.5V21M8 21v-8h8v8M9 9h.01M12 9h.01M15 9h.01"/></svg>
                 </span>
-                <span class="card-price-copy"><span>A partir de</span><strong class="price-value">${minimum ? money(minimum) : "Sob consulta"}</strong></span>
+                <span class="card-price-copy"><span>${escapeHtml(rotuloDoPreco)}</span><strong class="price-value">${valorDoCartao ? money(valorDoCartao) : "Sob consulta"}</strong></span>
               </div>
             </div>`;
       return `
@@ -674,6 +926,26 @@
     renderRoute();
   }
 
+  // v160 — o botao fixo "Falar com o corretor" na pagina do cliente. O texto ja
+  // vai escrito com o imovel que ele esta olhando, entao o cliente so aperta
+  // enviar — e o corretor recebe sabendo do que a conversa se trata.
+  function renderCorretorCta(assunto = "") {
+    const cta = document.getElementById("corretor-cta");
+    if (!cta) return;
+    if (!CORRETOR_DO_LINK) { cta.hidden = true; return; }
+    const { nome, fone, creci } = CORRETOR_DO_LINK;
+    const primeiro = nome ? nome.trim().split(/\s+/)[0] : "";
+    const saudacao = primeiro ? `Olá, ${primeiro}! ` : "Olá! ";
+    const sobre = assunto ? `Vi ${assunto} no site da Construtora Senger` : "Vi o site da Construtora Senger";
+    cta.href = waHref(fone, `${saudacao}${sobre} e gostaria de mais informações.`);
+    setText("corretor-cta-nome", nome || "Falar com o corretor");
+    setText("corretor-cta-sub", [creci, "Chamar no WhatsApp"].filter(Boolean).join(" · "));
+    cta.setAttribute("aria-label", nome ? `Falar com ${nome} no WhatsApp` : "Falar com o corretor no WhatsApp");
+    cta.hidden = false;
+  }
+
+  let ultimoAberto = null;
+
   function renderRoute() {
     if (CLIENT_MODE && CLIENT_LIST_IDS) {
       // Lista do cliente: pode ficar na home (vitrine) ou abrir um empreendimento DA lista.
@@ -703,6 +975,10 @@
     document.getElementById("detail-view").hidden = true;
     document.getElementById("detail-view").innerHTML = "";
     document.title = "Construtora Senger — Portfólio Comercial";
+    // De volta a lista: o proximo empreendimento aberto comeca do topo.
+    state.foco = null;
+    ultimoAberto = null;
+    renderCorretorCta(vitrineCliente ? "os imóveis que você me enviou" : "");
     window.scrollTo({ top: 0, behavior: "auto" });
   }
 
@@ -747,6 +1023,12 @@
       return menor === maior ? money(menor) : `${money(menor)} a ${money(maior)}`;
     })();
     const inventory = renderInventory(emp, focusItems);
+    // renderDetail roda duas vezes no mesmo clique (hashchange + popstate):
+    // so conta quando o empreendimento realmente muda.
+    if (ultimoAberto !== emp.id) { ultimoAberto = emp.id; registrar("abriu", emp.id); }
+    renderCorretorCta(focusItem
+      ? `o ${emp.nome} — ${itemLabel(focusItem)}`
+      : `o ${emp.nome}`);
 
     const isPlantMedia = (item) => /planta/i.test(`${item?.src || ""} ${item?.legenda || ""}`);
     const photoMedia = media.filter((item) => !isPlantMedia(item)).slice(0, 12);
@@ -939,6 +1221,26 @@
     const unitCode = new URLSearchParams(location.search).get("u");
     if (unitCode) {
       detail.querySelectorAll(`[data-unit-code="${CSS.escape(unitCode)}"]`).forEach((el) => el.classList.add("unit-highlight"));
+    }
+
+    // v160 — unidade aberta pela lista de unidades: aqui o corretor JA sabe qual
+    // apartamento quer, entao a pagina desce ate ele em vez de abrir no topo.
+    // O foco NAO se apaga aqui: o navegador dispara hashchange e popstate no
+    // mesmo clique, entao esta funcao roda duas vezes e a segunda passada
+    // reescreve a ficha. Apagar o foco na primeira deixava o destaque sumir
+    // sozinho. Quem limpa e a volta para a lista (renderHome).
+    const foco = state.foco ? itemMap.get(state.foco) : null;
+    if (foco && foco.emp.id !== emp.id) state.foco = null;
+    if (foco && foco.emp.id === emp.id) {
+      const alvos = detail.querySelectorAll(`[data-unit-code="${CSS.escape(String(foco.code))}"]`);
+      alvos.forEach((el) => el.classList.add("unit-highlight"));
+      // O primeiro alvo visivel: a tabela e os cartoes do celular convivem no
+      // HTML, e so um dos dois esta na tela.
+      const visivel = [...alvos].find((el) => el.getClientRects().length);
+      if (visivel) {
+        visivel.scrollIntoView({ block: "center", behavior: "auto" });
+        return;
+      }
     }
     window.scrollTo({ top: 0, behavior: "auto" });
   }
@@ -1147,7 +1449,7 @@
   // Agora: mensagem curta + link; o cliente abre a vitrine com todos, cada um com a sua foto.
   function listClientLink(enterprises) {
     const ids = enterprises.map((emp) => emp.id).join(",");
-    return `${location.origin}${location.pathname}?cliente&lista=${ids}`;
+    return linkCliente(`lista=${ids}`);
   }
 
   function carregarImagem(src) {
@@ -1330,7 +1632,7 @@
     // "Casa Suspensa" e nome de produto: mantem as maiusculas na mensagem.
     const etiquetas = (item.tags || []).map((t) => (isCasaSuspensa(t) ? CASA_SUSPENSA : t.toLowerCase()));
     // A linha do prazo de entrega ja diz se e novo, pronto ou pre-lancamento:
-    // aqui so entram os status que mudam a oferta (reservado, vendido, alugado).
+    // aqui so entra o status que muda a oferta (alugado).
     const cond = item.status !== "disponivel" ? (STATUS_LABELS[item.status] || item.status).toLowerCase() : "";
     const primeiro = [cond, ...etiquetas].filter(Boolean).join(" e ");
     if (primeiro) bullets.push(primeiro.replace(/^./, (c) => c.toUpperCase()));
@@ -1396,7 +1698,7 @@
           <span class="share-photo-name">${escapeHtml(photo.nome)}</span>
           <div class="share-photo-buttons">
             ${canCopyImage() ? `<button class="button button-primary" type="button" data-copy-photo="${index}">Copiar foto</button>` : ""}
-            <a class="button button-outline" href="${escapeHtml(photo.src)}" download>Baixar</a>
+            <button class="button button-outline" type="button" data-download-photo="${index}">Baixar</button>
           </div>
         </div>
       </div>
@@ -1404,6 +1706,10 @@
     list.hidden = !photos.length;
     list.querySelectorAll("[data-copy-photo]").forEach((button) => {
       button.addEventListener("click", () => copySharePhoto(photos[Number(button.dataset.copyPhoto)].src, button));
+    });
+    list.querySelectorAll("[data-download-photo]").forEach((button) => {
+      const foto = photos[Number(button.dataset.downloadPhoto)];
+      button.addEventListener("click", () => baixarFotoJpeg(foto.src, foto.nome, button));
     });
     hint.textContent = photos.length > 1
       ? `São ${photos.length} empreendimentos: copie e cole cada foto no WhatsApp, depois cole a mensagem.`
@@ -1469,13 +1775,56 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
     showToast("Selecione o texto acima e copie manualmente.");
   }
 
+  // v160 — as fotos do site passaram a ser webp (bem mais leves na rua, no 4G).
+  // Mas o WhatsApp trata webp como FIGURINHA: a foto do empreendimento chegaria
+  // como sticker, sem legenda e sem virar imagem no album do cliente. Entao tudo
+  // que SAI do site para o cliente e reconvertido em JPEG na hora.
+  async function comoJpeg(imageUrl, qualidade = 0.9) {
+    const img = await carregarImagem(imageUrl);
+    if (!img || !img.naturalWidth) return null;
+    const canvas = document.createElement("canvas");
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext("2d");
+    // Fundo branco: PNG e webp podem ter transparencia, e JPEG nao — sem isto
+    // a parte transparente sai preta.
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0);
+    return new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", qualidade));
+  }
+
   async function loadShareFile(imageUrl) {
     if (!imageUrl || !navigator.canShare) return null;
     try {
-      const blob = await (await fetch(imageUrl)).blob();
-      return new File([blob], "foto.jpg", { type: blob.type || "image/jpeg" });
+      const blob = await comoJpeg(imageUrl);
+      if (!blob) return null;
+      return new File([blob], "foto.jpg", { type: "image/jpeg" });
     } catch (_) {
       return null;
+    }
+  }
+
+  // O "Baixar" do modal tambem entrega JPEG, pelo mesmo motivo: o corretor
+  // salva a foto e anexa no WhatsApp na mao.
+  async function baixarFotoJpeg(src, nome, button) {
+    const rotulo = button.textContent;
+    button.textContent = "Preparando…";
+    try {
+      const blob = await comoJpeg(src);
+      if (!blob) throw new Error("sem blob");
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${String(nome || "foto").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w-]+/g, "-").toLowerCase()}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      button.textContent = rotulo;
+    } catch (_) {
+      button.textContent = rotulo;
+      showToast("Não foi possível baixar a foto.");
     }
   }
 
@@ -1522,7 +1871,27 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
   // parametros. Gerada por tools/gerar-pontes.js; rodar apos mexer em data.js.
   function pontePara(empId, query = "") {
     const raiz = location.pathname.replace(/\/[^/]*$/, "/");
-    return `${location.origin}${raiz}l/${empId}/${query ? `?${query}` : ""}`;
+    const q = comCorretor(query);
+    return `${location.origin}${raiz}l/${empId}/${q ? `?${q}` : ""}`;
+  }
+
+  // v160 — ponte DA UNIDADE. A previa do WhatsApp passa a falar do apartamento
+  // enviado ("Renaissance — Apto 501, 2 suites, 99 m²") em vez de repetir a
+  // chamada do predio. O ?u= ja vai escrito dentro da ponte; aqui so segue o
+  // que o corretor acrescenta (o WhatsApp dele).
+  function ponteDaUnidade(item) {
+    const raiz = location.pathname.replace(/\/[^/]*$/, "/");
+    const nome = codigoSlug(item.code);
+    if (!nome) return pontePara(item.emp.id, `u=${encodeURIComponent(item.code)}`);
+    const q = comCorretor();
+    return `${location.origin}${raiz}l/${item.emp.id}/u/${nome}/${q ? `?${q}` : ""}`;
+  }
+
+  // Link do cliente sem passar por ponte (varios empreendimentos de uma vez):
+  // nao ha uma foto so que represente todos, entao segue direto pro portfolio.
+  function linkCliente(query = "") {
+    const q = comCorretor(query);
+    return `${location.origin}${location.pathname}?cliente${q ? `&${q}` : ""}`;
   }
 
   function clientLinkFor(emp) {
@@ -1533,6 +1902,8 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
   // explicando o que fazer. O cliente ve fotos, plantas e opcoes, sem
   // conseguir navegar para o resto do portfolio.
   async function shareClientLink(emp) {
+    avisarSemContato();
+    registrar("enviou", emp.id);
     const url = clientLinkFor(emp);
     const text = [
       `*${emp.nome} — Construtora Senger*`,
@@ -1563,19 +1934,23 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
 
   function shareEnterprise(emp, includePrices) {
     if (!emp) return;
+    registrar("enviou", emp.id);
     sendShare(enterpriseMessage(emp, includePrices), emp.nome, [coverPhoto(emp)]);
   }
 
   function shareItem(item, includePrice) {
     if (!item) return;
+    registrar("enviou", item.emp.id);
     sendShare(itemMessage(item, includePrice), `${item.emp.nome} — ${itemLabel(item)}`, [coverPhoto(item.emp)]);
   }
 
   // Link do modo cliente apontando para a unidade: abre o empreendimento
   // travado e rola ate a linha do apartamento, destacada.
   async function shareUnitLink(item) {
+    avisarSemContato();
+    registrar("enviou", item.emp.id);
     const emp = item.emp;
-    const url = pontePara(emp.id, `u=${encodeURIComponent(item.code)}`);
+    const url = ponteDaUnidade(item);
     const text = [
       `*${emp.nome} — ${itemLabel(item)}*`,
       emp.cidade,
@@ -1668,6 +2043,7 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
   function shareSelection(includePrices) {
     const items = selectedItems();
     if (!items.length) return;
+    unique(items.map((item) => item.emp.id)).forEach((id) => registrar("enviou", id));
     sendShare(selectedMessage(includePrices), "Seleção de imóveis", coverPhotosFor(items));
   }
 
@@ -1675,8 +2051,10 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
   // o cliente abre a vitrine so com os empreendimentos escolhidos e, dentro de cada um,
   // so as unidades selecionadas. Um empreendimento so: o link ja abre direto nele.
   async function shareSelectionLink() {
+    avisarSemContato();
     const items = selectedItems();
     if (!items.length) return;
+    unique(items.map((item) => item.emp.id)).forEach((id) => registrar("enviou", id));
     closeDrawer();
     const emps = [];
     const vistos = new Set();
@@ -1687,7 +2065,7 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
     // e a mensagem ja leva as capas de cada um como anexo separado.
     const url = emps.length === 1
       ? pontePara(emps[0].id, `sel=${sel}`)
-      : `${location.origin}${location.pathname}?cliente&sel=${sel}`;
+      : linkCliente(`sel=${sel}`);
     const linhas = [`*Construtora Senger — Seleção de ${items.length === 1 ? "imóvel" : "imóveis"}*`, ""];
     items.forEach((item) => linhas.push(`• ${item.emp.nome} — ${itemLabel(item)}`));
     linhas.push("", "👇 Clique no link abaixo para ver fotos, plantas, valores e todas as informações:", url);
@@ -1805,7 +2183,7 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
 
     setHtml("print-sheet", `
       <header class="ps-head">
-        <img class="ps-logo" src="${escapeHtml(assetUrl("assets/senger-logo.png"))}" alt="Construtora Senger">
+        <img class="ps-logo" src="${escapeHtml(assetUrl("assets/senger-logo.webp"))}" alt="Construtora Senger">
         <div>
           <p class="ps-eyebrow">Portfólio comercial</p>
           <h1>Empreendimentos e oportunidades</h1>
@@ -1876,7 +2254,7 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
 
     setHtml("print-sheet", `
       <header class="ps-head">
-        <img class="ps-logo" src="${escapeHtml(assetUrl("assets/senger-logo.png"))}" alt="Construtora Senger">
+        <img class="ps-logo" src="${escapeHtml(assetUrl("assets/senger-logo.webp"))}" alt="Construtora Senger">
         <div>
           <p class="ps-eyebrow">${escapeHtml(emp.cidade)} · ${escapeHtml(CATEGORY_LABELS[emp.categoria] || emp.categoria)}</p>
           <h1>${escapeHtml(emp.nome)}</h1>
@@ -1896,6 +2274,7 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
   let printing = false;
 
   async function printEnterprise(emp, event) {
+    registrar("pdf", emp.id);
     buildEnterprisePrintSheet(emp);
     document.body.classList.add("print-list");
     try {
@@ -1920,6 +2299,7 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
   async function printPortfolio(event) {
     const enterprises = portfolioList();
     if (!enterprises.length) return;
+    registrar("pdf");
     buildPrintSheet(enterprises);
     document.body.classList.add("print-list");
     try {
@@ -2103,6 +2483,103 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
     atualizarBotao();
   }
 
+  // v160 — a janela "Meus números". Mostra o que este aparelho fez e deixa o
+  // corretor mandar o resumo ao dono, que e como o movimento de todos se junta
+  // sem servidor nenhum no meio.
+  function renderNumbers() {
+    const uso = usoLer();
+    const abriu = usoTotal(uso, "abriu");
+    const enviou = usoTotal(uso, "enviou");
+    const pdf = usoTotal(uso, "pdf");
+
+    const desde = new Date(`${uso.desde}T12:00:00`);
+    setText("numbers-period", Number.isNaN(desde.getTime())
+      ? "Contando desde o primeiro uso neste aparelho."
+      : `Contando desde ${desde.toLocaleDateString("pt-BR")}. Fica só neste aparelho — ninguém mais vê.`);
+
+    setHtml("numbers-summary", [
+      ["Empreendimentos abertos", abriu],
+      ["Imóveis enviados a cliente", enviou],
+      ["PDFs gerados", pdf],
+    ].map(([rotulo, valor]) => `
+      <div class="numbers-tile"><strong>${valor}</strong><span>${escapeHtml(rotulo)}</span></div>
+    `).join(""));
+
+    const ranking = Object.entries(uso.emp)
+      .map(([id, contas]) => ({ emp: findEnterprise(id), ...contas }))
+      .filter((linha) => linha.emp)
+      .sort((a, b) => (b.abriu || 0) - (a.abriu || 0) || (b.enviou || 0) - (a.enviou || 0));
+
+    setHtml("numbers-list", ranking.length ? `
+      <h3 class="numbers-title">Mais procurados</h3>
+      ${ranking.map((linha) => `
+        <div class="numbers-row">
+          <span>${escapeHtml(linha.emp.nome)}</span>
+          <span class="numbers-counts">${plural(linha.abriu || 0, "abertura", "aberturas")} · ${plural(linha.enviou || 0, "envio", "envios")}</span>
+        </div>
+      `).join("")}
+    ` : `<p class="numbers-vazio">Ainda não há movimento registrado neste aparelho. Abra um empreendimento ou envie um imóvel a um cliente e os números aparecem aqui.</p>`);
+  }
+
+  function numbersMessage() {
+    const uso = usoLer();
+    const { nome } = corretorDados();
+    const linhas = [`*Uso do portfólio${nome ? ` — ${nome}` : ""}*`];
+    const desde = new Date(`${uso.desde}T12:00:00`);
+    if (!Number.isNaN(desde.getTime())) linhas.push(`Desde ${desde.toLocaleDateString("pt-BR")}`);
+    linhas.push("",
+      `Empreendimentos abertos: ${usoTotal(uso, "abriu")}`,
+      `Imóveis enviados a cliente: ${usoTotal(uso, "enviou")}`,
+      `PDFs gerados: ${usoTotal(uso, "pdf")}`);
+
+    const ranking = Object.entries(uso.emp)
+      .map(([id, contas]) => ({ emp: findEnterprise(id), ...contas }))
+      .filter((linha) => linha.emp)
+      .sort((a, b) => (b.abriu || 0) - (a.abriu || 0));
+    if (ranking.length) {
+      linhas.push("", "*Mais procurados*");
+      ranking.forEach((linha) => linhas.push(`• ${linha.emp.nome}: ${linha.abriu || 0} aberturas, ${linha.enviou || 0} envios`));
+    }
+    return linhas.join("\n");
+  }
+
+  function bindNumbersEvents() {
+    const abrir = document.getElementById("open-numbers");
+    const modal = document.getElementById("numbers-modal");
+    if (!abrir || !modal) return;
+    // Na pagina do cliente isto nao existe: e ferramenta da equipe.
+    if (CLIENT_MODE) { abrir.hidden = true; return; }
+
+    const fechar = () => {
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("no-scroll");
+    };
+    abrir.addEventListener("click", () => {
+      renderNumbers();
+      modal.classList.add("open");
+      modal.setAttribute("aria-hidden", "false");
+      document.body.classList.add("no-scroll");
+    });
+    modal.querySelectorAll("[data-close-numbers]").forEach((el) => el.addEventListener("click", fechar));
+
+    document.getElementById("numbers-send").addEventListener("click", () => {
+      const texto = numbersMessage();
+      fechar();
+      if (navigator.share) {
+        navigator.share({ title: "Uso do portfólio", text: texto }).catch(() => openShareModal(texto));
+        return;
+      }
+      openShareModal(texto);
+    });
+
+    document.getElementById("numbers-reset").addEventListener("click", () => {
+      storage.set(USO_CHAVE, JSON.stringify({ desde: new Date().toISOString().slice(0, 10), emp: {}, meses: {} }));
+      renderNumbers();
+      showToast("Números zerados.");
+    });
+  }
+
   function registerServiceWorker() {
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
       navigator.serviceWorker.register("sw.js?v=45").catch(() => {});
@@ -2116,6 +2593,7 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
   renderMetadata();
   renderFilters();
   bindGlobalEvents();
+  bindNumbersEvents();
   updateSelectionUi();
   renderPortfolio();
   renderRoute();
