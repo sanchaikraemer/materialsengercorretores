@@ -26,6 +26,11 @@ um painel administrativo que o dono usa pelo celular.
   grava o `data.js` direto pela API do GitHub, na branch `main`.
 - `sw.js` — service worker. Navegação e arquivos do site são buscados da rede
   primeiro, então o painel nunca fica preso em cache.
+- `l/` — as **páginas-ponte**, geradas por `tools/gerar-pontes.js`. Uma por
+  empreendimento (`l/renaissance/`) e uma por unidade (`l/renaissance/u/501/`).
+  Existem porque o robô do WhatsApp não roda JavaScript: sem elas a prévia de
+  qualquer link seria sempre a mesma foto genérica. Cada ponte redireciona na
+  hora para o portfólio, levando junto o que veio no endereço.
 
 ## data.js
 
@@ -36,7 +41,16 @@ Cada empreendimento usa uma destas formas de estoque, lidas pelo `app.js`:
 Evolutti existem só no painel: o `app.js` não lê esse campo.
 
 Status válidos: `disponivel`, `vendido`, `alugado`. **Não existe "reservado"** —
-a construtora não reserva unidades.
+a construtora não reserva unidades. `alugado` **continua na oferta**: é o
+produto pronto para o investidor, que compra com o inquilino dentro. Só o
+`vendido` sai da vitrine.
+
+**Ao acrescentar ou remover unidade no `data.js`, rode
+`node tools/gerar-pontes.js` e faça commit do que ele gerar.** Sem isso a
+unidade nova fica sem ponte e o link enviado ao cliente cai em página
+inexistente. Só mudar status não precisa: a ponte é gerada para toda unidade do
+cadastro, inclusive a vendida, justamente para o painel poder desfazer uma
+venda sem quebrar link.
 
 O estoque cadastrado é o prédio inteiro, não só o que está à venda: unidade
 vendida fica no `data.js` com `status: "vendido"`, **sem `preco`** (o valor de
@@ -44,6 +58,51 @@ tabela não vale mais) e **sem número de dormitórios** (o comprador costuma
 modificar a planta). O site esconde as vendidas e omite o grupo que ficar sem
 nenhuma disponível; se a venda for desfeita, o preço aparece como "Sob consulta"
 até alguém informar o novo valor.
+
+## Fotos
+
+As fotos ficam em **webp** (`assets/`), que é bem mais leve no 4G do corretor na
+rua. Duas exceções, de propósito:
+
+- `assets/preview/*.jpg` continua **JPEG** — é a imagem que o robô de prévia do
+  WhatsApp e do Facebook lê, e ele não trata webp de forma confiável.
+- Toda foto que **sai** do site para o cliente (compartilhar, "Baixar") é
+  reconvertida em JPEG na hora, pelo `comoJpeg()`. O WhatsApp trata webp como
+  **figurinha**: a foto do empreendimento chegaria como sticker.
+
+## As duas visões do portfólio
+
+O cliente pergunta em apartamento; a vitrine responde em prédio. Por isso o
+corretor tem um alternador **Prédios / Unidades** na barra de resultados:
+
+- **Prédios** — a vitrine de sempre. Com filtro de unidade ligado, o cartão diz
+  quantas unidades combinam e o "a partir de" passa a ser o menor preço
+  **entre elas**, não do prédio inteiro.
+- **Unidades** — os apartamentos de vários empreendimentos numa lista só.
+
+Os filtros de dormitórios, faixa de valor e busca são conferidos **na mesma
+unidade**: antes bastava existir alguma de 2 dormitórios e alguma na faixa de
+preço, ainda que fossem unidades diferentes.
+
+No link do cliente a visão é sempre a de empreendimentos, do jeito que ele
+recebeu.
+
+## O corretor dentro do link
+
+Os dados de "Meu contato" ficam no aparelho do corretor; a página que o cliente
+abre é a mesma, rodando no aparelho **dele**, que não sabe quem enviou. Então
+nome, WhatsApp e CRECI viajam no próprio endereço (`c=`, `w=`, `cr=`) e viram o
+botão verde **"Falar com…"** fixo na página do cliente. Sem `w=` no link, o
+botão não aparece.
+
+## Meus números
+
+O rodapé tem "Meus números": quantos empreendimentos este aparelho abriu,
+quantos imóveis enviou e quantos PDFs gerou, com o ranking dos mais procurados.
+Fica **só no aparelho** — o site é estático, não há servidor para onde mandar
+nada, e o que o cliente faz no link dele acontece longe daqui. O corretor manda
+o resumo ao dono pelo botão "Enviar meus números"; é assim que o movimento de
+todos se junta.
 
 ## Metragens no site
 

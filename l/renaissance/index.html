@@ -24,12 +24,14 @@
 <meta name="twitter:description" content="Alto padrão Renaissance — 2 e 3 suítes, Casa Suspensa, pavimentos superiores e Duplex exclusivo.">
 <meta name="twitter:image" content="https://sanchaikraemer.github.io/materialsengercorretores/assets/preview/renaissance.jpg">
 <script>
-  // Manda pro portfolio antes de a ponte aparecer, levando junto ?u= e ?sel=.
+  // Manda pro portfolio antes de a ponte aparecer, levando junto tudo que veio
+  // no endereco (?u=, ?sel=, e o ?w= com o WhatsApp de quem enviou).
   // replace() em vez de href: o "voltar" do celular nao fica preso nesta pagina.
   (function () {
     var qs = location.search.replace(/^\?/, "");
     var raiz = location.pathname.replace(/\/l\/[^/]*\/?$/, "/");
-    location.replace(raiz + "?cliente" + (qs ? "&" + qs : "") + "#emp-renaissance");
+    var extra = qs;
+    location.replace(raiz + "?cliente" + (extra ? "&" + extra : "") + "#emp-renaissance");
   })();
 </script>
 <style>
@@ -57,7 +59,8 @@
     (function () {
       var qs = location.search.replace(/^\?/, "");
       var raiz = location.pathname.replace(/\/l\/[^/]*\/?$/, "/");
-      document.getElementById("ir").href = raiz + "?cliente" + (qs ? "&" + qs : "") + "#emp-renaissance";
+      var extra = qs;
+      document.getElementById("ir").href = raiz + "?cliente" + (extra ? "&" + extra : "") + "#emp-renaissance";
     })();
   </script>
 </body>

@@ -198,7 +198,7 @@ img { max-width: 100%; display: block; }
 .hero-media {
   position: absolute;
   inset: 0;
-  background: url("assets/fachada.jpg") center/cover no-repeat;
+  background: url("assets/fachada.webp") center/cover no-repeat;
   transform: scale(1.01);
 }
 .hero-overlay {
@@ -694,6 +694,55 @@ img { max-width: 100%; display: block; }
 .client-mode .brand-button { pointer-events: none; }
 .client-mode #unidades .section-title-row p { display: none !important; }
 
+/* v160 — alternador entre a vitrine de predios e a lista de unidades. */
+.view-switch { display: inline-flex; padding: 3px; background: var(--brand-soft); border: 1px solid var(--line); border-radius: 999px; }
+.view-switch[hidden] { display: none; }
+.view-switch button {
+  padding: 7px 15px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--brand-dark);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .18s ease, color .18s ease;
+}
+.view-switch button.active { background: var(--brand); color: #fff; }
+
+/* v160 — a lista de unidades de varios empreendimentos. Uma coluna so: o
+   corretor le de cima a baixo comparando valores, que e o que ele faz com o
+   cliente do lado. */
+.portfolio-grid.unit-results { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.unit-result {
+  display: flex;
+  gap: 14px;
+  align-items: stretch;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+.unit-result:hover { border-color: rgba(23, 143, 160, .4); box-shadow: 0 10px 26px rgba(20, 30, 38, .08); }
+.unit-result-media { flex: 0 0 104px; height: 88px; overflow: hidden; border-radius: 10px; background: var(--dark); }
+.unit-result-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.unit-result-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.unit-result-emp { color: var(--brand-dark); font-size: 11.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+.unit-result-body h3 { margin: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 17px; }
+.unit-result-body h3 a { color: var(--ink); text-decoration: none; }
+.unit-result-body h3 a:hover { color: var(--brand-dark); text-decoration: underline; }
+.unit-result-body > p { margin: 0; color: var(--muted); font-size: 13.5px; line-height: 1.45; }
+.unit-result-foot { margin-top: auto; padding-top: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 14px; }
+.unit-result-foot .price-value { font-size: 17px; }
+
+@media (max-width: 720px) {
+  .unit-result { flex-direction: column; gap: 10px; }
+  .unit-result-media { flex: none; width: 100%; height: 128px; }
+  .unit-result-foot { align-items: flex-start; }
+}
+
 /* v95 — link de SELECAO (?cliente&sel=...): o cartao da vitrine lista as unidades escolhidas
    com o valor de cada uma, no lugar das metricas do predio inteiro. */
 .card-units-sel { display: grid; gap: 7px; margin-top: 14px; padding: 12px 14px; background: var(--brand-soft); border: 1px solid var(--line); border-radius: 12px; }
@@ -711,6 +760,63 @@ img { max-width: 100%; display: block; }
 .client-mode #share-portfolio,
 .client-mode #print-list { display: none !important; }
 .client-mode.client-list .detail-back { display: inline-flex !important; }
+
+/* v160 — "Meus números": o que este aparelho fez. Entrada discreta no rodape,
+   porque e conferencia ocasional, nao ferramenta de atendimento. */
+.footer-tools { display: flex; justify-content: flex-end; padding-top: 10px; }
+.footer-numbers { color: rgba(255, 255, 255, .55); font-size: 12.5px; }
+.footer-numbers:hover { color: #fff; }
+.client-mode .footer-tools { display: none; }
+
+.numbers-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 14px 24px 4px; }
+.numbers-tile { padding: 14px 12px; text-align: center; background: var(--brand-soft); border: 1px solid var(--line); border-radius: 12px; }
+.numbers-tile strong { display: block; font-size: 26px; line-height: 1.1; color: var(--brand-dark); }
+.numbers-tile span { display: block; margin-top: 5px; color: var(--muted); font-size: 12px; line-height: 1.35; }
+.numbers-title { margin: 0 0 8px; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.numbers-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 9px 0; border-top: 1px solid var(--line); font-size: 14.5px; }
+.numbers-counts { flex: 0 0 auto; color: var(--muted); font-size: 12.5px; }
+.numbers-vazio { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
+.numbers-list { margin: 10px 24px 0; min-height: 0; overflow-y: auto; }
+
+@media (max-width: 520px) {
+  .numbers-summary { grid-template-columns: 1fr; }
+  .numbers-tile { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; text-align: left; padding: 11px 14px; }
+  .numbers-tile strong { font-size: 22px; }
+  .numbers-tile span { margin-top: 0; text-align: right; }
+}
+
+/* v160 — botao fixo "Falar com o corretor" na pagina do cliente. So aparece no
+   modo cliente e so quando o link trouxe o WhatsApp de quem enviou. Verde do
+   WhatsApp de proposito: o cliente reconhece o botao antes de ler. */
+.corretor-cta {
+  position: fixed;
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
+  z-index: 205;
+  max-width: 420px;
+  margin-inline: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px 12px 14px;
+  background: #1fa855;
+  color: #fff;
+  border-radius: 999px;
+  text-decoration: none;
+  box-shadow: 0 14px 34px rgba(12, 70, 36, .38);
+  transition: transform .18s ease, background .18s ease;
+}
+.corretor-cta:hover { background: #1a8f48; transform: translateY(-1px); }
+.corretor-cta[hidden] { display: none; }
+.corretor-cta-icon { flex: 0 0 auto; width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; background: rgba(255, 255, 255, .18); }
+.corretor-cta-icon svg { width: 21px; height: 21px; fill: #fff; }
+.corretor-cta-copy { min-width: 0; display: grid; }
+.corretor-cta-copy strong { font-size: 15.5px; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.corretor-cta-copy span { font-size: 12.5px; opacity: .85; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* O botao flutua sobre o rodape: sem esta folga ele tapa o endereco da construtora. */
+.client-mode .site-footer { padding-bottom: 92px; }
+@media print { .corretor-cta { display: none !important; } }
 
 /* Aviso de instalacao do app — v97, modelo A escolhido pelo dono: cabecalho com icone e
    texto, botao de instalar LARGO embaixo e "Agora nao" discreto (nada sobreposto). */
@@ -826,7 +932,8 @@ tr.unit-highlight td:first-child { box-shadow: inset 4px 0 0 var(--brand); }
   .trust-label { color: #555; }
   .catalog-section { padding: 10mm 0 0; }
   .section-heading { display: block; }
-  .portfolio-grid { display: block; }
+  .portfolio-grid, .portfolio-grid.unit-results { display: block; }
+  .unit-result { break-inside: avoid; margin-bottom: 5mm; border-radius: 0; box-shadow: none; }
   .portfolio-card { break-inside: avoid; display: grid; grid-template-columns: 70mm 1fr; margin-bottom: 8mm; box-shadow: none; border-radius: 0; }
   .card-media { height: 52mm; }
   .card-body { padding: 5mm; }

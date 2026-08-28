@@ -20,12 +20,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="icon" href="icons/favicon.ico?v=159" sizes="any">
-  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=159">
-  <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=159">
-  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=159">
+  <link rel="icon" href="icons/favicon.ico?v=160" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=160">
+  <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v=160">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=160">
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="styles.css?v=159">
+  <link rel="stylesheet" href="styles.css?v=160">
 </head>
 <body>
   <a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
@@ -33,7 +33,7 @@
   <header class="site-header" id="site-header">
     <div class="shell header-inner">
       <button class="brand-button" id="brand-home" aria-label="Voltar ao início">
-        <img src="assets/senger-logo.png" alt="Construtora Senger">
+        <img src="assets/senger-logo.webp" alt="Construtora Senger">
       </button>
       <span class="version-tag" id="header-version" title="Versão do site">—</span>
       <button class="corretor-tag" id="corretor-button" type="button" title="Seus dados nas mensagens e nos PDFs">Meu contato</button>
@@ -131,6 +131,12 @@
         <div class="results-bar">
           <p id="results-count">—</p>
           <div class="results-actions">
+            <!-- O cliente pergunta em apartamento; a vitrine responde em predio.
+                 Aqui o corretor troca a resposta sem perder os filtros. -->
+            <div class="view-switch" id="view-switch" role="group" aria-label="Como mostrar os resultados">
+              <button type="button" data-view="predios" aria-pressed="true">Prédios</button>
+              <button type="button" data-view="unidades" aria-pressed="false">Unidades</button>
+            </div>
             <button class="text-button" id="clear-picks" type="button" hidden>Limpar seleção</button>
             <button class="button button-outline" id="print-list" type="button">Gerar PDF</button>
             <button class="button button-primary" id="share-portfolio" type="button">Enviar lista</button>
@@ -155,7 +161,7 @@
   <footer class="site-footer">
     <div class="shell footer-grid">
       <div>
-        <img class="footer-logo" src="assets/senger-logo-branco.png" alt="Construtora Senger">
+        <img class="footer-logo" src="assets/senger-logo-branco.webp" alt="Construtora Senger">
         <p>Solidez, confiança e futuro em empreendimentos residenciais, comerciais e loteamentos.</p>
       </div>
       <div>
@@ -167,8 +173,24 @@
         <p id="footer-address"></p>
       </div>
     </div>
+    <div class="shell footer-tools">
+      <button class="text-button footer-numbers" id="open-numbers" type="button">Meus números</button>
+    </div>
     <div class="shell footer-note">Valores e disponibilidade sujeitos a alteração sem aviso prévio. Imagens meramente ilustrativas. Consulte sempre as condições vigentes com a Construtora Senger.</div>
   </footer>
+
+  <!-- Modo cliente: quem mandou o link fica a um toque. O nome e o WhatsApp do
+       corretor vem no proprio endereco (c=, w=), porque o aparelho do cliente
+       nao tem como saber quem enviou. -->
+  <a class="corretor-cta" id="corretor-cta" hidden target="_blank" rel="noopener">
+    <span class="corretor-cta-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" focusable="false"><path d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1 0 12 2Z"/><path d="M8.6 7.4c.2-.4.4-.4.7-.4h.6c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .6l-.4.5c-.1.2-.3.3-.1.6a7 7 0 0 0 3.1 2.7c.3.1.5.1.6-.1l.6-.7c.2-.2.3-.2.6-.1l2 1c.3.1.4.2.4.4a2 2 0 0 1-1.4 1.9c-.5.2-1.2.2-3.6-.9a9.7 9.7 0 0 1-4.5-4.4c-.9-1.8-.6-2.9-.4-3.3Z"/></svg>
+    </span>
+    <span class="corretor-cta-copy">
+      <strong id="corretor-cta-nome"></strong>
+      <span id="corretor-cta-sub"></span>
+    </span>
+  </a>
 
   <button class="selection-fab" id="selection-fab" type="button" hidden>
     <span id="selection-count">0</span>
@@ -242,6 +264,26 @@
     </div>
   </div>
 
+  <!-- v160 — o que ESTE aparelho fez. O site nao tem servidor, entao nao ha como
+       somar o uso de todo mundo automaticamente: cada corretor manda o resumo
+       dele para o dono pelo botao de baixo. -->
+  <div class="share-modal" id="numbers-modal" aria-hidden="true">
+    <div class="share-modal-backdrop" data-close-numbers></div>
+    <div class="share-modal-panel">
+      <div class="drawer-header">
+        <div><span class="eyebrow dark">Neste aparelho</span><h2>Meus números</h2></div>
+        <button class="icon-button" type="button" data-close-numbers aria-label="Fechar">×</button>
+      </div>
+      <p class="share-modal-hint" id="numbers-period">—</p>
+      <div class="numbers-summary" id="numbers-summary"></div>
+      <div class="numbers-list" id="numbers-list"></div>
+      <div class="share-modal-actions">
+        <button class="button button-primary" type="button" id="numbers-send">Enviar meus números</button>
+        <button class="button button-outline" type="button" id="numbers-reset">Zerar</button>
+      </div>
+    </div>
+  </div>
+
   <div class="share-modal" id="share-modal" aria-hidden="true">
     <div class="share-modal-backdrop" data-close-share></div>
     <div class="share-modal-panel">
@@ -287,7 +329,7 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="data.js?v=159"></script>
-  <script src="app.js?v=159"></script>
+  <script src="data.js?v=160"></script>
+  <script src="app.js?v=160"></script>
 </body>
 </html>
