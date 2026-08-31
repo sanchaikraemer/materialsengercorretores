@@ -1038,6 +1038,9 @@
 
     const isPlantMedia = (item) => /planta/i.test(`${item?.src || ""} ${item?.legenda || ""}`);
     const isPlantFile = (item) => /\.pdf(?:$|\?)/i.test(item?.src || "");
+    // O apelido pelo qual a tipologia chama a planta e o nome do arquivo, sem
+    // a pasta e sem a extensao: "assets/po-planta.webp" -> "po-planta".
+    const nomeDaPlanta = (item) => (item?.src || "").split("/").pop().replace(/\.[a-z0-9]+$/i, "");
     const photoMedia = media.filter((item) => !isPlantMedia(item)).slice(0, 12);
     // Planta que abre no visor (imagem) e planta que so se baixa (PDF). A
     // planta marcada como tecnica no data.js abre no visor do mesmo jeito, mas
@@ -1057,8 +1060,12 @@
       // grupo de la tinha a ligacao preenchida. Ficar sem planta e pior do que
       // mostrar as do empreendimento, entao agora esse e o piso.
       if (plantas.length) {
-        plantImages = plantImages.filter((item) => plantas.some((p) => (item.src || "").includes(p)));
-        plantFiles = plantFiles.filter((item) => plantas.some((p) => (item.src || "").includes(p)));
+        // v165 — o apelido da planta tem de bater COM O NOME DO ARQUIVO INTEIRO.
+        // Comparando por pedaco, "po-planta" casava tambem com
+        // "po-planta-2pav" e "po-planta-3pav", e a sala de um andar mostrava a
+        // planta dos outros dois junto.
+        plantImages = plantImages.filter((item) => plantas.includes(nomeDaPlanta(item)));
+        plantFiles = plantFiles.filter((item) => plantas.includes(nomeDaPlanta(item)));
       } else if (plantaNota) {
         // Sem isto, o piso da v101 mostraria as plantas do predio inteiro para
         // quem abriu o link de uma unidade que nao tem planta.
