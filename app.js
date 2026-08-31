@@ -278,6 +278,48 @@
     return `${path}${sep}v=${APP_VERSION.replace(/^v/, "")}`;
   };
 
+  // v166 — cada empreendimento pode ter um video oficial. O cadastro aceita
+  // YouTube, Vimeo e arquivo direto (MP4/WebM/Ogg). Link de outra plataforma
+  // continua util: aparece como botao para abrir o video em uma nova aba.
+  function videoDoEmp(valor) {
+    const bruto = String(valor || "").trim();
+    if (!bruto) return null;
+    const completo = /^https?:\/\//i.test(bruto) ? bruto : (/^[\w.-]+\.[a-z]{2,}\//i.test(bruto) ? safeUrl(bruto) : bruto);
+    try {
+      const url = new URL(completo, location.href);
+      const host = url.hostname.replace(/^www\./, "").toLowerCase();
+      let id = "";
+      if (host === "youtu.be") id = url.pathname.split("/").filter(Boolean)[0] || "";
+      if (/^(youtube\.com|m\.youtube\.com|youtube-nocookie\.com)$/.test(host)) {
+        id = url.searchParams.get("v") || (url.pathname.match(/\/(?:shorts|embed)\/([^/?#]+)/) || [])[1] || "";
+      }
+      if (id) return { tipo: "embed", src: `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}` };
+      if (host === "vimeo.com" || host.endsWith(".vimeo.com")) {
+        const vimeoId = (url.pathname.match(/\/(?:video\/)?(\d+)/) || [])[1];
+        if (vimeoId) return { tipo: "embed", src: `https://player.vimeo.com/video/${vimeoId}` };
+      }
+      if (/\.(mp4|webm|ogg)(?:$|[?#])/i.test(url.pathname + url.search)) return { tipo: "arquivo", src: assetUrl(completo) };
+      return { tipo: "link", src: /^https?:\/\//i.test(completo) ? completo : assetUrl(completo) };
+    } catch (e) {
+      if (/\.(mp4|webm|ogg)(?:$|[?#])/i.test(bruto)) return { tipo: "arquivo", src: assetUrl(bruto) };
+      return { tipo: "link", src: bruto };
+    }
+  }
+
+  function renderVideoEmp(emp) {
+    const video = videoDoEmp(emp.video);
+    if (!video) return "";
+    const midia = video.tipo === "embed"
+      ? `<div class="video-frame"><iframe src="${escapeHtml(video.src)}" title="Vídeo ${escapeHtml(emp.nome)}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>`
+      : video.tipo === "arquivo"
+        ? `<div class="video-frame"><video controls preload="metadata" playsinline src="${escapeHtml(video.src)}">Seu navegador não conseguiu reproduzir este vídeo.</video></div>`
+        : `<a class="button button-outline" href="${escapeHtml(video.src)}" target="_blank" rel="noopener">Abrir vídeo</a>`;
+    return `<section class="content-section video-section" data-video-section>
+      <div class="section-title-row"><h2>Vídeo do empreendimento</h2><p>Apresentação oficial</p></div>
+      ${midia}
+    </section>`;
+  }
+
   // Aviso obrigatorio nas fotos: o estoque cadastrado e o predio inteiro, entao
   // ha foto de unidade que ja foi vendida. Aparece na pagina, no PDF impresso e
   // dentro do visor em tela cheia.
@@ -1108,6 +1150,8 @@
       </section>
     ` : "";
 
+    const videoSection = renderVideoEmp(emp);
+
     // O botao de cada planta aponta para a posicao dela na lista do visor, e nao
     // para a posicao dentro do proprio grupo: humanizada e tecnica dividem o
     // mesmo visor.
@@ -1168,6 +1212,7 @@
                 <button class="button button-outline" type="button" id="share-emp-link">Enviar link</button>
                 <button class="button button-outline" type="button" id="print-detail">Gerar PDF</button>
                 ${local.mapsUrl ? `<a class="button button-outline" href="${escapeHtml(local.mapsUrl)}" target="_blank" rel="noopener">Ver localização</a>` : ""}
+                ${emp.video ? `<button class="button button-outline" type="button" id="watch-video">Assistir vídeo</button>` : ""}
                 ${emp.folder ? `<a class="button button-outline" href="${escapeHtml(assetUrl(emp.folder))}" target="_blank" rel="noopener">Baixar folder</a>` : ""}
               </div>
             </div>
@@ -1211,6 +1256,7 @@
         </div>
         ${inventory}
         ${gallery}
+        ${videoSection}
         ${plantSection}
       </div>
     `;
@@ -1220,6 +1266,11 @@
     document.getElementById("share-emp-no-prices").addEventListener("click", () => shareEnterprise(emp, false));
     document.getElementById("share-emp-link").addEventListener("click", () => shareClientLink(emp));
     document.getElementById("print-detail").addEventListener("click", (event) => printEnterprise(emp, event));
+    const watchVideo = document.getElementById("watch-video");
+    if (watchVideo) watchVideo.addEventListener("click", () => {
+      const section = detail.querySelector("[data-video-section]");
+      if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
     const featuredImage = detail.querySelector("[data-gallery-featured]");
     const featuredCounter = detail.querySelector("[data-gallery-counter]");
     let galleryIndex = 0;

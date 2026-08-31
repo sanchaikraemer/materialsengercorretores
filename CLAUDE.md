@@ -37,8 +37,7 @@ um painel administrativo que o dono usa pelo celular.
 Cada empreendimento usa uma destas formas de estoque, lidas pelo `app.js`:
 `grupos` (unidades por tipologia), `terrenos` ou `outros`.
 
-**Qualquer outro campo é invisível para o site.** É assim que os `boxes` do
-Evolutti existem só no painel: o `app.js` não lê esse campo.
+**Os materiais comerciais também ficam no `data.js`.** Cada empreendimento real deve ter `folder` (PDF) e `video` (YouTube, Vimeo ou arquivo MP4/WebM/Ogg). O site lê os dois; `boxes` continua sendo um campo exclusivamente interno do painel.
 
 Status válidos: `disponivel`, `vendido`, `alugado`. **Não existe "reservado"** —
 a construtora não reserva unidades. `alugado` **continua na oferta**: é o
@@ -58,6 +57,18 @@ tabela não vale mais) e **sem número de dormitórios** (o comprador costuma
 modificar a planta). O site esconde as vendidas e omite o grupo que ficar sem
 nenhuma disponível; se a venda for desfeita, o preço aparece como "Sob consulta"
 até alguém informar o novo valor.
+
+
+## Materiais obrigatórios por empreendimento
+
+O padrão comercial é o mesmo para todos os empreendimentos reais (o agrupador `outros` não entra nessa regra):
+
+- `folder` — exatamente um folder em PDF por empreendimento;
+- `video` — exatamente um vídeo oficial por empreendimento.
+
+O painel mostra os dois campos em **Materiais dos empreendimentos**, permite alterar os links/caminhos e inclui qualquer ausência em **O que falta no cadastro**. O botão “Baixar folder” e a seção de vídeo só aparecem no site quando o respectivo campo está preenchido.
+
+O campo `video` aceita link do YouTube, Vimeo, caminho/URL de MP4, WebM ou Ogg. YouTube/Vimeo abrem incorporados na página; arquivo direto usa o player nativo; outra URL vira um botão para abrir o vídeo.
 
 ## Fotos
 
