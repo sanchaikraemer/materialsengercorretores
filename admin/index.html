@@ -1817,7 +1817,9 @@
       const rotulo = g.estoque || g.tipo;
       const unidades = g.unidades || [];
       if (!g.area) semArea.push(rotulo);
-      if (!g.planta && !unidades.every((u) => u.planta)) semPlanta.push(rotulo);
+      // A tipologia que diz por escrito que nao ha planta a mostrar
+      // (plantaNota, como a cobertura vendida) esta resolvida, nao pendente.
+      if (!g.planta && !g.plantaNota && !unidades.every((u) => u.planta)) semPlanta.push(rotulo);
       if (!g.garagem && !ehComercial(rotulo)) semGaragem.push(rotulo);
     });
     if (semArea.length) marca(`${dizerTipologias(semArea)} sem a metragem`);

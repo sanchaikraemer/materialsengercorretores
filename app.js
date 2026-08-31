@@ -443,6 +443,9 @@
             // v96 — planta propria da unidade (ex.: Casa Suspensa tem uma por apto);
             // sem ela, vale a planta da tipologia.
             planta: unit.planta || group.planta || "",
+            // v163 — tipologia sem planta a mostrar: o recado entra no lugar
+            // dela, em vez de o cliente ver as plantas das outras tipologias.
+            plantaNota: unit.plantaNota || group.plantaNota || "",
           };
           items.push(item);
           itemMap.set(item.key, item);
@@ -1034,21 +1037,37 @@
       : `o ${emp.nome}`);
 
     const isPlantMedia = (item) => /planta/i.test(`${item?.src || ""} ${item?.legenda || ""}`);
+    const isPlantFile = (item) => /\.pdf(?:$|\?)/i.test(item?.src || "");
     const photoMedia = media.filter((item) => !isPlantMedia(item)).slice(0, 12);
-    let humanizedPlants = media.filter((item) => isPlantMedia(item) && !/\.pdf(?:$|\?)/i.test(item.src || ""));
-    let technicalPlants = media.filter((item) => isPlantMedia(item) && /\.pdf(?:$|\?)/i.test(item.src || ""));
+    // Planta que abre no visor (imagem) e planta que so se baixa (PDF). A
+    // planta marcada como tecnica no data.js abre no visor do mesmo jeito, mas
+    // fica sob o titulo certo: planta baixa de obra nao e planta humanizada.
+    let plantImages = media.filter((item) => isPlantMedia(item) && !isPlantFile(item));
+    let plantFiles = media.filter((item) => isPlantMedia(item) && isPlantFile(item));
+    let plantaNota = "";
     if (focusItems) {
       const plantas = unique(focusItems.map((f) => f.planta || f.group?.planta).filter(Boolean));
+      // v163 — a tipologia pode dizer que nao ha planta a mostrar (cobertura
+      // vendida, planta que o comprador vai desenhar). O recado dela entra no
+      // lugar das plantas.
+      plantaNota = unique(focusItems.map((f) => f.plantaNota || f.group?.plantaNota).filter(Boolean)).join(" · ");
       // v101 — so filtra quando as unidades escolhidas APONTAM pra uma planta.
       // Antes, se nao apontassem, a pagina do cliente ficava SEM PLANTA NENHUMA:
       // um link de selecao do Evolutti nao mostrava planta alguma, porque nenhum
       // grupo de la tinha a ligacao preenchida. Ficar sem planta e pior do que
       // mostrar as do empreendimento, entao agora esse e o piso.
       if (plantas.length) {
-        humanizedPlants = humanizedPlants.filter((item) => plantas.some((p) => (item.src || "").includes(p)));
-        technicalPlants = technicalPlants.filter((item) => plantas.some((p) => (item.src || "").includes(p)));
+        plantImages = plantImages.filter((item) => plantas.some((p) => (item.src || "").includes(p)));
+        plantFiles = plantFiles.filter((item) => plantas.some((p) => (item.src || "").includes(p)));
+      } else if (plantaNota) {
+        // Sem isto, o piso da v101 mostraria as plantas do predio inteiro para
+        // quem abriu o link de uma unidade que nao tem planta.
+        plantImages = [];
+        plantFiles = [];
       }
     }
+    const humanizedPlants = plantImages.filter((item) => !item.tecnica);
+    const technicalPlants = plantImages.filter((item) => item.tecnica);
 
     const THUMB_W = 84;
     const THUMB_GAP = 10;
@@ -1082,16 +1101,23 @@
       </section>
     ` : "";
 
-    const plantSection = (technicalPlants.length || humanizedPlants.length) ? `
+    // O botao de cada planta aponta para a posicao dela na lista do visor, e nao
+    // para a posicao dentro do proprio grupo: humanizada e tecnica dividem o
+    // mesmo visor.
+    const plantButton = (item, rotulo) => `<button class="plant-link ${plantImages.indexOf(item) === 0 ? "active" : ""}" type="button" data-plant-preview="${plantImages.indexOf(item)}">${escapeHtml(item.legenda || rotulo)}</button>`;
+    const plantSection = (plantImages.length || plantFiles.length || plantaNota) ? `
       <section class="content-section plant-section">
         <div class="section-title-row"><h2>Plantas</h2></div>
+        ${plantaNota ? `<p class="section-note">${escapeHtml(plantaNota)}</p>` : ""}
+        ${(plantImages.length || plantFiles.length) ? `
         <div class="plant-viewer">
           <div class="plant-viewer-list">
-            ${technicalPlants.length ? `
+            ${(plantFiles.length || technicalPlants.length) ? `
               <div class="plant-link-group">
                 <h3>Planta técnica</h3>
                 <div class="plant-link-list">
-                  ${technicalPlants.map((item) => `<a class="plant-link" href="${escapeHtml(assetUrl(item.src))}" target="_blank" rel="noopener">${escapeHtml(item.legenda || "Planta técnica")}</a>`).join("")}
+                  ${plantFiles.map((item) => `<a class="plant-link" href="${escapeHtml(assetUrl(item.src))}" target="_blank" rel="noopener">${escapeHtml(item.legenda || "Planta técnica")}</a>`).join("")}
+                  ${technicalPlants.map((item) => plantButton(item, "Planta técnica")).join("")}
                 </div>
               </div>
             ` : ""}
@@ -1099,18 +1125,19 @@
               <div class="plant-link-group">
                 <h3>Planta humanizada</h3>
                 <div class="plant-link-list">
-                  ${humanizedPlants.map((item, index) => `<button class="plant-link ${index === 0 ? "active" : ""}" type="button" data-plant-preview="${index}">${escapeHtml(item.legenda || "Planta humanizada")}</button>`).join("")}
+                  ${humanizedPlants.map((item) => plantButton(item, "Planta humanizada")).join("")}
                 </div>
               </div>
             ` : ""}
           </div>
-          ${humanizedPlants.length ? `
+          ${plantImages.length ? `
             <div class="plant-viewer-preview" data-plant-open role="button" tabindex="0" aria-label="Abrir a planta em tela cheia">
-              <img src="${escapeHtml(assetUrl(humanizedPlants[0].src))}" alt="${escapeHtml(humanizedPlants[0].legenda || emp.nome)}" data-plant-preview-image>
+              <img src="${escapeHtml(assetUrl(plantImages[0].src))}" alt="${escapeHtml(plantImages[0].legenda || emp.nome)}" data-plant-preview-image>
               <span class="image-zoom-hint">Toque para ver maior</span>
             </div>
           ` : ""}
         </div>
+        ` : ""}
       </section>
     ` : "";
 
@@ -1205,10 +1232,10 @@
     });
     const plantPreviewImage = detail.querySelector("[data-plant-preview-image]");
     let plantIndex = 0;
-    ligarAberturaDoVisor(detail.querySelector("[data-plant-open]"), () => humanizedPlants, () => plantIndex);
+    ligarAberturaDoVisor(detail.querySelector("[data-plant-open]"), () => plantImages, () => plantIndex);
     detail.querySelectorAll("[data-plant-preview]").forEach((button) => {
       button.addEventListener("click", () => {
-        const item = humanizedPlants[Number(button.dataset.plantPreview)];
+        const item = plantImages[Number(button.dataset.plantPreview)];
         if (!item || !plantPreviewImage) return;
         plantIndex = Number(button.dataset.plantPreview);
         plantPreviewImage.src = assetUrl(item.src);
