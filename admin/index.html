@@ -301,28 +301,57 @@
     }
     .pend-emp .abrir:hover { color: var(--dourado-escuro); }
 
-    /* v167 — materiais obrigatorios com anexo direto pelo painel. */
-    .materiais-lista { display: grid; gap: 12px; }
-    .material-emp { background: var(--fundo); border: 1px solid var(--borda); border-radius: 10px; padding: 14px; }
-    .material-emp h3 { font-size: .95rem; margin-bottom: 10px; }
-    .material-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
-    .material-campo label { display: flex; justify-content: space-between; gap: 8px; font-size: .8rem; color: var(--texto-suave); margin-bottom: 6px; }
-    .material-campo label b { color: var(--texto); }
-    .material-campo input[type="text"], .material-campo input[type="url"] { width: 100%; padding: 10px 11px; border-radius: 8px; border: 1px solid var(--borda); background: var(--cartao); color: var(--texto); font-size: .88rem; }
-    .material-campo input.mudou { border-color: var(--amarelo); box-shadow: 0 0 0 2px rgba(168,112,31,.08); }
+    /* v168 — central de materiais: capa, logo, galeria, plantas, folder e video. */
+    .materiais-lista { display: grid; gap: 14px; }
+    .padroes-midia { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:9px; margin:14px 0 18px; }
+    .padrao-midia { padding:10px 12px; border:1px solid var(--borda); border-radius:9px; background:var(--fundo); font-size:.76rem; line-height:1.45; color:var(--texto-suave); }
+    .padrao-midia strong { display:block; margin-bottom:2px; color:var(--texto); font-size:.8rem; }
+    .material-emp { background: var(--fundo); border: 1px solid var(--borda); border-radius: 10px; overflow:hidden; }
+    .material-emp > summary { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px; cursor:pointer; list-style:none; font-weight:800; }
+    .material-emp > summary::-webkit-details-marker { display:none; }
+    .material-emp > summary::after { content:"Abrir"; font-size:.7rem; font-weight:700; color:var(--azul); text-transform:uppercase; letter-spacing:.04em; }
+    .material-emp[open] > summary::after { content:"Fechar"; }
+    .material-resumo { font-size:.72rem; font-weight:600; color:var(--texto-suave); }
+    .material-corpo { padding:0 14px 14px; border-top:1px solid var(--borda); }
+    .material-secao { padding:14px 0; border-bottom:1px solid var(--borda); }
+    .material-secao:last-child { border-bottom:0; padding-bottom:0; }
+    .material-secao h4 { margin:0 0 4px; font-size:.9rem; }
+    .material-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+    .material-campo { min-width:0; }
+    .material-campo > label, .material-topo { display:flex; justify-content:space-between; gap:8px; align-items:baseline; font-size:.8rem; color:var(--texto-suave); margin-bottom:6px; }
+    .material-campo label b, .material-topo b { color:var(--texto); }
+    .material-campo input[type="text"], .material-campo input[type="url"], .galeria-item input[type="text"] { width:100%; padding:9px 10px; border-radius:8px; border:1px solid var(--borda); background:var(--cartao); color:var(--texto); font-size:.84rem; }
     .arquivo-input { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
     .material-acoes { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-    .material-acoes .botao-arquivo { display:inline-flex; align-items:center; justify-content:center; min-height:40px; padding:9px 13px; border:1px solid var(--borda); border-radius:8px; background:var(--cartao); color:var(--texto); font-size:.82rem; font-weight:700; cursor:pointer; }
-    .material-acoes .botao-arquivo:hover { border-color:var(--azul); }
-    .material-arquivo-nome { min-width:0; flex:1; font-size:.78rem; color:var(--texto-suave); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .botao-arquivo { display:inline-flex; align-items:center; justify-content:center; min-height:38px; padding:8px 12px; border:1px solid var(--borda); border-radius:8px; background:var(--cartao); color:var(--texto); font-size:.8rem; font-weight:700; cursor:pointer; }
+    .botao-arquivo:hover { border-color:var(--azul); }
+    .material-arquivo-nome { min-width:0; flex:1; font-size:.76rem; color:var(--texto-suave); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .material-link { margin-top:8px; }
     .material-link summary { cursor:pointer; font-size:.75rem; color:var(--texto-suave); }
     .material-link input { margin-top:7px; }
-    .material-status { font-size: .72rem; font-weight: 700; }
-    .material-status.ok { color: var(--verde); }
-    .material-status.falta { color: var(--vermelho); }
-    .material-ajuda { margin-top: 7px; font-size: .75rem; line-height: 1.4; color: var(--texto-suave); }
-    @media (max-width: 760px) { .material-grid { grid-template-columns: 1fr; } }
+    .material-status { font-size:.71rem; font-weight:800; white-space:nowrap; }
+    .material-status.ok { color:var(--verde); }
+    .material-status.falta { color:var(--vermelho); }
+    .material-status.opcional { color:var(--texto-suave); }
+    .material-ajuda { margin:7px 0 0; font-size:.73rem; line-height:1.45; color:var(--texto-suave); }
+    .material-ajuda strong { color:var(--texto); }
+    .galeria-lista, .plantas-lista { display:grid; gap:8px; margin-top:10px; }
+    .galeria-item, .planta-item { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; align-items:center; padding:9px; border:1px solid var(--borda); border-radius:8px; background:var(--cartao); }
+    .galeria-dados, .planta-dados { min-width:0; }
+    .galeria-arquivo, .planta-arquivo { display:block; margin-bottom:5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.7rem; color:var(--texto-suave); }
+    .galeria-botoes { display:flex; gap:5px; align-items:center; }
+    .mini-botao { min-width:32px; min-height:32px; padding:5px 8px; border:1px solid var(--borda); border-radius:7px; background:var(--fundo); color:var(--texto); cursor:pointer; font-size:.75rem; font-weight:700; }
+    .mini-botao:hover { border-color:var(--azul); }
+    .mini-botao.perigo { color:var(--vermelho); }
+    .planta-item { grid-template-columns:minmax(0,1fr) minmax(220px,auto); }
+    .planta-titulo { display:block; font-size:.78rem; font-weight:700; color:var(--texto); }
+    .material-vazio { padding:9px 0; color:var(--texto-suave); font-size:.75rem; }
+    @media (max-width:760px) {
+      .material-grid { grid-template-columns:1fr; }
+      .planta-item { grid-template-columns:1fr; }
+      .material-emp > summary { align-items:flex-start; }
+      .material-resumo { display:none; }
+    }
 
     /* incc */
     .form-incc { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; align-items: end; }
@@ -578,18 +607,25 @@
         <section class="bloco">
           <h2>O que falta no cadastro</h2>
           <p class="descricao">Tudo o que ainda falta para cada empreendimento seguir o mesmo padr&atilde;o comercial.
-            Folder PDF e v&iacute;deo podem ser cadastrados logo abaixo; plantas, fotos e demais dados continuam aparecendo
-            nesta lista para corre&ccedil;&atilde;o do cadastro.</p>
+            Capa, fotos, plantas, folder PDF e v&iacute;deo podem ser resolvidos na Central de Materiais logo abaixo; metragem,
+            garagem, RI e demais dados continuam nesta lista para confer&ecirc;ncia.</p>
           <p class="resumo-cadastro" id="cadastro-resumo">&mdash;</p>
           <div class="pend-lista" id="cadastro"></div>
           <button class="botao secundario" id="botao-copiar-cadastro">Copiar essa lista</button>
         </section>
 
-        <!-- Materiais obrigatorios -->
+        <!-- Central de materiais -->
         <section class="bloco">
           <h2>Materiais dos empreendimentos</h2>
-          <p class="descricao">Padr&atilde;o obrigat&oacute;rio: cada empreendimento deve ter <strong>1 folder em PDF</strong> e <strong>1 v&iacute;deo oficial</strong>.
-            Clique em <strong>Anexar PDF</strong> ou <strong>Anexar v&iacute;deo</strong>, escolha o arquivo no computador/celular e depois clique em <strong>Publicar no site</strong>. O painel envia o arquivo e atualiza o cadastro sozinho.</p>
+          <p class="descricao">Aqui ficam os arquivos comerciais de cada empreendimento. Selecione o arquivo e depois clique em <strong>Publicar no site</strong>. As imagens novas são conferidas pelo painel antes de entrar no site.</p>
+          <div class="padroes-midia" aria-label="Padrões de arquivos">
+            <div class="padrao-midia"><strong>Capa principal</strong>WEBP, JPG ou PNG · <b>1600 × 900 px</b> · até 5 MB.</div>
+            <div class="padrao-midia"><strong>Fotos da galeria</strong>WEBP, JPG ou PNG · <b>1600 × 900 px</b> · até 5 MB cada.</div>
+            <div class="padrao-midia"><strong>Plantas</strong>WEBP, JPG ou PNG · <b>2000 × 2000 px</b> · fundo claro · até 6 MB.</div>
+            <div class="padrao-midia"><strong>Logo do empreendimento</strong>PNG ou WEBP · <b>1600 × 600 px</b> · fundo transparente · até 3 MB.</div>
+            <div class="padrao-midia"><strong>Folder</strong>PDF · até 25 MB.</div>
+            <div class="padrao-midia"><strong>Vídeo oficial</strong>MP4, WebM ou Ogg · recomendado <b>1920 × 1080 px</b> · até 80 MB; acima disso, YouTube/Vimeo.</div>
+          </div>
           <div class="materiais-lista" id="materiais"></div>
         </section>
 
@@ -1071,7 +1107,9 @@
     return op ? op.novoStatus : item.status;
   }
 
-  // Folder e video sao os dois materiais obrigatorios editaveis pelo painel.
+  // Central de materiais. As alteracoes ficam so em memoria ate o usuario
+  // clicar em "Publicar no site". Arquivos novos sao enviados primeiro; so depois
+  // o data.js passa a apontar para eles.
   function opDeMaterial(empId, campo) {
     return estado.ops.find((op) => op.tipoOp === "material" && op.empId === empId && op.campo === campo);
   }
@@ -1086,11 +1124,70 @@
     return !v || /\.pdf(?:$|[?#])/i.test(v);
   }
 
-  function anotarMaterial(emp, campo, valor, arquivo = null) {
+  function anotarMaterial(emp, campo, valor) {
     const limpo = String(valor || "").trim();
     const original = String(emp[campo] || "");
     estado.ops = estado.ops.filter((op) => !(op.tipoOp === "material" && op.empId === emp.id && op.campo === campo));
-    if (limpo !== original || arquivo) estado.ops.push({ tipoOp: "material", empId: emp.id, campo, valor: limpo, original, arquivo });
+    if (limpo !== original) estado.ops.push({ tipoOp: "material", empId: emp.id, campo, valor: limpo, original });
+  }
+
+  function opDeGaleria(empId) {
+    return estado.ops.find((op) => op.tipoOp === "galeria" && op.empId === empId);
+  }
+
+  function galeriaAtual(emp) {
+    const op = opDeGaleria(emp.id);
+    return (op ? op.valor : (emp.galeria || [])).map((item) => ({ ...item }));
+  }
+
+  function anotarGaleria(emp, valor) {
+    const lista = (valor || []).map((item) => ({ ...item }));
+    estado.ops = estado.ops.filter((op) => !(op.tipoOp === "galeria" && op.empId === emp.id));
+    if (JSON.stringify(lista) !== JSON.stringify(emp.galeria || [])) {
+      estado.ops.push({ tipoOp: "galeria", empId: emp.id, valor: lista });
+    }
+  }
+
+  function opDePlanta(empId, alvo) {
+    return estado.ops.find((op) => op.tipoOp === "planta" && op.empId === empId
+      && op.grupoIndex === alvo.grupoIndex && (op.unidadeIndex ?? null) === (alvo.unidadeIndex ?? null));
+  }
+
+  function plantaOriginal(emp, alvo) {
+    const grupo = (emp.grupos || [])[alvo.grupoIndex];
+    if (!grupo) return "";
+    if (alvo.unidadeIndex != null) return String((grupo.unidades || [])[alvo.unidadeIndex]?.planta || "");
+    return String(grupo.planta || "");
+  }
+
+  function plantaAtual(emp, alvo) {
+    const op = opDePlanta(emp.id, alvo);
+    return op ? op.valor : plantaOriginal(emp, alvo);
+  }
+
+  function anotarPlanta(emp, alvo, valor) {
+    const limpo = String(valor || "").trim();
+    const original = plantaOriginal(emp, alvo);
+    estado.ops = estado.ops.filter((op) => !(op.tipoOp === "planta" && op.empId === emp.id
+      && op.grupoIndex === alvo.grupoIndex && (op.unidadeIndex ?? null) === (alvo.unidadeIndex ?? null)));
+    if (limpo !== original) estado.ops.push({
+      tipoOp: "planta", empId: emp.id, grupoIndex: alvo.grupoIndex,
+      unidadeIndex: alvo.unidadeIndex ?? null, tipoGrupo: alvo.tipoGrupo,
+      apto: alvo.apto || "", valor: limpo,
+    });
+  }
+
+  function anotarUpload(empId, campo, path, arquivo, rotulo) {
+    estado.ops = estado.ops.filter((op) => !(op.tipoOp === "upload" && op.empId === empId && op.campo === campo));
+    estado.ops.push({ tipoOp: "upload", empId, campo, path, arquivo, rotulo: rotulo || campo });
+  }
+
+  function removerUploadCampo(empId, campo) {
+    estado.ops = estado.ops.filter((op) => !(op.tipoOp === "upload" && op.empId === empId && op.campo === campo));
+  }
+
+  function removerUploadPath(path) {
+    estado.ops = estado.ops.filter((op) => !(op.tipoOp === "upload" && op.path === path));
   }
 
   function extensaoDoArquivo(nome) {
@@ -1098,10 +1195,73 @@
     return m ? m[1] : "";
   }
 
+  function semExtensao(nome) {
+    return String(nome || "arquivo").replace(/\.[^.]+$/, "");
+  }
+
+  function slugArquivo(texto) {
+    return String(texto || "arquivo").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 70) || "arquivo";
+  }
+
   function caminhoDoMaterial(emp, campo, arquivo) {
-    if (campo === "folder") return `assets/folder-${emp.id}.pdf`;
-    const ext = extensaoDoArquivo(arquivo?.name) || "mp4";
-    return `assets/video-${emp.id}.${ext}`;
+    const ext = extensaoDoArquivo(arquivo?.name);
+    if (campo === "folder") return `assets/${emp.id}/folder.pdf`;
+    if (campo === "video") return `assets/${emp.id}/video.${ext || "mp4"}`;
+    if (campo === "hero") return `assets/${emp.id}/capa.${ext || "webp"}`;
+    if (campo === "logo") return `assets/${emp.id}/logo.${ext || "png"}`;
+    throw new Error(`Tipo de material desconhecido: ${campo}.`);
+  }
+
+  function caminhoDaGaleria(emp, arquivo) {
+    const ext = extensaoDoArquivo(arquivo.name) || "webp";
+    const carimbo = Date.now().toString(36);
+    return `assets/${emp.id}/galeria/${carimbo}-${slugArquivo(semExtensao(arquivo.name))}.${ext}`;
+  }
+
+  function caminhoDaPlanta(emp, alvo, arquivo) {
+    const ext = extensaoDoArquivo(arquivo.name) || "webp";
+    const base = alvo.unidadeIndex != null
+      ? `${slugArquivo(alvo.tipoGrupo)}-${slugArquivo(alvo.apto)}`
+      : slugArquivo(alvo.tipoGrupo);
+    return `assets/${emp.id}/plantas/${base}.${ext}`;
+  }
+
+  const PADROES_IMAGEM = {
+    hero: { largura: 1600, altura: 900, limite: 5 * 1024 * 1024, formatos: ["webp", "jpg", "jpeg", "png"], nome: "A capa" },
+    galeria: { largura: 1600, altura: 900, limite: 5 * 1024 * 1024, formatos: ["webp", "jpg", "jpeg", "png"], nome: "A foto da galeria" },
+    planta: { largura: 2000, altura: 2000, limite: 6 * 1024 * 1024, formatos: ["webp", "jpg", "jpeg", "png"], nome: "A planta" },
+    logo: { largura: 1600, altura: 600, limite: 3 * 1024 * 1024, formatos: ["webp", "png"], nome: "A logo" },
+  };
+
+  async function dimensoesDaImagem(arquivo) {
+    if (typeof createImageBitmap === "function") {
+      const bmp = await createImageBitmap(arquivo);
+      const dimensoes = { largura: bmp.width, altura: bmp.height };
+      if (bmp.close) bmp.close();
+      return dimensoes;
+    }
+    return await new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(arquivo);
+      const img = new Image();
+      img.onload = () => { const d = { largura: img.naturalWidth, altura: img.naturalHeight }; URL.revokeObjectURL(url); resolve(d); };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error(`Não consegui abrir ${arquivo.name} para conferir o tamanho.`)); };
+      img.src = url;
+    });
+  }
+
+  async function validarArquivoImagem(campo, arquivo) {
+    if (!arquivo) return "Nenhum arquivo selecionado.";
+    const p = PADROES_IMAGEM[campo];
+    const ext = extensaoDoArquivo(arquivo.name);
+    if (!p.formatos.includes(ext)) return `${p.nome} precisa estar em ${p.formatos.map((f) => f.toUpperCase()).join(", ")}.`;
+    if (arquivo.size > p.limite) return `${p.nome} passou do limite de ${(p.limite / 1024 / 1024).toFixed(0)} MB.`;
+    let d;
+    try { d = await dimensoesDaImagem(arquivo); } catch (e) { return e.message; }
+    if (d.largura !== p.largura || d.altura !== p.altura) {
+      return `${p.nome} está em ${d.largura} × ${d.altura} px. O padrão deste campo é exatamente ${p.largura} × ${p.altura} px.`;
+    }
+    return "";
   }
 
   function validarArquivoMaterial(campo, arquivo) {
@@ -1114,6 +1274,49 @@
       ? "O PDF passou de 25 MB. Reduza o arquivo antes de anexar."
       : "O vídeo passou de 80 MB. Comprima o MP4 ou use um link do YouTube/Vimeo.";
     return "";
+  }
+
+  function nomeDaMidia(item) {
+    return String(item?.src || "").split("/").pop().replace(/\.[a-z0-9]+$/i, "");
+  }
+
+  function ehPlantaMidia(item) {
+    return /planta/i.test(`${item?.src || ""} ${item?.legenda || ""}`);
+  }
+
+  function legendaDoArquivo(arquivo) {
+    const base = semExtensao(arquivo.name).replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim();
+    return base ? base.charAt(0).toUpperCase() + base.slice(1) : "Imagem do empreendimento";
+  }
+
+  function alvosDePlanta(emp) {
+    const alvos = [];
+    (emp.grupos || []).forEach((g, grupoIndex) => {
+      const unidades = g.unidades || [];
+      const comPropria = unidades.filter((u) => u.planta);
+      // Se todas as unidades ja tem planta individual, nao criamos uma planta
+      // padrao artificial para a tipologia. Nos demais casos, a tipologia pode
+      // receber/substituir a planta que vale para as unidades sem planta propria.
+      if (g.planta || !unidades.length || comPropria.length < unidades.length) {
+        alvos.push({ grupoIndex, unidadeIndex: null, tipoGrupo: g.tipo, apto: "", rotulo: `Tipologia — ${g.tipo}` });
+      }
+      unidades.forEach((u, unidadeIndex) => {
+        if (!u.planta) return;
+        alvos.push({ grupoIndex, unidadeIndex, tipoGrupo: g.tipo, apto: String(u.apto), rotulo: `Unidade ${u.apto} — ${g.tipo}` });
+      });
+    });
+    return alvos;
+  }
+
+  function atualizarGaleriaComPlanta(emp, alvo, path) {
+    const lista = galeriaAtual(emp);
+    const antiga = plantaAtual(emp, alvo);
+    const indice = antiga ? lista.findIndex((item) => nomeDaMidia(item) === antiga) : -1;
+    const itemAnterior = indice >= 0 ? lista[indice] : null;
+    const novo = { src: path, legenda: `Planta — ${alvo.rotulo.replace(/^Tipologia — |^Unidade /, "")}` };
+    if (itemAnterior?.tecnica) novo.tecnica = true;
+    if (indice >= 0) lista.splice(indice, 1, novo); else lista.push(novo);
+    anotarGaleria(emp, lista);
   }
 
   // ---------------- render ----------------
@@ -1259,42 +1462,249 @@
     const alvo = $("materiais");
     if (!alvo) return;
     const emps = estado.dados.EMPREENDIMENTOS.filter((emp) => emp.id !== "outros");
+
     alvo.innerHTML = emps.map((emp) => {
       const folder = materialAtual(emp, "folder");
       const video = materialAtual(emp, "video");
+      const hero = materialAtual(emp, "hero");
+      const logo = materialAtual(emp, "logo");
+      const galeria = galeriaAtual(emp);
+      const fotos = galeria.map((item, index) => ({ item, index })).filter(({ item }) => !ehPlantaMidia(item));
+      const plantasMidia = galeria.filter(ehPlantaMidia);
+      const alvos = alvosDePlanta(emp);
+      const faltamPlantas = alvos.filter((a) => !plantaAtual(emp, a) && !((emp.grupos || [])[a.grupoIndex]?.plantaNota)).length;
       const pdfOk = Boolean(folder) && materialParecePdf(folder);
-      const opFolder = opDeMaterial(emp.id, "folder");
-      const opVideo = opDeMaterial(emp.id, "video");
-      const nomeFolder = opFolder?.arquivo?.name || (folder ? folder.split("/").pop() : "Nenhum PDF anexado");
-      const nomeVideo = opVideo?.arquivo?.name || (video ? video.split("/").pop() : "Nenhum vídeo anexado");
-      return `<div class="material-emp" data-material-emp="${escapeHtml(emp.id)}">
-        <h3>${escapeHtml(emp.nome)}</h3>
-        <div class="material-grid">
-          <div class="material-campo">
-            <label><b>Folder PDF</b><span class="material-status ${pdfOk ? "ok" : "falta"}" data-status-folder>${pdfOk ? "OK" : (folder ? "revisar PDF" : "faltando")}</span></label>
-            <div class="material-acoes">
-              <label class="botao-arquivo" for="arquivo-folder-${escapeHtml(emp.id)}">Anexar PDF</label>
-              <span class="material-arquivo-nome" data-nome-folder title="${escapeHtml(nomeFolder)}">${escapeHtml(nomeFolder)}</span>
-              <input class="arquivo-input" id="arquivo-folder-${escapeHtml(emp.id)}" type="file" accept="application/pdf,.pdf" data-arquivo-material="folder" data-emp="${escapeHtml(emp.id)}">
-            </div>
-            <p class="material-ajuda">Escolha o PDF. Ele será enviado quando você clicar em “Publicar no site”.</p>
+      const resumo = `${fotos.length} fotos · ${plantasMidia.length} plantas · ${pdfOk ? "folder OK" : "sem folder"} · ${video ? "vídeo OK" : "sem vídeo"}`;
+
+      const listaFotos = fotos.length ? fotos.map(({ item, index }, pos) => `
+        <div class="galeria-item" data-galeria-item="${index}">
+          <div class="galeria-dados">
+            <span class="galeria-arquivo" title="${escapeHtml(item.src)}">${escapeHtml(String(item.src).split("/").pop())}</span>
+            <input type="text" value="${escapeHtml(item.legenda || "")}" placeholder="Legenda da imagem" data-galeria-legenda="${index}" data-emp="${escapeHtml(emp.id)}">
           </div>
-          <div class="material-campo">
-            <label><b>Vídeo oficial</b><span class="material-status ${video ? "ok" : "falta"}" data-status-video>${video ? "OK" : "faltando"}</span></label>
-            <div class="material-acoes">
-              <label class="botao-arquivo" for="arquivo-video-${escapeHtml(emp.id)}">Anexar vídeo</label>
-              <span class="material-arquivo-nome" data-nome-video title="${escapeHtml(nomeVideo)}">${escapeHtml(nomeVideo)}</span>
-              <input class="arquivo-input" id="arquivo-video-${escapeHtml(emp.id)}" type="file" accept="video/mp4,video/webm,video/ogg,.mp4,.webm,.ogg" data-arquivo-material="video" data-emp="${escapeHtml(emp.id)}">
+          <div class="galeria-botoes">
+            <button type="button" class="mini-botao" data-galeria-mover="-1" data-index="${index}" data-emp="${escapeHtml(emp.id)}" ${pos === 0 ? "disabled" : ""} title="Mover para cima">↑</button>
+            <button type="button" class="mini-botao" data-galeria-mover="1" data-index="${index}" data-emp="${escapeHtml(emp.id)}" ${pos === fotos.length - 1 ? "disabled" : ""} title="Mover para baixo">↓</button>
+            <button type="button" class="mini-botao perigo" data-galeria-remover="${index}" data-emp="${escapeHtml(emp.id)}">Remover</button>
+          </div>
+        </div>`).join("") : `<p class="material-vazio">Nenhuma foto de galeria cadastrada.</p>`;
+
+      const listaPlantas = alvos.length ? alvos.map((a) => {
+        const atual = plantaAtual(emp, a);
+        const grupo = (emp.grupos || [])[a.grupoIndex] || {};
+        const dispensada = !atual && a.unidadeIndex == null && grupo.plantaNota;
+        const midia = atual ? galeria.find((item) => nomeDaMidia(item) === atual) : null;
+        const arquivoAtual = midia?.src ? String(midia.src).split("/").pop() : (atual || (dispensada ? "Sem planta: há observação cadastrada" : "Nenhuma planta vinculada"));
+        const chave = a.unidadeIndex == null ? `g-${a.grupoIndex}` : `u-${a.grupoIndex}-${a.unidadeIndex}`;
+        return `<div class="planta-item">
+          <div class="planta-dados">
+            <span class="planta-titulo">${escapeHtml(a.rotulo)}</span>
+            <span class="planta-arquivo" title="${escapeHtml(arquivoAtual)}">${escapeHtml(arquivoAtual)}</span>
+          </div>
+          <div class="material-acoes">
+            <label class="botao-arquivo" for="arquivo-planta-${escapeHtml(emp.id)}-${chave}">${atual ? "Substituir planta" : "Anexar planta"}</label>
+            <input class="arquivo-input" id="arquivo-planta-${escapeHtml(emp.id)}-${chave}" type="file" accept="image/webp,image/jpeg,image/png,.webp,.jpg,.jpeg,.png"
+              data-arquivo-planta data-emp="${escapeHtml(emp.id)}" data-grupo="${a.grupoIndex}" ${a.unidadeIndex == null ? "" : `data-unidade="${a.unidadeIndex}"`}>
+          </div>
+        </div>`;
+      }).join("") : `<p class="material-vazio">Este empreendimento não possui tipologias com planta.</p>`;
+
+      const nomeFolder = folder ? folder.split("/").pop() : "Nenhum PDF anexado";
+      const nomeVideo = video ? (/^https?:/i.test(video) ? video : video.split("/").pop()) : "Nenhum vídeo anexado";
+      const nomeHero = hero ? hero.split("/").pop() : "Nenhuma capa anexada";
+      const nomeLogo = logo ? logo.split("/").pop() : "Nenhuma logo própria cadastrada";
+
+      return `<details class="material-emp" data-material-emp="${escapeHtml(emp.id)}">
+        <summary><span>${escapeHtml(emp.nome)}</span><span class="material-resumo">${escapeHtml(resumo)}</span></summary>
+        <div class="material-corpo">
+          <div class="material-secao">
+            <h4>Identidade visual</h4>
+            <div class="material-grid">
+              <div class="material-campo">
+                <div class="material-topo"><b>Capa principal</b><span class="material-status ${hero ? "ok" : "falta"}">${hero ? "OK" : "faltando"}</span></div>
+                <div class="material-acoes">
+                  <label class="botao-arquivo" for="arquivo-hero-${escapeHtml(emp.id)}">${hero ? "Substituir capa" : "Anexar capa"}</label>
+                  <span class="material-arquivo-nome" title="${escapeHtml(nomeHero)}">${escapeHtml(nomeHero)}</span>
+                  <input class="arquivo-input" id="arquivo-hero-${escapeHtml(emp.id)}" type="file" accept="image/webp,image/jpeg,image/png,.webp,.jpg,.jpeg,.png" data-arquivo-imagem="hero" data-emp="${escapeHtml(emp.id)}">
+                </div>
+                <p class="material-ajuda"><strong>WEBP/JPG/PNG · 1600 × 900 px</strong> · proporção 16:9 · até 5 MB. O painel bloqueia tamanho diferente.</p>
+              </div>
+              <div class="material-campo">
+                <div class="material-topo"><b>Logo do empreendimento</b><span class="material-status ${logo ? "ok" : "opcional"}">${logo ? "OK" : "opcional"}</span></div>
+                <div class="material-acoes">
+                  <label class="botao-arquivo" for="arquivo-logo-${escapeHtml(emp.id)}">${logo ? "Substituir logo" : "Anexar logo"}</label>
+                  <span class="material-arquivo-nome" title="${escapeHtml(nomeLogo)}">${escapeHtml(nomeLogo)}</span>
+                  <input class="arquivo-input" id="arquivo-logo-${escapeHtml(emp.id)}" type="file" accept="image/webp,image/png,.webp,.png" data-arquivo-imagem="logo" data-emp="${escapeHtml(emp.id)}">
+                </div>
+                <p class="material-ajuda"><strong>PNG/WEBP · 1600 × 600 px</strong> · fundo transparente · até 3 MB. JPG não é aceito para preservar transparência.</p>
+              </div>
             </div>
-            <p class="material-ajuda">MP4, WebM ou Ogg, até 80 MB. Para vídeo maior, use o link abaixo.</p>
-            <details class="material-link">
-              <summary>Ou usar link do YouTube/Vimeo</summary>
-              <input type="url" value="${escapeHtml(/^https?:/i.test(video) ? video : "")}" placeholder="https://youtube.com/watch?v=..." data-material-link="video" data-emp="${escapeHtml(emp.id)}">
-            </details>
+          </div>
+
+          <div class="material-secao">
+            <div class="material-topo"><h4>Fotos da galeria</h4><span class="material-status ${fotos.length ? "ok" : "falta"}">${fotos.length} cadastrada${fotos.length === 1 ? "" : "s"}</span></div>
+            <div class="material-acoes">
+              <label class="botao-arquivo" for="arquivo-galeria-${escapeHtml(emp.id)}">Adicionar fotos</label>
+              <span class="material-arquivo-nome">Você pode selecionar várias de uma vez.</span>
+              <input class="arquivo-input" id="arquivo-galeria-${escapeHtml(emp.id)}" type="file" multiple accept="image/webp,image/jpeg,image/png,.webp,.jpg,.jpeg,.png" data-arquivo-galeria data-emp="${escapeHtml(emp.id)}">
+            </div>
+            <p class="material-ajuda"><strong>WEBP/JPG/PNG · 1600 × 900 px cada</strong> · até 5 MB cada. Use as setas para definir a ordem e edite a legenda diretamente abaixo.</p>
+            <div class="galeria-lista">${listaFotos}</div>
+          </div>
+
+          <div class="material-secao">
+            <div class="material-topo"><h4>Plantas das tipologias e unidades</h4><span class="material-status ${faltamPlantas ? "falta" : "ok"}">${faltamPlantas ? `${faltamPlantas} faltando` : "vínculos OK"}</span></div>
+            <p class="material-ajuda"><strong>WEBP/JPG/PNG · 2000 × 2000 px</strong> · fundo branco/claro · até 6 MB. Ao substituir, o painel também atualiza automaticamente o vínculo da tipologia/unidade.</p>
+            <div class="plantas-lista">${listaPlantas}</div>
+          </div>
+
+          <div class="material-secao">
+            <h4>Materiais comerciais</h4>
+            <div class="material-grid">
+              <div class="material-campo">
+                <div class="material-topo"><b>Folder PDF</b><span class="material-status ${pdfOk ? "ok" : "falta"}" data-status-folder>${pdfOk ? "OK" : "faltando"}</span></div>
+                <div class="material-acoes">
+                  <label class="botao-arquivo" for="arquivo-folder-${escapeHtml(emp.id)}">${folder ? "Substituir PDF" : "Anexar PDF"}</label>
+                  <span class="material-arquivo-nome" data-nome-folder title="${escapeHtml(nomeFolder)}">${escapeHtml(nomeFolder)}</span>
+                  <input class="arquivo-input" id="arquivo-folder-${escapeHtml(emp.id)}" type="file" accept="application/pdf,.pdf" data-arquivo-material="folder" data-emp="${escapeHtml(emp.id)}">
+                </div>
+                <p class="material-ajuda"><strong>PDF · até 25 MB.</strong> Um folder completo por empreendimento.</p>
+              </div>
+              <div class="material-campo">
+                <div class="material-topo"><b>Vídeo oficial</b><span class="material-status ${video ? "ok" : "falta"}" data-status-video>${video ? "OK" : "faltando"}</span></div>
+                <div class="material-acoes">
+                  <label class="botao-arquivo" for="arquivo-video-${escapeHtml(emp.id)}">${video && !/^https?:/i.test(video) ? "Substituir vídeo" : "Anexar vídeo"}</label>
+                  <span class="material-arquivo-nome" data-nome-video title="${escapeHtml(nomeVideo)}">${escapeHtml(nomeVideo)}</span>
+                  <input class="arquivo-input" id="arquivo-video-${escapeHtml(emp.id)}" type="file" accept="video/mp4,video/webm,video/ogg,.mp4,.webm,.ogg" data-arquivo-material="video" data-emp="${escapeHtml(emp.id)}">
+                </div>
+                <p class="material-ajuda"><strong>MP4/WebM/Ogg · recomendado 1920 × 1080 px (Full HD)</strong> · até 80 MB. Para arquivo maior, use YouTube/Vimeo.</p>
+                <details class="material-link">
+                  <summary>Ou usar link do YouTube/Vimeo</summary>
+                  <input type="url" value="${escapeHtml(/^https?:/i.test(video) ? video : "")}" placeholder="https://youtube.com/watch?v=..." data-material-link="video" data-emp="${escapeHtml(emp.id)}">
+                </details>
+              </div>
+            </div>
           </div>
         </div>
-      </div>`;
+      </details>`;
     }).join("");
+
+    const atualizarDepois = (rerender = false) => {
+      renderDashboard();
+      renderCadastro();
+      renderPendentes();
+      if (rerender) renderMateriais();
+    };
+
+    alvo.querySelectorAll("input[data-arquivo-imagem]").forEach((input) => {
+      input.addEventListener("change", async () => {
+        const emp = estado.dados.EMPREENDIMENTOS.find((e) => e.id === input.dataset.emp);
+        const arquivo = input.files?.[0];
+        const campo = input.dataset.arquivoImagem;
+        if (!emp || !arquivo) return;
+        input.disabled = true;
+        const falha = await validarArquivoImagem(campo, arquivo);
+        input.disabled = false;
+        if (falha) { input.value = ""; aviso(falha, "falha"); return; }
+        const path = caminhoDoMaterial(emp, campo, arquivo);
+        anotarUpload(emp.id, campo, path, arquivo, campo === "hero" ? "capa" : "logo");
+        anotarMaterial(emp, campo, path);
+        aviso(`${campo === "hero" ? "Capa" : "Logo"} pronta para publicar.`, "ok");
+        atualizarDepois(true);
+      });
+    });
+
+    alvo.querySelectorAll("input[data-arquivo-galeria]").forEach((input) => {
+      input.addEventListener("change", async () => {
+        const emp = estado.dados.EMPREENDIMENTOS.find((e) => e.id === input.dataset.emp);
+        const arquivos = [...(input.files || [])];
+        if (!emp || !arquivos.length) return;
+        input.disabled = true;
+        for (const arquivo of arquivos) {
+          const falha = await validarArquivoImagem("galeria", arquivo);
+          if (falha) { input.disabled = false; input.value = ""; aviso(`${arquivo.name}: ${falha}`, "falha"); return; }
+        }
+        let lista = galeriaAtual(emp);
+        arquivos.forEach((arquivo, i) => {
+          let path = caminhoDaGaleria(emp, arquivo);
+          if (i) path = path.replace(/(\.[^.]+)$/, `-${i + 1}$1`);
+          anotarUpload(emp.id, `galeria:${path}`, path, arquivo, "foto da galeria");
+          lista.push({ src: path, legenda: legendaDoArquivo(arquivo) });
+        });
+        anotarGaleria(emp, lista);
+        input.disabled = false;
+        aviso(`${arquivos.length} ${arquivos.length === 1 ? "foto pronta" : "fotos prontas"} para publicar.`, "ok");
+        atualizarDepois(true);
+      });
+    });
+
+    alvo.querySelectorAll("input[data-galeria-legenda]").forEach((input) => {
+      input.addEventListener("input", () => {
+        const emp = estado.dados.EMPREENDIMENTOS.find((e) => e.id === input.dataset.emp);
+        if (!emp) return;
+        const lista = galeriaAtual(emp);
+        const index = Number(input.dataset.galeriaLegenda);
+        if (!lista[index]) return;
+        lista[index].legenda = input.value.trim();
+        anotarGaleria(emp, lista);
+        renderPendentes();
+      });
+    });
+
+    alvo.querySelectorAll("button[data-galeria-remover]").forEach((botao) => {
+      botao.addEventListener("click", () => {
+        const emp = estado.dados.EMPREENDIMENTOS.find((e) => e.id === botao.dataset.emp);
+        if (!emp) return;
+        const lista = galeriaAtual(emp);
+        const index = Number(botao.dataset.galeriaRemover);
+        const item = lista[index];
+        if (!item || ehPlantaMidia(item)) return;
+        removerUploadPath(item.src);
+        lista.splice(index, 1);
+        anotarGaleria(emp, lista);
+        atualizarDepois(true);
+      });
+    });
+
+    alvo.querySelectorAll("button[data-galeria-mover]").forEach((botao) => {
+      botao.addEventListener("click", () => {
+        const emp = estado.dados.EMPREENDIMENTOS.find((e) => e.id === botao.dataset.emp);
+        if (!emp) return;
+        const lista = galeriaAtual(emp);
+        const atual = Number(botao.dataset.index);
+        const direcao = Number(botao.dataset.galeriaMover);
+        const indices = lista.map((item, i) => !ehPlantaMidia(item) ? i : -1).filter((i) => i >= 0);
+        const pos = indices.indexOf(atual);
+        const outro = indices[pos + direcao];
+        if (pos < 0 || outro == null) return;
+        [lista[atual], lista[outro]] = [lista[outro], lista[atual]];
+        anotarGaleria(emp, lista);
+        atualizarDepois(true);
+      });
+    });
+
+    alvo.querySelectorAll("input[data-arquivo-planta]").forEach((input) => {
+      input.addEventListener("change", async () => {
+        const emp = estado.dados.EMPREENDIMENTOS.find((e) => e.id === input.dataset.emp);
+        const arquivo = input.files?.[0];
+        if (!emp || !arquivo) return;
+        const grupoIndex = Number(input.dataset.grupo);
+        const unidadeIndex = input.dataset.unidade == null ? null : Number(input.dataset.unidade);
+        const alvoPlanta = alvosDePlanta(emp).find((a) => a.grupoIndex === grupoIndex && (a.unidadeIndex ?? null) === unidadeIndex);
+        if (!alvoPlanta) { aviso("Não consegui localizar a tipologia desta planta.", "falha"); return; }
+        input.disabled = true;
+        const falha = await validarArquivoImagem("planta", arquivo);
+        input.disabled = false;
+        if (falha) { input.value = ""; aviso(falha, "falha"); return; }
+        const path = caminhoDaPlanta(emp, alvoPlanta, arquivo);
+        atualizarGaleriaComPlanta(emp, alvoPlanta, path);
+        anotarPlanta(emp, alvoPlanta, nomeDaMidia({ src: path }));
+        const chave = `planta:${grupoIndex}:${unidadeIndex == null ? "g" : unidadeIndex}`;
+        anotarUpload(emp.id, chave, path, arquivo, `planta de ${alvoPlanta.rotulo}`);
+        aviso("Planta pronta para publicar e vínculo atualizado.", "ok");
+        atualizarDepois(true);
+      });
+    });
 
     alvo.querySelectorAll("input[data-arquivo-material]").forEach((input) => {
       input.addEventListener("change", () => {
@@ -1304,22 +1714,16 @@
         const campo = input.dataset.arquivoMaterial;
         const falha = validarArquivoMaterial(campo, arquivo);
         if (falha) { input.value = ""; aviso(falha, "falha"); return; }
-        const caminho = caminhoDoMaterial(emp, campo, arquivo);
-        anotarMaterial(emp, campo, caminho, arquivo);
-        const caixa = input.closest(".material-emp");
-        const nome = caixa.querySelector(`[data-nome-${campo}]`);
-        nome.textContent = arquivo.name;
-        nome.title = arquivo.name;
-        const status = caixa.querySelector(`[data-status-${campo}]`);
-        status.textContent = "pronto para publicar";
-        status.className = "material-status ok";
+        const path = caminhoDoMaterial(emp, campo, arquivo);
+        anotarUpload(emp.id, campo, path, arquivo, campo === "folder" ? "folder PDF" : "vídeo");
+        anotarMaterial(emp, campo, path);
         if (campo === "video") {
-          const link = caixa.querySelector('input[data-material-link="video"]');
+          const caixa = input.closest(".material-emp");
+          const link = caixa?.querySelector('input[data-material-link="video"]');
           if (link) link.value = "";
         }
-        renderDashboard();
-        renderCadastro();
-        renderPendentes();
+        aviso(`${campo === "folder" ? "PDF" : "Vídeo"} pronto para publicar.`, "ok");
+        atualizarDepois(true);
       });
     });
 
@@ -1328,15 +1732,8 @@
         const emp = estado.dados.EMPREENDIMENTOS.find((e) => e.id === input.dataset.emp);
         if (!emp) return;
         const valor = input.value.trim();
+        removerUploadCampo(emp.id, "video");
         anotarMaterial(emp, "video", valor);
-        const caixa = input.closest(".material-emp");
-        const status = caixa.querySelector("[data-status-video]");
-        const ok = Boolean(valor);
-        status.textContent = ok ? "pronto para publicar" : (emp.video ? "OK" : "faltando");
-        status.className = `material-status ${ok || emp.video ? "ok" : "falta"}`;
-        const nome = caixa.querySelector("[data-nome-video]");
-        nome.textContent = valor || (emp.video ? String(emp.video).split("/").pop() : "Nenhum vídeo anexado");
-        nome.title = nome.textContent;
         renderDashboard();
         renderCadastro();
         renderPendentes();
@@ -1981,10 +2378,8 @@
   }
 
   // Tudo o que falta preencher no cadastro de um empreendimento — nao so os
-  // box. Buraco de cadastro nao aparece sozinho: tipologia sem metragem,
-  // unidade sem planta ligada e empreendimento sem foto passam despercebidos
-  // no meio da lista. Nada disso se edita pelo painel; a lista existe para o
-  // dono saber o que ainda precisa pedir de planta, de tabela ou de foto.
+  // box. A central de materiais resolve capa, galeria, plantas, folder e video;
+  // esta lista continua mostrando tambem metragem, garagem, RI e demais dados.
   function pendenciasDoEmp(emp) {
     const itens = [];
     const marca = (texto, grave) => itens.push({ texto, grave: !!grave });
@@ -2027,13 +2422,18 @@
     const semArea = [];
     const semPlanta = [];
     const semGaragem = [];
-    (emp.grupos || []).forEach((g) => {
+    (emp.grupos || []).forEach((g, grupoIndex) => {
       const rotulo = g.estoque || g.tipo;
       const unidades = g.unidades || [];
       if (!g.area) semArea.push(rotulo);
+      // Considera tambem as plantas que o usuario acabou de anexar e ainda nao
+      // publicou, para a pendencia sumir na hora no painel.
+      const plantaGrupo = plantaAtual(emp, { grupoIndex, unidadeIndex: null });
+      const todasComPlanta = unidades.length && unidades.every((u, unidadeIndex) =>
+        Boolean(plantaAtual(emp, { grupoIndex, unidadeIndex })));
       // A tipologia que diz por escrito que nao ha planta a mostrar
       // (plantaNota, como a cobertura vendida) esta resolvida, nao pendente.
-      if (!g.planta && !g.plantaNota && !unidades.every((u) => u.planta)) semPlanta.push(rotulo);
+      if (!plantaGrupo && !g.plantaNota && !todasComPlanta) semPlanta.push(rotulo);
       if (!g.garagem && !ehComercial(rotulo)) semGaragem.push(rotulo);
     });
     if (semArea.length) marca(`${dizerTipologias(semArea)} sem a metragem`);
@@ -2053,8 +2453,8 @@
     // 4. O que o corretor ve na ficha do empreendimento. "Outros Imoveis" fica
     // de fora: la cada imovel tem a sua propria ficha, e nao ha ficha do grupo.
     if (emp.id !== "outros") {
-      if (!emp.hero) marca("sem foto de capa", true);
-      if (!(emp.galeria || []).length) marca("sem fotos na galeria", true);
+      if (!materialAtual(emp, "hero")) marca("sem foto de capa", true);
+      if (!galeriaAtual(emp).some((item) => !ehPlantaMidia(item))) marca("sem fotos na galeria", true);
       const folder = materialAtual(emp, "folder");
       const video = materialAtual(emp, "video");
       if (!folder) marca("<b>sem folder em PDF</b> — o padrão comercial exige 1 folder por empreendimento", true);
@@ -2150,9 +2550,14 @@
   }
 
   function renderPendentes() {
+    const mudancas = estado.ops.filter((op) => op.tipoOp !== "upload").length;
+    const uploads = estado.ops.filter((op) => op.tipoOp === "upload").length;
     const n = estado.ops.length;
+    const partes = [];
+    if (mudancas) partes.push(mudancas === 1 ? "1 alteração" : `${mudancas} alterações`);
+    if (uploads) partes.push(uploads === 1 ? "1 arquivo" : `${uploads} arquivos`);
     const badge = $("badge-pendentes");
-    badge.textContent = n === 1 ? "1 alteração pendente" : `${n} alterações pendentes`;
+    badge.textContent = partes.join(" · ") || "";
     badge.classList.toggle("visivel", n > 0);
     $("botao-publicar").disabled = n === 0;
     $("botao-descartar").style.display = n > 0 ? "inline-block" : "none";
@@ -2278,15 +2683,144 @@
   }
 
   function aplicarMaterial(texto, op) {
-    if (!["folder", "video"].includes(op.campo)) throw new Error(`Campo de material inválido: ${op.campo}.`);
+    if (!["folder", "video", "hero", "logo"].includes(op.campo)) throw new Error(`Campo de material inválido: ${op.campo}.`);
     return trocarNoBloco(texto, op.empId, (bloco) => {
       const re = new RegExp(`^\\s*${op.campo}:\\s*[^\\n]*\\n`, "m");
       if (!op.valor) return bloco.replace(re, "");
       const linha = `    ${op.campo}: ${JSON.stringify(op.valor)},\n`;
       if (re.test(bloco)) return bloco.replace(re, linha);
-      const hero = bloco.match(/^\s*hero:\s*[^\n]*\n/m);
-      if (!hero) throw new Error(`Não achei a foto de capa de ${op.empId} para inserir ${op.campo}.`);
-      return bloco.replace(hero[0], hero[0] + linha);
+      const ancoraCampo = op.campo === "hero" ? "entrega" : "hero";
+      const ancora = bloco.match(new RegExp(`^\\s*${ancoraCampo}:\\s*[^\\n]*\\n`, "m"));
+      if (!ancora) throw new Error(`Não achei onde inserir ${op.campo} em ${op.empId}.`);
+      return bloco.replace(ancora[0], ancora[0] + linha);
+    });
+  }
+
+  function acharFechamentoBalanceado(texto, inicio, abre, fecha) {
+    let nivel = 0, aspas = "", escape = false, comentarioLinha = false, comentarioBloco = false;
+    for (let i = inicio; i < texto.length; i++) {
+      const c = texto[i], prox = texto[i + 1];
+      if (comentarioLinha) { if (c === "\n") comentarioLinha = false; continue; }
+      if (comentarioBloco) { if (c === "*" && prox === "/") { comentarioBloco = false; i += 1; } continue; }
+      if (aspas) {
+        if (escape) { escape = false; continue; }
+        if (c === "\\") { escape = true; continue; }
+        if (c === aspas) aspas = "";
+        continue;
+      }
+      if (c === "/" && prox === "/") { comentarioLinha = true; i += 1; continue; }
+      if (c === "/" && prox === "*") { comentarioBloco = true; i += 1; continue; }
+      if (c === '"' || c === "'" || c === "`") { aspas = c; continue; }
+      if (c === abre) nivel += 1;
+      else if (c === fecha) {
+        nivel -= 1;
+        if (nivel === 0) return i;
+      }
+    }
+    return -1;
+  }
+
+  function serializarGaleria(lista) {
+    if (!(lista || []).length) return "[]";
+    const linhas = lista.map((item) => {
+      const campos = [`src: ${JSON.stringify(item.src)}`, `legenda: ${JSON.stringify(item.legenda || "")}`];
+      if (item.tecnica) campos.push("tecnica: true");
+      return `      { ${campos.join(", ")} },`;
+    });
+    return `[\n${linhas.join("\n")}\n    ]`;
+  }
+
+  function aplicarGaleria(texto, op) {
+    return trocarNoBloco(texto, op.empId, (bloco) => {
+      const achou = bloco.search(/^\s*galeria:\s*\[/m);
+      const serial = serializarGaleria(op.valor);
+      if (achou >= 0) {
+        const inicioArray = bloco.indexOf("[", achou);
+        const fimArray = acharFechamentoBalanceado(bloco, inicioArray, "[", "]");
+        if (fimArray < 0) throw new Error(`A galeria de ${op.empId} ficou incompleta no data.js.`);
+        return bloco.slice(0, inicioArray) + serial + bloco.slice(fimArray + 1);
+      }
+      const ancora = bloco.match(/^\s*(?:logo|hero):\s*[^\n]*\n/m);
+      if (!ancora) throw new Error(`Não achei onde inserir a galeria de ${op.empId}.`);
+      return bloco.replace(ancora[0], ancora[0] + `    galeria: ${serial},\n`);
+    });
+  }
+
+  function objetosDoArray(bloco, campo) {
+    const re = new RegExp(`\\b${campo}:\\s*\\[`);
+    const m = re.exec(bloco);
+    if (!m) return [];
+    const inicioArray = bloco.indexOf("[", m.index);
+    const fimArray = acharFechamentoBalanceado(bloco, inicioArray, "[", "]");
+    if (fimArray < 0) return [];
+    const objetos = [];
+    let nivel = 0, inicioObj = -1, aspas = "", escape = false, comentarioLinha = false, comentarioBloco = false;
+    for (let i = inicioArray + 1; i < fimArray; i++) {
+      const c = bloco[i], prox = bloco[i + 1];
+      if (comentarioLinha) { if (c === "\n") comentarioLinha = false; continue; }
+      if (comentarioBloco) { if (c === "*" && prox === "/") { comentarioBloco = false; i += 1; } continue; }
+      if (aspas) {
+        if (escape) { escape = false; continue; }
+        if (c === "\\") { escape = true; continue; }
+        if (c === aspas) aspas = "";
+        continue;
+      }
+      if (c === "/" && prox === "/") { comentarioLinha = true; i += 1; continue; }
+      if (c === "/" && prox === "*") { comentarioBloco = true; i += 1; continue; }
+      if (c === '"' || c === "'" || c === "`") { aspas = c; continue; }
+      if (c === "{") { if (nivel === 0) inicioObj = i; nivel += 1; }
+      else if (c === "}") { nivel -= 1; if (nivel === 0 && inicioObj >= 0) { objetos.push({ inicio: inicioObj, fim: i + 1 }); inicioObj = -1; } }
+    }
+    return objetos;
+  }
+
+  function trocarPlantaNoObjeto(objeto, valor, ancoraCampo) {
+    // As unidades do data.js ficam em uma unica linha; os grupos, em varias.
+    // Por isso o campo precisa funcionar nos dois formatos.
+    const reCampo = /\bplanta:\s*(?:"[^"]*"|'[^']*'|[^,}\n]+)\s*,?/;
+    let saida = objeto;
+    if (valor) {
+      if (reCampo.test(saida)) {
+        saida = saida.replace(reCampo, (m) => `planta: ${JSON.stringify(valor)}${/,\s*$/.test(m) ? "," : ""}`);
+      } else if (ancoraCampo === "apto") {
+        const ancora = /\bapto:\s*"[^"]*"\s*,?/;
+        const m = saida.match(ancora);
+        if (!m) throw new Error("Não achei o apartamento/unidade para vincular a planta.");
+        const base = m[0].replace(/\s*,?$/, "");
+        saida = saida.replace(ancora, `${base}, planta: ${JSON.stringify(valor)},`);
+      } else {
+        const ancora = saida.match(new RegExp(`^\\s*${ancoraCampo}:\\s*[^\\n]*\\n`, "m"));
+        if (!ancora) throw new Error(`Não achei o campo ${ancoraCampo} para vincular a planta.`);
+        const indent = (ancora[0].match(/^\s*/) || ["    "])[0];
+        saida = saida.replace(ancora[0], ancora[0] + `${indent}planta: ${JSON.stringify(valor)},\n`);
+      }
+      // Ao passar a existir uma planta, uma antiga observacao de "sem planta"
+      // nao pode continuar aparecendo junto para o cliente.
+      saida = saida.replace(/^\s*plantaNota:\s*[^\n]*\n/m, "");
+      saida = saida.replace(/\bplantaNota:\s*(?:"[^"]*"|'[^']*'|[^,}\n]+)\s*,?/g, "");
+    } else {
+      saida = saida.replace(reCampo, "");
+    }
+    return saida;
+  }
+
+  function aplicarPlanta(texto, op) {
+    return trocarNoBloco(texto, op.empId, (bloco) => {
+      const grupos = objetosDoArray(bloco, "grupos");
+      const limiteGrupo = grupos[op.grupoIndex];
+      if (!limiteGrupo) throw new Error(`Grupo ${op.grupoIndex + 1} não encontrado em ${op.empId}.`);
+      const grupo = bloco.slice(limiteGrupo.inicio, limiteGrupo.fim);
+      if (op.unidadeIndex == null) {
+        const novoGrupo = trocarPlantaNoObjeto(grupo, op.valor, "tipo");
+        return bloco.slice(0, limiteGrupo.inicio) + novoGrupo + bloco.slice(limiteGrupo.fim);
+      }
+      const unidades = objetosDoArray(grupo, "unidades");
+      const limiteUnidade = unidades[op.unidadeIndex];
+      if (!limiteUnidade) throw new Error(`Unidade ${op.apto || op.unidadeIndex + 1} não encontrada em ${op.empId}.`);
+      const unidade = grupo.slice(limiteUnidade.inicio, limiteUnidade.fim);
+      const novaUnidade = trocarPlantaNoObjeto(unidade, op.valor, "apto");
+      const novoGrupo = grupo.slice(0, limiteUnidade.inicio) + novaUnidade + grupo.slice(limiteUnidade.fim);
+      return bloco.slice(0, limiteGrupo.inicio) + novoGrupo + bloco.slice(limiteGrupo.fim);
     });
   }
 
@@ -2315,10 +2849,12 @@
     const status = estado.ops.filter((op) => op.tipoOp === "status");
     if (status.length === 1) partes.push(`${status[0].rotulo.trim()} → ${STATUS_LABEL[status[0].novoStatus].toLowerCase()}`);
     else if (status.length > 1) partes.push(`${status.length} unidades com status alterado`);
-    const materiais = estado.ops.filter((op) => op.tipoOp === "material");
-    if (materiais.length === 1) partes.push(`${materiais[0].campo === "folder" ? "folder" : "vídeo"} de ${materiais[0].empId}`);
-    else if (materiais.length > 1) partes.push(`${materiais.length} materiais atualizados`);
-    return `v${novaVersao}: ${partes.join(" · ")} (painel administrativo)`;
+    const materiais = estado.ops.filter((op) => ["material", "galeria", "planta"].includes(op.tipoOp));
+    const uploads = estado.ops.filter((op) => op.tipoOp === "upload");
+    if (materiais.length === 1) partes.push("materiais de empreendimento atualizados");
+    else if (materiais.length > 1) partes.push(`${materiais.length} ajustes de materiais`);
+    if (uploads.length) partes.push(`${uploads.length} ${uploads.length === 1 ? "arquivo enviado" : "arquivos enviados"}`);
+    return `v${novaVersao}: ${partes.join(" · ") || "atualização pelo painel"} (painel administrativo)`;
   }
 
   // ---------------- publicar ----------------
@@ -2335,12 +2871,12 @@
       const novaVersao = (m ? Number(m[1]) : estado.versao) + 1;
       const mensagem = mensagemDoCommit(novaVersao);
 
-      // Primeiro envia PDFs/vídeos selecionados. O data.js só passa a apontar
-      // para eles depois que o upload tiver terminado com sucesso.
-      const anexos = estado.ops.filter((op) => op.tipoOp === "material" && op.arquivo);
+      // Primeiro envia os arquivos novos. O data.js só passa a apontar para
+      // eles depois que todos os uploads terminarem com sucesso.
+      const anexos = estado.ops.filter((op) => op.tipoOp === "upload");
       for (const op of anexos) {
-        botao.textContent = op.campo === "folder" ? `Enviando PDF de ${op.empId}…` : `Enviando vídeo de ${op.empId}…`;
-        await ghGravarArquivo(op.valor, op.arquivo, mensagem);
+        botao.textContent = `Enviando ${op.rotulo || "arquivo"} de ${op.empId}…`;
+        await ghGravarArquivo(op.path, op.arquivo, mensagem);
       }
       botao.textContent = "Publicando…";
 
@@ -2349,6 +2885,8 @@
       if (incc) texto = aplicarIncc(texto, incc);
       estado.ops.filter((op) => op.tipoOp === "status").forEach((op) => { texto = aplicarStatus(texto, op); });
       estado.ops.filter((op) => op.tipoOp === "material").forEach((op) => { texto = aplicarMaterial(texto, op); });
+      estado.ops.filter((op) => op.tipoOp === "galeria").forEach((op) => { texto = aplicarGaleria(texto, op); });
+      estado.ops.filter((op) => op.tipoOp === "planta").forEach((op) => { texto = aplicarPlanta(texto, op); });
 
       // Confere se o arquivo continua válido antes de gravar qualquer coisa.
       const conferido = avaliarDataJs(texto);
