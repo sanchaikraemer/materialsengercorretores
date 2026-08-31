@@ -39,6 +39,8 @@ const EMPREENDIMENTOS = [
       "2 suítes": { simples: 1 },
       "3 suítes — frente": { duplo: 1 },
       "3 suítes — superiores": { duplo: 1, simples: 1 },
+      // A cobertura levou os box 116 a 119 — quatro simples, ja vendidos com ela.
+      "18º pavimento": { simples: 4 },
     },
     hero: "assets/ren-hero.webp",
     logo: "assets/ren-logo.webp",
@@ -76,6 +78,9 @@ const EMPREENDIMENTOS = [
       { src: "assets/ren-planta-1301.webp", legenda: "Planta humanizada — Casa Suspensa 3 suítes (1301)" },
       { src: "assets/ren-planta-1302.webp", legenda: "Planta humanizada — Casa Suspensa 3 suítes (1302)" },
       { src: "assets/ren-planta-604.webp", legenda: "Planta humanizada — 2 suítes (final 04)" },
+      // Planta baixa do terreo: e a planta das salas comerciais. Nao e
+      // humanizada, entao vai marcada como tecnica — o visor separa as duas.
+      { src: "assets/ren-planta-comercial-terreo.webp", legenda: "Planta baixa — salas comerciais do térreo", tecnica: true },
     ],
     grupos: [
       {
@@ -135,12 +140,18 @@ const EMPREENDIMENTOS = [
         ],
       },
       {
-        // Cobertura do 18o pavimento, ja vendida. Vendido nao leva numero de
-        // dormitorios — a planta costuma ser modificada pelo comprador. Como e
-        // a unica unidade do grupo, ele nao aparece no site.
+        // Cobertura do 18o pavimento, ja vendida. O 1801 e a uniao do 1801 com
+        // o 1802 num apartamento so, e levou consigo os box 116 a 119.
+        // Vendido nao leva numero de dormitorios — a planta costuma ser
+        // modificada pelo comprador. Como e a unica unidade do grupo, ele nao
+        // aparece no site.
         tipo: "18º pavimento",
         area: "490 m² global · 332 m² privativo",
         garagem: "Box opcional (consultar)",
+        // Nao ha planta a mostrar: a cobertura foi vendida e a planta e a que o
+        // comprador desenhar. Sem este recado, quem abrisse o link da unidade
+        // veria as plantas de todas as outras tipologias no lugar.
+        plantaNota: "Planta personalizada — consulte",
         unidades: [
           { apto: "1801", status: "vendido" },
         ],
@@ -186,6 +197,7 @@ const EMPREENDIMENTOS = [
         estoque: "Sala comercial",
         area: "175 m² global · 114 m² privativo",
         garagem: "",
+        planta: "ren-planta-comercial-terreo",
         obs: "Pavimento térreo. Valor sem box de garagem.",
         unidades: [
           { apto: "Sala 01", status: "vendido", areaUnit: "200 m² global · 131 m² privativo" },
