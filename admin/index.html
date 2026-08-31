@@ -301,15 +301,23 @@
     }
     .pend-emp .abrir:hover { color: var(--dourado-escuro); }
 
-    /* v166 — materiais obrigatorios de cada empreendimento. */
+    /* v167 — materiais obrigatorios com anexo direto pelo painel. */
     .materiais-lista { display: grid; gap: 12px; }
     .material-emp { background: var(--fundo); border: 1px solid var(--borda); border-radius: 10px; padding: 14px; }
     .material-emp h3 { font-size: .95rem; margin-bottom: 10px; }
     .material-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
     .material-campo label { display: flex; justify-content: space-between; gap: 8px; font-size: .8rem; color: var(--texto-suave); margin-bottom: 6px; }
     .material-campo label b { color: var(--texto); }
-    .material-campo input { width: 100%; padding: 10px 11px; border-radius: 8px; border: 1px solid var(--borda); background: var(--cartao); color: var(--texto); font-size: .88rem; }
+    .material-campo input[type="text"], .material-campo input[type="url"] { width: 100%; padding: 10px 11px; border-radius: 8px; border: 1px solid var(--borda); background: var(--cartao); color: var(--texto); font-size: .88rem; }
     .material-campo input.mudou { border-color: var(--amarelo); box-shadow: 0 0 0 2px rgba(168,112,31,.08); }
+    .arquivo-input { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
+    .material-acoes { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .material-acoes .botao-arquivo { display:inline-flex; align-items:center; justify-content:center; min-height:40px; padding:9px 13px; border:1px solid var(--borda); border-radius:8px; background:var(--cartao); color:var(--texto); font-size:.82rem; font-weight:700; cursor:pointer; }
+    .material-acoes .botao-arquivo:hover { border-color:var(--azul); }
+    .material-arquivo-nome { min-width:0; flex:1; font-size:.78rem; color:var(--texto-suave); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .material-link { margin-top:8px; }
+    .material-link summary { cursor:pointer; font-size:.75rem; color:var(--texto-suave); }
+    .material-link input { margin-top:7px; }
     .material-status { font-size: .72rem; font-weight: 700; }
     .material-status.ok { color: var(--verde); }
     .material-status.falta { color: var(--vermelho); }
@@ -581,7 +589,7 @@
         <section class="bloco">
           <h2>Materiais dos empreendimentos</h2>
           <p class="descricao">Padr&atilde;o obrigat&oacute;rio: cada empreendimento deve ter <strong>1 folder em PDF</strong> e <strong>1 v&iacute;deo oficial</strong>.
-            No v&iacute;deo, cole um link do YouTube/Vimeo ou um arquivo MP4/WebM/Ogg. No folder, informe o caminho do PDF em <code>assets/...</code> ou uma URL direta.</p>
+            Clique em <strong>Anexar PDF</strong> ou <strong>Anexar v&iacute;deo</strong>, escolha o arquivo no computador/celular e depois clique em <strong>Publicar no site</strong>. O painel envia o arquivo e atualiza o cadastro sozinho.</p>
           <div class="materiais-lista" id="materiais"></div>
         </section>
 
@@ -917,6 +925,54 @@
     return (await resp.json()).content.sha;
   }
 
+  async function arquivoParaBase64(arquivo) {
+    return await new Promise((resolve, reject) => {
+      const leitor = new FileReader();
+      leitor.onerror = () => reject(new Error(`Não consegui ler o arquivo ${arquivo.name}.`));
+      leitor.onload = () => resolve(String(leitor.result || "").split(",")[1] || "");
+      leitor.readAsDataURL(arquivo);
+    });
+  }
+
+  async function ghShaSeExiste(path) {
+    let resp;
+    try {
+      resp = await fetch(API + path + "?ref=" + BRANCH, {
+        headers: { Authorization: "Bearer " + estado.token, Accept: "application/vnd.github+json" },
+        cache: "no-store",
+      });
+    } catch (e) {
+      const falha = new Error("Não consegui falar com o GitHub durante o envio do arquivo.");
+      falha.status = 0;
+      throw falha;
+    }
+    if (resp.status === 404) return null;
+    if (!resp.ok) {
+      const falha = new Error(`Não consegui conferir ${path} (HTTP ${resp.status}).`);
+      falha.status = resp.status;
+      throw falha;
+    }
+    return (await resp.json()).sha || null;
+  }
+
+  async function ghGravarArquivo(path, arquivo, mensagem) {
+    const [base64, sha] = await Promise.all([arquivoParaBase64(arquivo), ghShaSeExiste(path)]);
+    const corpo = { message: mensagem, content: base64, branch: BRANCH };
+    if (sha) corpo.sha = sha;
+    const resp = await fetch(API + path, {
+      method: "PUT",
+      headers: { Authorization: "Bearer " + estado.token, Accept: "application/vnd.github+json" },
+      body: JSON.stringify(corpo),
+    });
+    if (!resp.ok) {
+      const json = await resp.json().catch(() => ({}));
+      const falha = new Error(`Falha ao enviar ${arquivo.name} (HTTP ${resp.status}): ${json.message || ""}`);
+      falha.status = resp.status;
+      throw falha;
+    }
+    return (await resp.json()).content.sha;
+  }
+
   // ---------------- dados ----------------
 
   function avaliarDataJs(texto) {
@@ -1030,11 +1086,34 @@
     return !v || /\.pdf(?:$|[?#])/i.test(v);
   }
 
-  function anotarMaterial(emp, campo, valor) {
+  function anotarMaterial(emp, campo, valor, arquivo = null) {
     const limpo = String(valor || "").trim();
     const original = String(emp[campo] || "");
     estado.ops = estado.ops.filter((op) => !(op.tipoOp === "material" && op.empId === emp.id && op.campo === campo));
-    if (limpo !== original) estado.ops.push({ tipoOp: "material", empId: emp.id, campo, valor: limpo, original });
+    if (limpo !== original || arquivo) estado.ops.push({ tipoOp: "material", empId: emp.id, campo, valor: limpo, original, arquivo });
+  }
+
+  function extensaoDoArquivo(nome) {
+    const m = String(nome || "").toLowerCase().match(/\.([a-z0-9]+)$/);
+    return m ? m[1] : "";
+  }
+
+  function caminhoDoMaterial(emp, campo, arquivo) {
+    if (campo === "folder") return `assets/folder-${emp.id}.pdf`;
+    const ext = extensaoDoArquivo(arquivo?.name) || "mp4";
+    return `assets/video-${emp.id}.${ext}`;
+  }
+
+  function validarArquivoMaterial(campo, arquivo) {
+    if (!arquivo) return "Nenhum arquivo selecionado.";
+    const ext = extensaoDoArquivo(arquivo.name);
+    if (campo === "folder" && !(arquivo.type === "application/pdf" || ext === "pdf")) return "O folder precisa ser um arquivo PDF.";
+    if (campo === "video" && !(["mp4", "webm", "ogg"].includes(ext) || /^video\/(mp4|webm|ogg)$/i.test(arquivo.type || ""))) return "O vídeo precisa estar em MP4, WebM ou Ogg.";
+    const limite = campo === "folder" ? 25 * 1024 * 1024 : 80 * 1024 * 1024;
+    if (arquivo.size > limite) return campo === "folder"
+      ? "O PDF passou de 25 MB. Reduza o arquivo antes de anexar."
+      : "O vídeo passou de 80 MB. Comprima o MP4 ou use um link do YouTube/Vimeo.";
+    return "";
   }
 
   // ---------------- render ----------------
@@ -1184,43 +1263,80 @@
       const folder = materialAtual(emp, "folder");
       const video = materialAtual(emp, "video");
       const pdfOk = Boolean(folder) && materialParecePdf(folder);
+      const opFolder = opDeMaterial(emp.id, "folder");
+      const opVideo = opDeMaterial(emp.id, "video");
+      const nomeFolder = opFolder?.arquivo?.name || (folder ? folder.split("/").pop() : "Nenhum PDF anexado");
+      const nomeVideo = opVideo?.arquivo?.name || (video ? video.split("/").pop() : "Nenhum vídeo anexado");
       return `<div class="material-emp" data-material-emp="${escapeHtml(emp.id)}">
         <h3>${escapeHtml(emp.nome)}</h3>
         <div class="material-grid">
           <div class="material-campo">
             <label><b>Folder PDF</b><span class="material-status ${pdfOk ? "ok" : "falta"}" data-status-folder>${pdfOk ? "OK" : (folder ? "revisar PDF" : "faltando")}</span></label>
-            <input value="${escapeHtml(folder)}" placeholder="assets/folder-${escapeHtml(emp.id)}.pdf" data-material-campo="folder" data-emp="${escapeHtml(emp.id)}">
-            <p class="material-ajuda">Precisa apontar para o folder em PDF.</p>
+            <div class="material-acoes">
+              <label class="botao-arquivo" for="arquivo-folder-${escapeHtml(emp.id)}">Anexar PDF</label>
+              <span class="material-arquivo-nome" data-nome-folder title="${escapeHtml(nomeFolder)}">${escapeHtml(nomeFolder)}</span>
+              <input class="arquivo-input" id="arquivo-folder-${escapeHtml(emp.id)}" type="file" accept="application/pdf,.pdf" data-arquivo-material="folder" data-emp="${escapeHtml(emp.id)}">
+            </div>
+            <p class="material-ajuda">Escolha o PDF. Ele será enviado quando você clicar em “Publicar no site”.</p>
           </div>
           <div class="material-campo">
             <label><b>Vídeo oficial</b><span class="material-status ${video ? "ok" : "falta"}" data-status-video>${video ? "OK" : "faltando"}</span></label>
-            <input value="${escapeHtml(video)}" placeholder="https://youtube.com/watch?v=..." data-material-campo="video" data-emp="${escapeHtml(emp.id)}">
-            <p class="material-ajuda">YouTube, Vimeo ou arquivo MP4/WebM/Ogg.</p>
+            <div class="material-acoes">
+              <label class="botao-arquivo" for="arquivo-video-${escapeHtml(emp.id)}">Anexar vídeo</label>
+              <span class="material-arquivo-nome" data-nome-video title="${escapeHtml(nomeVideo)}">${escapeHtml(nomeVideo)}</span>
+              <input class="arquivo-input" id="arquivo-video-${escapeHtml(emp.id)}" type="file" accept="video/mp4,video/webm,video/ogg,.mp4,.webm,.ogg" data-arquivo-material="video" data-emp="${escapeHtml(emp.id)}">
+            </div>
+            <p class="material-ajuda">MP4, WebM ou Ogg, até 80 MB. Para vídeo maior, use o link abaixo.</p>
+            <details class="material-link">
+              <summary>Ou usar link do YouTube/Vimeo</summary>
+              <input type="url" value="${escapeHtml(/^https?:/i.test(video) ? video : "")}" placeholder="https://youtube.com/watch?v=..." data-material-link="video" data-emp="${escapeHtml(emp.id)}">
+            </details>
           </div>
         </div>
       </div>`;
     }).join("");
 
-    alvo.querySelectorAll("input[data-material-campo]").forEach((input) => {
+    alvo.querySelectorAll("input[data-arquivo-material]").forEach((input) => {
+      input.addEventListener("change", () => {
+        const emp = estado.dados.EMPREENDIMENTOS.find((e) => e.id === input.dataset.emp);
+        const arquivo = input.files?.[0];
+        if (!emp || !arquivo) return;
+        const campo = input.dataset.arquivoMaterial;
+        const falha = validarArquivoMaterial(campo, arquivo);
+        if (falha) { input.value = ""; aviso(falha, "falha"); return; }
+        const caminho = caminhoDoMaterial(emp, campo, arquivo);
+        anotarMaterial(emp, campo, caminho, arquivo);
+        const caixa = input.closest(".material-emp");
+        const nome = caixa.querySelector(`[data-nome-${campo}]`);
+        nome.textContent = arquivo.name;
+        nome.title = arquivo.name;
+        const status = caixa.querySelector(`[data-status-${campo}]`);
+        status.textContent = "pronto para publicar";
+        status.className = "material-status ok";
+        if (campo === "video") {
+          const link = caixa.querySelector('input[data-material-link="video"]');
+          if (link) link.value = "";
+        }
+        renderDashboard();
+        renderCadastro();
+        renderPendentes();
+      });
+    });
+
+    alvo.querySelectorAll('input[data-material-link="video"]').forEach((input) => {
       input.addEventListener("input", () => {
         const emp = estado.dados.EMPREENDIMENTOS.find((e) => e.id === input.dataset.emp);
         if (!emp) return;
-        const campo = input.dataset.materialCampo;
-        anotarMaterial(emp, campo, input.value);
-        input.classList.toggle("mudou", input.value.trim() !== String(emp[campo] || ""));
+        const valor = input.value.trim();
+        anotarMaterial(emp, "video", valor);
         const caixa = input.closest(".material-emp");
-        if (campo === "folder") {
-          const status = caixa.querySelector("[data-status-folder]");
-          const valor = input.value.trim();
-          const ok = Boolean(valor) && materialParecePdf(valor);
-          status.textContent = ok ? "OK" : (valor ? "revisar PDF" : "faltando");
-          status.className = `material-status ${ok ? "ok" : "falta"}`;
-        } else {
-          const status = caixa.querySelector("[data-status-video]");
-          const ok = Boolean(input.value.trim());
-          status.textContent = ok ? "OK" : "faltando";
-          status.className = `material-status ${ok ? "ok" : "falta"}`;
-        }
+        const status = caixa.querySelector("[data-status-video]");
+        const ok = Boolean(valor);
+        status.textContent = ok ? "pronto para publicar" : (emp.video ? "OK" : "faltando");
+        status.className = `material-status ${ok || emp.video ? "ok" : "falta"}`;
+        const nome = caixa.querySelector("[data-nome-video]");
+        nome.textContent = valor || (emp.video ? String(emp.video).split("/").pop() : "Nenhum vídeo anexado");
+        nome.title = nome.textContent;
         renderDashboard();
         renderCadastro();
         renderPendentes();
@@ -2212,9 +2328,22 @@
     botao.disabled = true;
     botao.textContent = "Publicando…";
     try {
-      // Busca o data.js de novo na hora de publicar: se alguém alterou o site nesse
-      // meio-tempo, as mudanças do painel entram por cima da versão mais recente.
-      const dataJs = await ghBuscar("data.js");
+      // Busca a versão atual na hora de publicar e prepara um único rótulo para
+      // os arquivos anexados + data.js + cache.
+      const [dataJs, indexHtml, swJs] = await Promise.all([ghBuscar("data.js"), ghBuscar("index.html"), ghBuscar("sw.js")]);
+      const m = indexHtml.text.match(/data\.js\?v=(\d+)/);
+      const novaVersao = (m ? Number(m[1]) : estado.versao) + 1;
+      const mensagem = mensagemDoCommit(novaVersao);
+
+      // Primeiro envia PDFs/vídeos selecionados. O data.js só passa a apontar
+      // para eles depois que o upload tiver terminado com sucesso.
+      const anexos = estado.ops.filter((op) => op.tipoOp === "material" && op.arquivo);
+      for (const op of anexos) {
+        botao.textContent = op.campo === "folder" ? `Enviando PDF de ${op.empId}…` : `Enviando vídeo de ${op.empId}…`;
+        await ghGravarArquivo(op.valor, op.arquivo, mensagem);
+      }
+      botao.textContent = "Publicando…";
+
       let texto = dataJs.text;
       const incc = estado.ops.find((op) => op.tipoOp === "incc");
       if (incc) texto = aplicarIncc(texto, incc);
@@ -2232,9 +2361,6 @@
       }
 
       // Sobe a versão do cache para os corretores receberem a atualização.
-      const [indexHtml, swJs] = await Promise.all([ghBuscar("index.html"), ghBuscar("sw.js")]);
-      const m = indexHtml.text.match(/data\.js\?v=(\d+)/);
-      const novaVersao = (m ? Number(m[1]) : estado.versao) + 1;
       const dia = new Date();
       const carimbo = `${dia.getFullYear()}${String(dia.getMonth() + 1).padStart(2, "0")}${String(dia.getDate()).padStart(2, "0")}`;
       const novoIndex = indexHtml.text.replace(/v=\d+/g, `v=${novaVersao}`);
@@ -2242,7 +2368,6 @@
         .replace(/const CACHE = "[^"]*"/, `const CACHE = "senger-portfolio-v${novaVersao}-${carimbo}-painel"`)
         .replace(/v=\d+/g, `v=${novaVersao}`);
 
-      const mensagem = mensagemDoCommit(novaVersao);
       await ghGravar("data.js", texto, dataJs.sha, mensagem);
       await ghGravar("index.html", novoIndex, indexHtml.sha, mensagem);
       await ghGravar("sw.js", novoSw, swJs.sha, mensagem);
