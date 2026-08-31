@@ -460,6 +460,117 @@
     details.emp summary .contagem { color: var(--texto-suave); font-weight: 400; font-size: .8rem; margin-left: auto; }
     details.emp .conteudo { padding: 0 10px 12px; overflow-x: auto; }
 
+    /* v169 — navegação por módulos no modelo acordeão/colapsável.
+       A paleta continua sendo exatamente a mesma do painel; muda só a arquitetura. */
+    .painel-shell {
+      min-height: calc(100vh - 67px);
+      display: grid;
+      grid-template-columns: 250px minmax(0, 1fr);
+      align-items: start;
+    }
+    .painel-sidebar {
+      position: sticky;
+      top: 67px;
+      height: calc(100vh - 67px);
+      overflow-y: auto;
+      background: var(--cartao);
+      border-right: 1px solid var(--borda);
+      padding: 18px 14px;
+      z-index: 15;
+    }
+    .sidebar-marca { padding: 2px 10px 16px; border-bottom: 1px solid var(--borda); margin-bottom: 12px; }
+    .sidebar-marca strong { display:block; font-family:"Montserrat",system-ui,sans-serif; font-size:.95rem; }
+    .sidebar-marca span { display:block; color:var(--texto-suave); font-size:.72rem; margin-top:3px; }
+    .nav-admin { display:grid; gap:7px; }
+    .nav-item, .nav-accordion-toggle {
+      width:100%; min-height:42px; display:flex; align-items:center; gap:10px;
+      padding:9px 11px; border:1px solid transparent; border-radius:9px;
+      background:transparent; color:var(--texto); font:inherit; font-size:.84rem;
+      font-weight:650; text-align:left; cursor:pointer;
+    }
+    .nav-item:hover, .nav-accordion-toggle:hover { background:var(--fundo); border-color:var(--borda); }
+    .nav-item.ativo, .nav-subitem.ativo {
+      color:var(--dourado-escuro); background:#e6f2f4; border-color:rgba(23,143,160,.28);
+    }
+    .nav-icone {
+      width:24px; height:24px; display:inline-flex; align-items:center; justify-content:center;
+      flex:none; border-radius:7px; background:var(--fundo); border:1px solid var(--borda);
+      color:var(--dourado-escuro); font-size:.78rem; font-weight:800;
+    }
+    .nav-item.ativo .nav-icone, .nav-accordion.aberto > .nav-accordion-toggle .nav-icone {
+      background:var(--cartao); border-color:rgba(23,143,160,.35);
+    }
+    .nav-seta { margin-left:auto; color:var(--texto-suave); transition:transform .18s ease; }
+    .nav-accordion.aberto > .nav-accordion-toggle .nav-seta { transform:rotate(180deg); }
+    .nav-submenu { display:none; gap:5px; padding:5px 0 2px 35px; }
+    .nav-accordion.aberto > .nav-submenu { display:grid; }
+    .nav-subitem {
+      width:100%; min-height:34px; padding:7px 10px; border:1px solid transparent; border-radius:8px;
+      background:transparent; color:var(--texto-suave); font:inherit; font-size:.77rem;
+      text-align:left; cursor:pointer;
+    }
+    .nav-subitem:hover { color:var(--texto); background:var(--fundo); }
+    .sidebar-rodape {
+      margin-top:18px; padding:12px 10px; border-top:1px solid var(--borda);
+      color:var(--texto-suave); font-size:.72rem; line-height:1.5;
+    }
+    .painel-conteudo { min-width:0; }
+    .painel-conteudo main { max-width:1240px; margin:0 auto; padding:22px; }
+    .contexto-modulo {
+      display:flex; align-items:flex-end; justify-content:space-between; gap:18px;
+      margin-bottom:16px; padding:2px 2px 14px; border-bottom:1px solid var(--borda);
+    }
+    .contexto-modulo h2 { font-size:1.15rem; margin:0 0 3px; }
+    .contexto-modulo p { margin:0; color:var(--texto-suave); font-size:.82rem; }
+    .contexto-acoes { display:flex; align-items:flex-end; gap:10px; }
+    .seletor-emp-wrap { min-width:230px; }
+    .seletor-emp-wrap label { display:block; color:var(--texto-suave); font-size:.7rem; margin:0 0 5px; }
+    .seletor-emp-wrap select {
+      width:100%; padding:9px 10px; border:1px solid var(--borda); border-radius:8px;
+      background:var(--cartao); color:var(--texto); font:inherit; font-size:.82rem;
+    }
+    section.bloco[data-modulo] { display:none; }
+    section.bloco[data-modulo].modulo-visivel { display:block; }
+    section.bloco.visao-filtrada { display:none !important; }
+    .material-secao.material-filtrada { display:none; }
+    .publicacao-acoes { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+    .publicacao-status {
+      padding:14px; border:1px solid var(--borda); border-radius:10px; background:var(--fundo);
+      color:var(--texto-suave); font-size:.86rem; line-height:1.55;
+    }
+    .publicacao-status strong { color:var(--texto); }
+    .config-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px; }
+    .config-card { padding:16px; border:1px solid var(--borda); border-radius:10px; background:var(--fundo); }
+    .config-card h3 { font-size:.9rem; margin-bottom:5px; }
+    .config-card p { color:var(--texto-suave); font-size:.8rem; line-height:1.5; }
+    .menu-mobile, .sidebar-fechar, .sidebar-overlay { display:none; }
+    .sidebar-fechar {
+      border:1px solid var(--borda); background:var(--fundo); color:var(--texto); border-radius:8px;
+      width:38px; height:38px; cursor:pointer; font-size:1.1rem;
+    }
+    @media (max-width: 900px) {
+      header.topo { flex-wrap:nowrap; }
+      header.topo .info { display:none; }
+      header.topo .direita { gap:6px; }
+      header.topo .direita .botao.secundario { display:none; }
+      .menu-mobile { display:inline-flex; margin:0; padding:8px 10px; min-height:38px; align-items:center; }
+      .painel-shell { display:block; min-height:0; }
+      .painel-sidebar {
+        position:fixed; top:0; left:0; bottom:0; width:min(84vw,300px); height:100vh;
+        z-index:60; transform:translateX(-105%); transition:transform .2s ease;
+        box-shadow:var(--sombra); padding-top:14px;
+      }
+      body.menu-admin-aberto .painel-sidebar { transform:translateX(0); }
+      .sidebar-overlay {
+        position:fixed; inset:0; z-index:55; background:rgba(32,42,50,.28); border:0;
+      }
+      body.menu-admin-aberto .sidebar-overlay { display:block; }
+      .sidebar-topo-mobile { display:flex; justify-content:space-between; align-items:start; gap:8px; }
+      .sidebar-fechar { display:inline-block; }
+      .painel-conteudo main { padding:14px; }
+      .contexto-modulo { align-items:stretch; flex-direction:column; }
+      .contexto-acoes, .seletor-emp-wrap { width:100%; min-width:0; }
+    }
     /* aviso flutuante */
     #aviso {
       position: fixed;
@@ -566,24 +677,83 @@
   <!-- ============ TELA: PAINEL ============ -->
   <div class="tela" id="tela-painel">
     <header class="topo">
+      <button class="botao secundario menu-mobile" id="botao-menu-admin" type="button" aria-label="Abrir menu">Menu</button>
       <h1>Painel Senger</h1>
       <span class="info" id="info-versao">—</span>
       <div class="direita">
         <span class="pendentes" id="badge-pendentes"></span>
         <button class="botao" id="botao-publicar" disabled>Publicar no site</button>
         <button class="botao secundario" id="botao-descartar" style="display:none">Descartar</button>
-        <button class="botao secundario" id="botao-chave">Chave</button>
-        <button class="botao secundario" id="botao-sair">Sair</button>
+        <button class="botao secundario" id="botao-chave" style="display:none">Chave</button>
+        <button class="botao secundario" id="botao-sair" style="display:none">Sair</button>
       </div>
     </header>
 
-    <main>
-      <div class="carregando" id="carregando">Carregando os dados do site…</div>
+    <div class="painel-shell">
+      <aside class="painel-sidebar" id="painel-sidebar" aria-label="Menu do painel">
+        <div class="sidebar-topo-mobile">
+          <div class="sidebar-marca">
+            <strong>Senger</strong>
+            <span>Painel administrativo</span>
+          </div>
+          <button type="button" class="sidebar-fechar" id="botao-fechar-menu" aria-label="Fechar menu">×</button>
+        </div>
+        <nav class="nav-admin">
+          <div class="nav-accordion aberto" data-nav-grupo="visao">
+            <button type="button" class="nav-accordion-toggle" data-accordion-toggle="visao" aria-expanded="true"><span class="nav-icone">⌂</span>Visão geral <span class="nav-seta">⌄</span></button>
+            <div class="nav-submenu">
+              <button type="button" class="nav-subitem ativo" data-modulo-alvo="visao" data-visao-filtro="estoque">Estoque geral</button>
+              <button type="button" class="nav-subitem" data-modulo-alvo="visao" data-visao-filtro="movimento">Movimento do portfólio</button>
+              <button type="button" class="nav-subitem" data-modulo-alvo="visao" data-visao-filtro="cadastro">Pendências do cadastro</button>
+            </div>
+          </div>
+
+          <div class="nav-accordion aberto" data-nav-grupo="materiais">
+            <button type="button" class="nav-accordion-toggle" data-accordion-toggle="materiais" aria-expanded="true"><span class="nav-icone">▧</span>Materiais <span class="nav-seta">⌄</span></button>
+            <div class="nav-submenu">
+              <button type="button" class="nav-subitem" data-modulo-alvo="materiais" data-material-filtro="identidade">Capa e logo</button>
+              <button type="button" class="nav-subitem" data-modulo-alvo="materiais" data-material-filtro="galeria">Galeria de fotos</button>
+              <button type="button" class="nav-subitem" data-modulo-alvo="materiais" data-material-filtro="plantas">Plantas</button>
+              <button type="button" class="nav-subitem" data-modulo-alvo="materiais" data-material-filtro="comerciais">Folder e vídeo</button>
+            </div>
+          </div>
+
+          <button type="button" class="nav-item" data-modulo-alvo="estoque"><span class="nav-icone">▦</span>Estoque / Unidades</button>
+          <button type="button" class="nav-item" data-modulo-alvo="incc"><span class="nav-icone">%</span>Correção pelo INCC</button>
+          <button type="button" class="nav-item" data-modulo-alvo="publicacao"><span class="nav-icone">↑</span>Publicação</button>
+
+          <div class="nav-accordion" data-nav-grupo="configuracoes">
+            <button type="button" class="nav-accordion-toggle" data-accordion-toggle="configuracoes" aria-expanded="false"><span class="nav-icone">⚙</span>Configurações <span class="nav-seta">⌄</span></button>
+            <div class="nav-submenu">
+              <button type="button" class="nav-subitem" data-modulo-alvo="configuracoes" data-config-acao="chave">Chave do GitHub</button>
+              <button type="button" class="nav-subitem" data-modulo-alvo="configuracoes" data-config-acao="sair">Sair do painel</button>
+            </div>
+          </div>
+        </nav>
+        <div class="sidebar-rodape" id="sidebar-versao">—</div>
+      </aside>
+      <button type="button" class="sidebar-overlay" id="sidebar-overlay" aria-label="Fechar menu"></button>
+
+      <div class="painel-conteudo">
+        <main>
+          <div class="contexto-modulo" id="contexto-modulo">
+            <div>
+              <h2 id="titulo-modulo">Visão geral</h2>
+              <p id="descricao-modulo">Resumo do estoque, movimento e pendências do cadastro.</p>
+            </div>
+            <div class="contexto-acoes">
+              <div class="seletor-emp-wrap" id="seletor-emp-wrap" hidden>
+                <label for="seletor-emp-admin">Empreendimento</label>
+                <select id="seletor-emp-admin"><option value="">Todos os empreendimentos</option></select>
+              </div>
+            </div>
+          </div>
+          <div class="carregando" id="carregando">Carregando os dados do site…</div>
 
       <div id="conteudo" style="display:none">
 
         <!-- Dashboard -->
-        <section class="bloco">
+        <section class="bloco" data-modulo="visao" data-visao-secao="estoque">
           <h2>Estoque por empreendimento</h2>
           <p class="descricao">A contagem que não aparece no site — só aqui no painel.
             Na garagem a conta é em <strong>box</strong>: cada box vai inteiro para um apartamento.
@@ -592,7 +762,7 @@
         </section>
 
         <!-- Movimento do portfolio -->
-        <section class="bloco">
+        <section class="bloco" data-modulo="visao" data-visao-secao="movimento">
           <h2>Movimento do portfólio</h2>
           <p class="descricao">O que <strong>este aparelho</strong> fez no site: quantos empreendimentos abriu,
             quantos imóveis mandou para cliente e quantos PDFs gerou. O site anota sozinho, sem mostrar nada
@@ -604,7 +774,7 @@
         </section>
 
         <!-- O que falta no cadastro -->
-        <section class="bloco">
+        <section class="bloco" data-modulo="visao" data-visao-secao="cadastro">
           <h2>O que falta no cadastro</h2>
           <p class="descricao">Tudo o que ainda falta para cada empreendimento seguir o mesmo padr&atilde;o comercial.
             Capa, fotos, plantas, folder PDF e v&iacute;deo podem ser resolvidos na Central de Materiais logo abaixo; metragem,
@@ -615,7 +785,7 @@
         </section>
 
         <!-- Central de materiais -->
-        <section class="bloco">
+        <section class="bloco" data-modulo="materiais">
           <h2>Materiais dos empreendimentos</h2>
           <p class="descricao">Aqui ficam os arquivos comerciais de cada empreendimento. Selecione o arquivo e depois clique em <strong>Publicar no site</strong>. As imagens novas são conferidas pelo painel antes de entrar no site.</p>
           <div class="padroes-midia" aria-label="Padrões de arquivos">
@@ -630,7 +800,7 @@
         </section>
 
         <!-- INCC -->
-        <section class="bloco">
+        <section class="bloco" data-modulo="incc">
           <h2>Correção pelo INCC</h2>
           <p class="descricao">Informe o novo índice e a variação do mês. A variação é aplicada a todos os preços do sistema de uma vez. Nada muda no site até você clicar em “Publicar no site”.</p>
           <div class="form-incc">
@@ -676,7 +846,7 @@
         </section>
 
         <!-- Unidades -->
-        <section class="bloco" id="bloco-unidades">
+        <section class="bloco" id="bloco-unidades" data-modulo="estoque">
           <h2>Disponibilidade das unidades</h2>
           <p class="descricao">Marque como <strong>Vendido</strong> para a unidade sumir da lista do site, dos PDFs e das mensagens. Volte para <strong>Disponível</strong> se a venda for cancelada e ela reaparece. Alugado continua aparecendo. Use as abas para ver uma situação por vez.</p>
           <p class="descricao vazio-emp" id="nenhum-emp">Toque em um empreendimento acima para ver as unidades.</p>
@@ -688,8 +858,43 @@
           <div id="lista-emps"></div>
         </section>
 
+        <!-- Publicação -->
+        <section class="bloco" data-modulo="publicacao">
+          <h2>Publicação no site</h2>
+          <p class="descricao">Revise o que está pendente e publique tudo de uma vez. O painel mantém as alterações somente neste aparelho até a publicação terminar.</p>
+          <div class="publicacao-status" id="publicacao-resumo"><strong>Nenhuma alteração pendente.</strong><br>O site já está igual ao que aparece no painel.</div>
+          <div class="publicacao-acoes">
+            <button class="botao" id="botao-publicar-modulo" disabled>Publicar no site</button>
+            <button class="botao secundario" id="botao-descartar-modulo" style="display:none">Descartar alterações</button>
+          </div>
+        </section>
+
+        <!-- Configurações -->
+        <section class="bloco" data-modulo="configuracoes">
+          <h2>Configurações</h2>
+          <p class="descricao">Acesso ao GitHub e sessão deste aparelho. Nenhuma dessas opções altera o conteúdo comercial do site.</p>
+          <div class="config-grid">
+            <div class="config-card">
+              <h3>Chave do GitHub</h3>
+              <p>Veja a chave cadastrada neste aparelho, copie para outro dispositivo ou cadastre outra chave.</p>
+              <button class="botao secundario" id="botao-chave-modulo">Gerenciar chave</button>
+            </div>
+            <div class="config-card">
+              <h3>Versão carregada</h3>
+              <p id="config-versao">—</p>
+            </div>
+            <div class="config-card">
+              <h3>Encerrar sessão</h3>
+              <p>Sai do painel neste navegador. A chave do GitHub continua guardada até você trocá-la.</p>
+              <button class="botao secundario" id="botao-sair-modulo">Sair do painel</button>
+            </div>
+          </div>
+        </section>
+
       </div>
-    </main>
+        </main>
+      </div>
+    </div>
   </div>
 
   <div id="aviso"></div>
@@ -731,6 +936,9 @@
     versao: 0,         // número atual do "?v=" do index.html
     ops: [],           // alterações pendentes, aplicadas só no "Publicar"
     empAberto: null,   // id do empreendimento escolhido no cartão
+    moduloAtivo: "visao",
+    visaoFiltro: "estoque",
+    materialFiltro: "identidade",
   };
 
   const $ = (id) => document.getElementById(id);
@@ -824,6 +1032,135 @@
     $(id).classList.add("ativa");
     if (id === "tela-token") prepararTelaDoToken();
   }
+
+  // ---------------- navegação do painel ----------------
+
+  const MODULOS = {
+    visao: ["Visão geral", "Resumo do estoque, movimento e pendências do cadastro."],
+    materiais: ["Materiais dos empreendimentos", "Capa, galeria, plantas, folder e vídeo em uma área separada por tipo de material."],
+    estoque: ["Estoque / Unidades", "Disponibilidade, preços, garagem e status das unidades do empreendimento escolhido."],
+    incc: ["Correção pelo INCC", "Atualização mensal de preços com pré-visualização antes de aplicar."],
+    publicacao: ["Publicação", "Revisão das alterações pendentes antes de enviar ao site."],
+    configuracoes: ["Configurações", "Chave do GitHub, versão carregada e sessão deste aparelho."],
+  };
+
+  function fecharMenuMobile() {
+    document.body.classList.remove("menu-admin-aberto");
+  }
+
+  function popularSeletorEmp() {
+    const select = $("seletor-emp-admin");
+    if (!select || !estado.dados) return;
+    const atual = estado.empAberto || "";
+    select.innerHTML = `<option value="">Todos os empreendimentos</option>` + estado.dados.EMPREENDIMENTOS
+      .filter((emp) => emp.id !== "outros")
+      .map((emp) => `<option value="${escapeHtml(emp.id)}">${escapeHtml(emp.nome)}</option>`).join("");
+    select.value = atual;
+  }
+
+  function aplicarFiltroVisao() {
+    const filtro = estado.visaoFiltro || "estoque";
+    document.querySelectorAll('section[data-modulo="visao"][data-visao-secao]').forEach((secao) => {
+      secao.classList.toggle("visao-filtrada", secao.dataset.visaoSecao !== filtro);
+    });
+  }
+
+  function aplicarFiltroMateriais() {
+    const filtro = estado.materialFiltro || "identidade";
+    document.querySelectorAll("#materiais .material-secao[data-material-secao]").forEach((secao) => {
+      secao.classList.toggle("material-filtrada", secao.dataset.materialSecao !== filtro);
+    });
+    document.querySelectorAll("#materiais .material-emp").forEach((det) => {
+      const selecionado = estado.empAberto;
+      det.hidden = Boolean(selecionado) && det.dataset.materialEmp !== selecionado;
+      if (selecionado && det.dataset.materialEmp === selecionado) det.open = true;
+    });
+  }
+
+  function atualizarNavegacaoAtiva() {
+    document.querySelectorAll("[data-modulo-alvo]").forEach((botao) => {
+      const moduloCerto = botao.dataset.moduloAlvo === estado.moduloAtivo;
+      const materialCerto = botao.dataset.materialFiltro ? botao.dataset.materialFiltro === estado.materialFiltro : true;
+      const visaoCerta = botao.dataset.visaoFiltro ? botao.dataset.visaoFiltro === estado.visaoFiltro : true;
+      botao.classList.toggle("ativo", moduloCerto && materialCerto && visaoCerta);
+    });
+    if (estado.moduloAtivo === "visao") {
+      document.querySelector('[data-nav-grupo="visao"]')?.classList.add("aberto");
+      document.querySelector('[data-accordion-toggle="visao"]')?.setAttribute("aria-expanded", "true");
+    }
+    if (estado.moduloAtivo === "materiais") {
+      document.querySelector('[data-nav-grupo="materiais"]')?.classList.add("aberto");
+      document.querySelector('[data-accordion-toggle="materiais"]')?.setAttribute("aria-expanded", "true");
+    }
+    if (estado.moduloAtivo === "configuracoes") {
+      document.querySelector('[data-nav-grupo="configuracoes"]')?.classList.add("aberto");
+      document.querySelector('[data-accordion-toggle="configuracoes"]')?.setAttribute("aria-expanded", "true");
+    }
+  }
+
+  function ativarModulo(modulo, opcoes = {}) {
+    if (!MODULOS[modulo]) modulo = "visao";
+    estado.moduloAtivo = modulo;
+    if (opcoes.visaoFiltro) estado.visaoFiltro = opcoes.visaoFiltro;
+    if (opcoes.materialFiltro) estado.materialFiltro = opcoes.materialFiltro;
+
+    document.querySelectorAll('section.bloco[data-modulo]').forEach((secao) => {
+      secao.classList.toggle("modulo-visivel", secao.dataset.modulo === modulo);
+    });
+    let [titulo, descricao] = MODULOS[modulo];
+    if (modulo === "visao") {
+      const visaoTextos = {
+        estoque: ["Visão geral", "Estoque consolidado por empreendimento."],
+        movimento: ["Movimento do portfólio", "Uso registrado neste aparelho: aberturas, envios e PDFs."],
+        cadastro: ["Pendências do cadastro", "Itens que ainda faltam para cada empreendimento seguir o padrão comercial."],
+      };
+      [titulo, descricao] = visaoTextos[estado.visaoFiltro] || visaoTextos.estoque;
+    }
+    if ($("titulo-modulo")) $("titulo-modulo").textContent = titulo;
+    if ($("descricao-modulo")) $("descricao-modulo").textContent = descricao;
+
+    const seletor = $("seletor-emp-wrap");
+    if (seletor) seletor.hidden = !["materiais", "estoque"].includes(modulo);
+    if ($("seletor-emp-admin")) $("seletor-emp-admin").value = estado.empAberto || "";
+
+    aplicarFiltroVisao();
+    aplicarFiltroMateriais();
+    mostrarEmpAberto(false);
+    atualizarNavegacaoAtiva();
+    fecharMenuMobile();
+    if (opcoes.rolar !== false) window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  document.querySelectorAll("[data-accordion-toggle]").forEach((botao) => {
+    botao.addEventListener("click", () => {
+      const grupo = botao.closest(".nav-accordion");
+      const aberto = !grupo.classList.contains("aberto");
+      grupo.classList.toggle("aberto", aberto);
+      botao.setAttribute("aria-expanded", String(aberto));
+    });
+  });
+
+  document.querySelectorAll("[data-modulo-alvo]").forEach((botao) => {
+    botao.addEventListener("click", () => {
+      ativarModulo(botao.dataset.moduloAlvo, {
+        visaoFiltro: botao.dataset.visaoFiltro || undefined,
+        materialFiltro: botao.dataset.materialFiltro || undefined,
+      });
+      if (botao.dataset.configAcao === "chave") abrirTelaDaChave("tela-painel");
+      if (botao.dataset.configAcao === "sair") $("botao-sair").click();
+    });
+  });
+
+  $("botao-menu-admin")?.addEventListener("click", () => document.body.classList.add("menu-admin-aberto"));
+  $("botao-fechar-menu")?.addEventListener("click", fecharMenuMobile);
+  $("sidebar-overlay")?.addEventListener("click", fecharMenuMobile);
+
+  $("seletor-emp-admin")?.addEventListener("change", (e) => {
+    estado.empAberto = e.target.value || null;
+    renderDashboard();
+    aplicarFiltroMateriais();
+    mostrarEmpAberto(false);
+  });
 
   // ---------------- a chave do GitHub ----------------
 
@@ -1323,13 +1660,18 @@
 
   function renderTudo() {
     const meta = estado.dados.META;
-    $("info-versao").textContent = `v${estado.versao} · ${meta.mesTabela} · INCC ${meta.incc.valor} (${meta.incc.variacao})`;
+    const infoTexto = `v${estado.versao} · ${meta.mesTabela} · INCC ${meta.incc.valor} (${meta.incc.variacao})`;
+    $("info-versao").textContent = infoTexto;
+    if ($("sidebar-versao")) $("sidebar-versao").textContent = infoTexto;
+    if ($("config-versao")) $("config-versao").textContent = infoTexto;
+    popularSeletorEmp();
     renderDashboard();
     renderUso();
     renderCadastro();
     renderMateriais();
     renderEmps();
     renderPendentes();
+    ativarModulo(estado.moduloAtivo, { rolar: false });
   }
 
   // v162 — o movimento do portfolio. Quem ANOTA e o site (app.js, funcao
@@ -1517,7 +1859,7 @@
       return `<details class="material-emp" data-material-emp="${escapeHtml(emp.id)}">
         <summary><span>${escapeHtml(emp.nome)}</span><span class="material-resumo">${escapeHtml(resumo)}</span></summary>
         <div class="material-corpo">
-          <div class="material-secao">
+          <div class="material-secao" data-material-secao="identidade">
             <h4>Identidade visual</h4>
             <div class="material-grid">
               <div class="material-campo">
@@ -1541,7 +1883,7 @@
             </div>
           </div>
 
-          <div class="material-secao">
+          <div class="material-secao" data-material-secao="galeria">
             <div class="material-topo"><h4>Fotos da galeria</h4><span class="material-status ${fotos.length ? "ok" : "falta"}">${fotos.length} cadastrada${fotos.length === 1 ? "" : "s"}</span></div>
             <div class="material-acoes">
               <label class="botao-arquivo" for="arquivo-galeria-${escapeHtml(emp.id)}">Adicionar fotos</label>
@@ -1552,13 +1894,13 @@
             <div class="galeria-lista">${listaFotos}</div>
           </div>
 
-          <div class="material-secao">
+          <div class="material-secao" data-material-secao="plantas">
             <div class="material-topo"><h4>Plantas das tipologias e unidades</h4><span class="material-status ${faltamPlantas ? "falta" : "ok"}">${faltamPlantas ? `${faltamPlantas} faltando` : "vínculos OK"}</span></div>
             <p class="material-ajuda"><strong>WEBP/JPG/PNG · 2000 × 2000 px</strong> · fundo branco/claro · até 6 MB. Ao substituir, o painel também atualiza automaticamente o vínculo da tipologia/unidade.</p>
             <div class="plantas-lista">${listaPlantas}</div>
           </div>
 
-          <div class="material-secao">
+          <div class="material-secao" data-material-secao="comerciais">
             <h4>Materiais comerciais</h4>
             <div class="material-grid">
               <div class="material-campo">
@@ -1595,6 +1937,8 @@
       renderPendentes();
       if (rerender) renderMateriais();
     };
+
+    aplicarFiltroMateriais();
 
     alvo.querySelectorAll("input[data-arquivo-imagem]").forEach((input) => {
       input.addEventListener("change", async () => {
@@ -1808,6 +2152,7 @@
 
   // Só o empreendimento escolhido no cartão fica na tela.
   function mostrarEmpAberto(rolar) {
+    if (rolar && estado.moduloAtivo !== "estoque") ativarModulo("estoque", { rolar: false });
     const bloco = $("bloco-unidades");
     const nenhum = $("nenhum-emp");
     let visivel = null;
@@ -2561,6 +2906,13 @@
     badge.classList.toggle("visivel", n > 0);
     $("botao-publicar").disabled = n === 0;
     $("botao-descartar").style.display = n > 0 ? "inline-block" : "none";
+    if ($("botao-publicar-modulo")) $("botao-publicar-modulo").disabled = n === 0;
+    if ($("botao-descartar-modulo")) $("botao-descartar-modulo").style.display = n > 0 ? "inline-block" : "none";
+    if ($("publicacao-resumo")) {
+      $("publicacao-resumo").innerHTML = n
+        ? `<strong>${escapeHtml(partes.join(" · "))} pendente${n === 1 ? "" : "s"}.</strong><br>Revise os módulos necessários e publique quando estiver pronto.`
+        : `<strong>Nenhuma alteração pendente.</strong><br>O site já está igual ao que aparece no painel.`;
+    }
   }
 
   // ---------------- INCC ----------------
@@ -3061,6 +3413,7 @@
   }
 
   $("botao-chave").addEventListener("click", () => abrirTelaDaChave("tela-painel"));
+  $("botao-chave-modulo")?.addEventListener("click", () => $("botao-chave").click());
 
   $("link-diario").addEventListener("click", (e) => {
     e.preventDefault();
@@ -3111,6 +3464,8 @@
     $("campo-senha").value = "";
   });
 
+  $("botao-sair-modulo")?.addEventListener("click", () => $("botao-sair").click());
+
   $("botao-descartar").addEventListener("click", () => {
     estado.ops = [];
     renderTudo();
@@ -3118,6 +3473,8 @@
   });
 
   $("botao-publicar").addEventListener("click", publicar);
+  $("botao-publicar-modulo")?.addEventListener("click", () => $("botao-publicar").click());
+  $("botao-descartar-modulo")?.addEventListener("click", () => $("botao-descartar").click());
 
   // Aviso antes de fechar a aba com mudanças não publicadas.
   window.addEventListener("beforeunload", (e) => {
