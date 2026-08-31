@@ -1,30 +1,44 @@
-ATUALIZAÇÃO — MATERIAL SENGER CORRETORES — v166
+ATUALIZAÇÃO — MATERIAL SENGER CORRETORES — v168
 
 Este ZIP contém o projeto completo atualizado.
 
 NOVIDADES DESTA VERSÃO
-- padrão obrigatório de materiais por empreendimento;
-- campo de folder PDF para todos os 9 empreendimentos reais;
-- campo de 1 vídeo oficial por empreendimento;
-- vídeo integrado à página do empreendimento;
-- suporte a YouTube, Vimeo e arquivos MP4/WebM/Ogg;
-- botão “Assistir vídeo” quando houver vídeo cadastrado;
-- painel administrativo com edição de folder e vídeo;
-- painel passa a acusar folder PDF e vídeo ausentes em “O que falta no cadastro”;
-- Evolutti mantém o folder PDF existente;
-- “Outros Imóveis” não entra nessa obrigação porque é um agrupador de imóveis distintos;
-- cache atualizado para v166.
+- o painel virou uma Central de Materiais por empreendimento;
+- upload direto de capa principal, logo, fotos da galeria, plantas, folder PDF e vídeo;
+- os novos arquivos são armazenados de forma organizada em assets/<empreendimento>/...;
+- o painel confere automaticamente formato, peso e dimensões das imagens novas;
+- galeria permite adicionar várias fotos, editar legendas, mudar a ordem e remover imagens do cadastro;
+- plantas são anexadas pela própria tipologia/unidade e o vínculo no data.js é atualizado automaticamente;
+- folder e vídeo continuam obrigatórios para os 9 empreendimentos reais;
+- vídeo aceita arquivo MP4/WebM/Ogg ou link YouTube/Vimeo;
+- materiais antigos continuam funcionando nos caminhos atuais: não houve migração arriscada nem quebra de URLs existentes;
+- cache atualizado para v168.
 
-SITUAÇÃO DOS MATERIAIS NO ARQUIVO RECEBIDO
-- Folder PDF existente: Evolutti.
-- Folders PDF ainda faltando: 8 empreendimentos.
-- Vídeos ainda faltando: os 9 empreendimentos.
+PADRÃO DE ARQUIVOS MOSTRADO NO PAINEL
+- Capa principal: WEBP, JPG ou PNG — 1600 × 900 px — até 5 MB.
+- Fotos da galeria: WEBP, JPG ou PNG — 1600 × 900 px — até 5 MB cada.
+- Plantas: WEBP, JPG ou PNG — 2000 × 2000 px — fundo claro — até 6 MB.
+- Logo do empreendimento: PNG ou WEBP — 1600 × 600 px — fundo transparente — até 3 MB.
+- Folder: PDF — até 25 MB.
+- Vídeo: MP4, WebM ou Ogg — recomendado 1920 × 1080 px (Full HD) — até 80 MB; para arquivos maiores, usar YouTube/Vimeo.
+
+COMO FUNCIONA O ARMAZENAMENTO
+Quando um arquivo novo é anexado pelo painel e publicado, ele é enviado ao próprio repositório GitHub. Os novos caminhos seguem esta organização:
+- assets/renaissance/capa.webp
+- assets/renaissance/logo.png
+- assets/renaissance/galeria/...
+- assets/renaissance/plantas/...
+- assets/renaissance/folder.pdf
+- assets/renaissance/video.mp4
+
+O mesmo padrão vale para os demais empreendimentos. O data.js guarda a referência para esses arquivos.
 
 IMPORTANTE
-Os vídeos não foram inventados nem substituídos por material genérico. Para cada empreendimento, cadastre no painel o link oficial do YouTube/Vimeo ou o caminho/URL de um arquivo de vídeo.
+- As dimensões são verificadas para IMAGENS NOVAS. Arquivos antigos, que já existiam no projeto em tamanhos variados, continuam válidos e não foram apagados.
+- "Outros Imóveis" continua fora do padrão de 1 folder + 1 vídeo, pois é um agrupador de imóveis diferentes.
 
 COMO PUBLICAR NO GITHUB
-1. Substitua os arquivos alterados pelos desta versão.
+1. Substitua os arquivos alterados pelos desta versão, mantendo as pastas.
 2. Confirme o commit na branch usada para publicação.
 3. Aguarde a atualização do site.
-4. Confirme no rodapé/painel que a versão carregada é v166.
+4. Confirme no painel que a versão carregada é v168.

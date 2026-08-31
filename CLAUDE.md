@@ -37,7 +37,7 @@ um painel administrativo que o dono usa pelo celular.
 Cada empreendimento usa uma destas formas de estoque, lidas pelo `app.js`:
 `grupos` (unidades por tipologia), `terrenos` ou `outros`.
 
-**Os materiais comerciais também ficam no `data.js`.** Cada empreendimento real deve ter `folder` (PDF) e `video` (YouTube, Vimeo ou arquivo MP4/WebM/Ogg). O site lê os dois; `boxes` continua sendo um campo exclusivamente interno do painel.
+**Os materiais comerciais também ficam no `data.js`.** Cada empreendimento real deve ter `folder` (PDF) e `video` (YouTube, Vimeo ou arquivo MP4/WebM/Ogg). Capa (`hero`), logo (`logo`), galeria (`galeria`) e vínculos de planta (`planta`) também são administráveis pelo painel. O site lê esses campos; `boxes` continua sendo exclusivamente interno do painel.
 
 Status válidos: `disponivel`, `vendido`, `alugado`. **Não existe "reservado"** —
 a construtora não reserva unidades. `alugado` **continua na oferta**: é o
@@ -66,9 +66,19 @@ O padrão comercial é o mesmo para todos os empreendimentos reais (o agrupador 
 - `folder` — exatamente um folder em PDF por empreendimento;
 - `video` — exatamente um vídeo oficial por empreendimento.
 
-O painel mostra os dois campos em **Materiais dos empreendimentos**, permite alterar os links/caminhos e inclui qualquer ausência em **O que falta no cadastro**. O botão “Baixar folder” e a seção de vídeo só aparecem no site quando o respectivo campo está preenchido.
+O painel possui uma **Central de Materiais** que administra também capa, logo, fotos de galeria e plantas. Os uploads novos vão para pastas organizadas por empreendimento (`assets/<id>/...`), sem migrar ou quebrar os caminhos antigos.
 
-O campo `video` aceita link do YouTube, Vimeo, caminho/URL de MP4, WebM ou Ogg. YouTube/Vimeo abrem incorporados na página; arquivo direto usa o player nativo; outra URL vira um botão para abrir o vídeo.
+Padrões informados e validados no painel:
+- capa: WEBP/JPG/PNG, 1600×900 px, até 5 MB;
+- galeria: WEBP/JPG/PNG, 1600×900 px, até 5 MB por foto;
+- planta: WEBP/JPG/PNG, 2000×2000 px, até 6 MB;
+- logo: PNG/WEBP, 1600×600 px, até 3 MB;
+- folder: PDF, até 25 MB;
+- vídeo: MP4/WebM/Ogg, recomendado 1920×1080, até 80 MB, ou YouTube/Vimeo.
+
+A galeria permite adicionar várias fotos, editar legenda, reordenar e remover referências. A planta é anexada diretamente na tipologia/unidade; ao publicar, o painel atualiza a galeria e o campo `planta` correspondente no `data.js`.
+
+O botão “Baixar folder” e a seção de vídeo só aparecem no site quando o respectivo campo está preenchido.
 
 ## Fotos
 
@@ -143,7 +153,7 @@ Sempre **truncadas**, nunca arredondadas para cima: 99,6188 m² vira "99 m²", e
 - A senha é comparada por hash SHA-256; o token do GitHub fica no `localStorage`
   do aparelho.
 - As alterações ficam pendentes (`estado.ops`) e só vão para o `data.js` quando
-  o dono clica em "Publicar no site".
+  o dono clica em "Publicar no site". Arquivos novos são enviados ao GitHub primeiro e o `data.js` só passa a apontar para eles depois do upload.
 - A gravação é **edição textual** do `data.js`, não regravação do objeto, para
   preservar comentários e formatação. Ver `aplicarStatus`.
 - Ao publicar pelo painel, a versão do cache (`?v=` no `index.html` e o `CACHE`
