@@ -1,18 +1,19 @@
-ATUALIZAÇÃO — MATERIAL SENGER CORRETORES — v168
+ATUALIZAÇÃO — MATERIAL SENGER CORRETORES — v169
 
 Este ZIP contém o projeto completo atualizado.
 
 NOVIDADES DESTA VERSÃO
-- o painel virou uma Central de Materiais por empreendimento;
-- upload direto de capa principal, logo, fotos da galeria, plantas, folder PDF e vídeo;
-- os novos arquivos são armazenados de forma organizada em assets/<empreendimento>/...;
-- o painel confere automaticamente formato, peso e dimensões das imagens novas;
-- galeria permite adicionar várias fotos, editar legendas, mudar a ordem e remover imagens do cadastro;
-- plantas são anexadas pela própria tipologia/unidade e o vínculo no data.js é atualizado automaticamente;
-- folder e vídeo continuam obrigatórios para os 9 empreendimentos reais;
-- vídeo aceita arquivo MP4/WebM/Ogg ou link YouTube/Vimeo;
-- materiais antigos continuam funcionando nos caminhos atuais: não houve migração arriscada nem quebra de URLs existentes;
-- cache atualizado para v168.
+- painel administrativo reorganizado no MODELO 4 escolhido: menu lateral em acordeão/colapsável;
+- a paleta original do painel foi preservada (branco/cinza + azul-petróleo/teal atual), sem cores aleatórias por módulo;
+- módulos agora ficam separados: Visão geral, Materiais, Estoque/Unidades, Correção pelo INCC, Publicação e Configurações;
+- Visão geral também foi dividida em Estoque geral, Movimento do portfólio e Pendências do cadastro, exibindo só uma área por vez;
+- Materiais possui submenu próprio: Capa e logo, Galeria de fotos, Plantas e Folder e vídeo;
+- o seletor de empreendimento aparece nos módulos em que faz sentido (Materiais e Estoque/Unidades);
+- no celular, o menu lateral vira uma gaveta recolhível e não ocupa a tela inteira;
+- Publicação ganhou uma tela própria com o resumo das alterações pendentes, mantendo também o botão rápido no topo;
+- Chave do GitHub e Sair foram concentrados em Configurações para tirar botões soltos do cabeçalho;
+- todas as funções da Central de Materiais da v168 foram preservadas;
+- cache atualizado para v169.
 
 PADRÃO DE ARQUIVOS MOSTRADO NO PAINEL
 - Capa principal: WEBP, JPG ou PNG — 1600 × 900 px — até 5 MB.
@@ -41,4 +42,4 @@ COMO PUBLICAR NO GITHUB
 1. Substitua os arquivos alterados pelos desta versão, mantendo as pastas.
 2. Confirme o commit na branch usada para publicação.
 3. Aguarde a atualização do site.
-4. Confirme no painel que a versão carregada é v168.
+4. Confirme no painel que a versão carregada é v169.

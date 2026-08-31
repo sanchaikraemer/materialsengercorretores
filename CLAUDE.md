@@ -24,6 +24,7 @@ um painel administrativo que o dono usa pelo celular.
   `EMPREENDIMENTOS`.
 - `admin/index.html` — o painel administrativo, uma página só, sem build. Lê e
   grava o `data.js` direto pela API do GitHub, na branch `main`.
+  A interface usa navegação lateral em acordeão/colapsável (v169), com módulos separados e a paleta original do painel.
 - `sw.js` — service worker. Navegação e arquivos do site são buscados da rede
   primeiro, então o painel nunca fica preso em cache.
 - `l/` — as **páginas-ponte**, geradas por `tools/gerar-pontes.js`. Uma por
