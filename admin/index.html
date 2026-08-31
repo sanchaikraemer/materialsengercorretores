@@ -301,6 +301,21 @@
     }
     .pend-emp .abrir:hover { color: var(--dourado-escuro); }
 
+    /* v166 — materiais obrigatorios de cada empreendimento. */
+    .materiais-lista { display: grid; gap: 12px; }
+    .material-emp { background: var(--fundo); border: 1px solid var(--borda); border-radius: 10px; padding: 14px; }
+    .material-emp h3 { font-size: .95rem; margin-bottom: 10px; }
+    .material-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+    .material-campo label { display: flex; justify-content: space-between; gap: 8px; font-size: .8rem; color: var(--texto-suave); margin-bottom: 6px; }
+    .material-campo label b { color: var(--texto); }
+    .material-campo input { width: 100%; padding: 10px 11px; border-radius: 8px; border: 1px solid var(--borda); background: var(--cartao); color: var(--texto); font-size: .88rem; }
+    .material-campo input.mudou { border-color: var(--amarelo); box-shadow: 0 0 0 2px rgba(168,112,31,.08); }
+    .material-status { font-size: .72rem; font-weight: 700; }
+    .material-status.ok { color: var(--verde); }
+    .material-status.falta { color: var(--vermelho); }
+    .material-ajuda { margin-top: 7px; font-size: .75rem; line-height: 1.4; color: var(--texto-suave); }
+    @media (max-width: 760px) { .material-grid { grid-template-columns: 1fr; } }
+
     /* incc */
     .form-incc { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; align-items: end; }
     .form-incc label { display: block; font-size: .82rem; color: var(--texto-suave); margin-bottom: 6px; }
@@ -554,12 +569,20 @@
         <!-- O que falta no cadastro -->
         <section class="bloco">
           <h2>O que falta no cadastro</h2>
-          <p class="descricao">Tudo o que ainda depende de planta, de tabela ou de foto. Nada aqui atrapalha o site
-            &mdash; ele funciona do mesmo jeito. Estes campos n&atilde;o se mexem por aqui: copie a lista e mande para
-            quem cuida do cadastro.</p>
+          <p class="descricao">Tudo o que ainda falta para cada empreendimento seguir o mesmo padr&atilde;o comercial.
+            Folder PDF e v&iacute;deo podem ser cadastrados logo abaixo; plantas, fotos e demais dados continuam aparecendo
+            nesta lista para corre&ccedil;&atilde;o do cadastro.</p>
           <p class="resumo-cadastro" id="cadastro-resumo">&mdash;</p>
           <div class="pend-lista" id="cadastro"></div>
           <button class="botao secundario" id="botao-copiar-cadastro">Copiar essa lista</button>
+        </section>
+
+        <!-- Materiais obrigatorios -->
+        <section class="bloco">
+          <h2>Materiais dos empreendimentos</h2>
+          <p class="descricao">Padr&atilde;o obrigat&oacute;rio: cada empreendimento deve ter <strong>1 folder em PDF</strong> e <strong>1 v&iacute;deo oficial</strong>.
+            No v&iacute;deo, cole um link do YouTube/Vimeo ou um arquivo MP4/WebM/Ogg. No folder, informe o caminho do PDF em <code>assets/...</code> ou uma URL direta.</p>
+          <div class="materiais-lista" id="materiais"></div>
         </section>
 
         <!-- INCC -->
@@ -992,6 +1015,28 @@
     return op ? op.novoStatus : item.status;
   }
 
+  // Folder e video sao os dois materiais obrigatorios editaveis pelo painel.
+  function opDeMaterial(empId, campo) {
+    return estado.ops.find((op) => op.tipoOp === "material" && op.empId === empId && op.campo === campo);
+  }
+
+  function materialAtual(emp, campo) {
+    const op = opDeMaterial(emp.id, campo);
+    return op ? op.valor : String(emp[campo] || "");
+  }
+
+  function materialParecePdf(valor) {
+    const v = String(valor || "").trim();
+    return !v || /\.pdf(?:$|[?#])/i.test(v);
+  }
+
+  function anotarMaterial(emp, campo, valor) {
+    const limpo = String(valor || "").trim();
+    const original = String(emp[campo] || "");
+    estado.ops = estado.ops.filter((op) => !(op.tipoOp === "material" && op.empId === emp.id && op.campo === campo));
+    if (limpo !== original) estado.ops.push({ tipoOp: "material", empId: emp.id, campo, valor: limpo, original });
+  }
+
   // ---------------- render ----------------
 
   function renderTudo() {
@@ -1000,6 +1045,7 @@
     renderDashboard();
     renderUso();
     renderCadastro();
+    renderMateriais();
     renderEmps();
     renderPendentes();
   }
@@ -1126,6 +1172,58 @@
         estado.empAberto = estado.empAberto === id ? null : id;
         renderDashboard();
         mostrarEmpAberto(true);
+      });
+    });
+  }
+
+  function renderMateriais() {
+    const alvo = $("materiais");
+    if (!alvo) return;
+    const emps = estado.dados.EMPREENDIMENTOS.filter((emp) => emp.id !== "outros");
+    alvo.innerHTML = emps.map((emp) => {
+      const folder = materialAtual(emp, "folder");
+      const video = materialAtual(emp, "video");
+      const pdfOk = Boolean(folder) && materialParecePdf(folder);
+      return `<div class="material-emp" data-material-emp="${escapeHtml(emp.id)}">
+        <h3>${escapeHtml(emp.nome)}</h3>
+        <div class="material-grid">
+          <div class="material-campo">
+            <label><b>Folder PDF</b><span class="material-status ${pdfOk ? "ok" : "falta"}" data-status-folder>${pdfOk ? "OK" : (folder ? "revisar PDF" : "faltando")}</span></label>
+            <input value="${escapeHtml(folder)}" placeholder="assets/folder-${escapeHtml(emp.id)}.pdf" data-material-campo="folder" data-emp="${escapeHtml(emp.id)}">
+            <p class="material-ajuda">Precisa apontar para o folder em PDF.</p>
+          </div>
+          <div class="material-campo">
+            <label><b>Vídeo oficial</b><span class="material-status ${video ? "ok" : "falta"}" data-status-video>${video ? "OK" : "faltando"}</span></label>
+            <input value="${escapeHtml(video)}" placeholder="https://youtube.com/watch?v=..." data-material-campo="video" data-emp="${escapeHtml(emp.id)}">
+            <p class="material-ajuda">YouTube, Vimeo ou arquivo MP4/WebM/Ogg.</p>
+          </div>
+        </div>
+      </div>`;
+    }).join("");
+
+    alvo.querySelectorAll("input[data-material-campo]").forEach((input) => {
+      input.addEventListener("input", () => {
+        const emp = estado.dados.EMPREENDIMENTOS.find((e) => e.id === input.dataset.emp);
+        if (!emp) return;
+        const campo = input.dataset.materialCampo;
+        anotarMaterial(emp, campo, input.value);
+        input.classList.toggle("mudou", input.value.trim() !== String(emp[campo] || ""));
+        const caixa = input.closest(".material-emp");
+        if (campo === "folder") {
+          const status = caixa.querySelector("[data-status-folder]");
+          const valor = input.value.trim();
+          const ok = Boolean(valor) && materialParecePdf(valor);
+          status.textContent = ok ? "OK" : (valor ? "revisar PDF" : "faltando");
+          status.className = `material-status ${ok ? "ok" : "falta"}`;
+        } else {
+          const status = caixa.querySelector("[data-status-video]");
+          const ok = Boolean(input.value.trim());
+          status.textContent = ok ? "OK" : "faltando";
+          status.className = `material-status ${ok ? "ok" : "falta"}`;
+        }
+        renderDashboard();
+        renderCadastro();
+        renderPendentes();
       });
     });
   }
@@ -1841,6 +1939,11 @@
     if (emp.id !== "outros") {
       if (!emp.hero) marca("sem foto de capa", true);
       if (!(emp.galeria || []).length) marca("sem fotos na galeria", true);
+      const folder = materialAtual(emp, "folder");
+      const video = materialAtual(emp, "video");
+      if (!folder) marca("<b>sem folder em PDF</b> — o padrão comercial exige 1 folder por empreendimento", true);
+      else if (!materialParecePdf(folder)) marca("folder cadastrado não parece ser um arquivo PDF — conferir o link/caminho", true);
+      if (!video) marca("<b>sem vídeo oficial</b> — o padrão comercial exige 1 vídeo por empreendimento", true);
       // Registro de incorporacao e coisa de predio: loteamento nao tem.
       if ((emp.grupos || []).length && !(emp.ri || []).length) marca("sem o registro de incorporação — na ficha sai “Não informado”");
     }
@@ -2058,6 +2161,19 @@
     });
   }
 
+  function aplicarMaterial(texto, op) {
+    if (!["folder", "video"].includes(op.campo)) throw new Error(`Campo de material inválido: ${op.campo}.`);
+    return trocarNoBloco(texto, op.empId, (bloco) => {
+      const re = new RegExp(`^\\s*${op.campo}:\\s*[^\\n]*\\n`, "m");
+      if (!op.valor) return bloco.replace(re, "");
+      const linha = `    ${op.campo}: ${JSON.stringify(op.valor)},\n`;
+      if (re.test(bloco)) return bloco.replace(re, linha);
+      const hero = bloco.match(/^\s*hero:\s*[^\n]*\n/m);
+      if (!hero) throw new Error(`Não achei a foto de capa de ${op.empId} para inserir ${op.campo}.`);
+      return bloco.replace(hero[0], hero[0] + linha);
+    });
+  }
+
   function aplicarIncc(texto, op) {
     // Os preços só existem dentro de EMPREENDIMENTOS; o regex \bpreco: não pega "precoPrefixo".
     const inicio = texto.indexOf("const EMPREENDIMENTOS");
@@ -2083,6 +2199,9 @@
     const status = estado.ops.filter((op) => op.tipoOp === "status");
     if (status.length === 1) partes.push(`${status[0].rotulo.trim()} → ${STATUS_LABEL[status[0].novoStatus].toLowerCase()}`);
     else if (status.length > 1) partes.push(`${status.length} unidades com status alterado`);
+    const materiais = estado.ops.filter((op) => op.tipoOp === "material");
+    if (materiais.length === 1) partes.push(`${materiais[0].campo === "folder" ? "folder" : "vídeo"} de ${materiais[0].empId}`);
+    else if (materiais.length > 1) partes.push(`${materiais.length} materiais atualizados`);
     return `v${novaVersao}: ${partes.join(" · ")} (painel administrativo)`;
   }
 
@@ -2100,6 +2219,7 @@
       const incc = estado.ops.find((op) => op.tipoOp === "incc");
       if (incc) texto = aplicarIncc(texto, incc);
       estado.ops.filter((op) => op.tipoOp === "status").forEach((op) => { texto = aplicarStatus(texto, op); });
+      estado.ops.filter((op) => op.tipoOp === "material").forEach((op) => { texto = aplicarMaterial(texto, op); });
 
       // Confere se o arquivo continua válido antes de gravar qualquer coisa.
       const conferido = avaliarDataJs(texto);
