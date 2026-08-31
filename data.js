@@ -521,12 +521,13 @@ const EMPREENDIMENTOS = [
       { src: "assets/po-aerial.webp", legenda: "Vista aérea" },
       { src: "assets/po-aerial2.webp", legenda: "Vista aérea — bairro" },
       { src: "assets/po-loc.webp", legenda: "Localização — em frente à Praça do Hospital de Clínicas" },
-      { src: "assets/po-planta.webp", legenda: "Planta humanizada — pavimento tipo (salas 01 a 05)" },
-      // Os dois andares de baixo tem divisao propria: o 2o tem tres salas
-      // maiores e o 3o e menor que os de cima (recuo da marquise). Sao
-      // plantas de obra, nao humanizadas — por isso a marca "tecnica".
+      // Do 3o ao 8o o pavimento e o mesmo, entao esta planta vale para os seis
+      // andares — o desenho e o do 3o, e os finais 01 a 05 se repetem acima.
+      { src: "assets/po-planta-tipo.webp", legenda: "Planta baixa — pavimento tipo, 3º ao 8º (finais 01 a 05)", tecnica: true },
+      // O 2o pavimento tem divisao propria: tres salas maiores, no lugar das
+      // cinco dos andares de cima. Sao plantas de obra, nao humanizadas — por
+      // isso a marca "tecnica", que as poe sob o titulo certo no visor.
       { src: "assets/po-planta-2pav.webp", legenda: "Planta baixa — 2º pavimento (salas 201 a 203)", tecnica: true },
-      { src: "assets/po-planta-3pav.webp", legenda: "Planta baixa — 3º pavimento (salas 301 a 305)", tecnica: true },
       { src: "assets/po-map.webp", legenda: "Mapa — Rua Cipriano da Luz" },
     ],
     grupos: [
@@ -549,19 +550,18 @@ const EMPREENDIMENTOS = [
           { apto: "203", preco: 660000, status: "disponivel", areaUnit: "88 m² global · 49 m² privativo" },
         ],
       },
-      // Do 4o ao 8o pavimento a planta e a mesma: cinco salas, finais 01 a 05.
-      // A planta do pavimento tipo (po-planta) vale para as cinco tipologias,
-      // e cada uma e uma sala dela. O 3o pavimento tem a planta dele, ligada
-      // sala por sala, porque e menor que os de cima. So o terreo (sala 101,
-      // vendida) segue sem planta, e o painel cobra.
+      // Do 3o ao 8o pavimento a planta e a mesma: cinco salas, finais 01 a 05,
+      // e cada tipologia e uma sala dela (po-planta-tipo). So o 2o pavimento
+      // tem divisao propria — tres salas maiores — e o terreo (sala 101,
+      // vendida) segue sem planta, que o painel cobra.
       {
         tipo: "Sala comercial",
         area: "115 m² global · 65 m² privativo",
         garagem: "01 vaga de garagem",
         estoque: "Sala 115 m²",
-        planta: "po-planta",
+        planta: "po-planta-tipo",
         unidades: [
-          { apto: "301", status: "vendido", planta: "po-planta-3pav" },
+          { apto: "301", status: "vendido" },
           { apto: "401", status: "vendido" },
           { apto: "501", status: "vendido" },
           { apto: "601", status: "vendido" },
@@ -574,7 +574,7 @@ const EMPREENDIMENTOS = [
         area: "129 m² global · 73 m² privativo",
         garagem: "01 vaga de garagem",
         estoque: "Sala 122 a 129 m²",
-        planta: "po-planta",
+        planta: "po-planta-tipo",
         unidades: [{ apto: "802", preco: 880000, status: "disponivel" }],
       },
       // As outras salas de final 02 tem cada uma a sua area; contam junto com a
@@ -584,9 +584,9 @@ const EMPREENDIMENTOS = [
         area: "Áreas variadas",
         garagem: "01 vaga de garagem",
         estoque: "Sala 122 a 129 m²",
-        planta: "po-planta",
+        planta: "po-planta-tipo",
         unidades: [
-          { apto: "302", status: "vendido", areaUnit: "122 m² global · 69 m² privativo", planta: "po-planta-3pav" },
+          { apto: "302", status: "vendido", areaUnit: "122 m² global · 69 m² privativo" },
           { apto: "402", status: "vendido", areaUnit: "124 m² global · 70 m² privativo" },
           { apto: "502", status: "vendido", areaUnit: "125 m² global · 70 m² privativo" },
           { apto: "602", status: "vendido", areaUnit: "126 m² global · 71 m² privativo" },
@@ -598,9 +598,9 @@ const EMPREENDIMENTOS = [
         area: "54 m² global · 31 m² privativo",
         garagem: "01 vaga de garagem",
         estoque: "Sala 54 m²",
-        planta: "po-planta",
+        planta: "po-planta-tipo",
         unidades: [
-          { apto: "303", status: "vendido", planta: "po-planta-3pav" },
+          { apto: "303", status: "vendido" },
           { apto: "403", status: "vendido" },
           { apto: "503", status: "vendido" },
           { apto: "603", status: "vendido" },
@@ -613,9 +613,9 @@ const EMPREENDIMENTOS = [
         area: "72 m² global · 40 m² privativo",
         garagem: "01 vaga de garagem",
         estoque: "Sala 72 m²",
-        planta: "po-planta",
+        planta: "po-planta-tipo",
         unidades: [
-          { apto: "304", preco: 560000, status: "disponivel", planta: "po-planta-3pav" },
+          { apto: "304", preco: 560000, status: "disponivel" },
           { apto: "404", status: "vendido" },
           { apto: "504", status: "vendido" },
           { apto: "604", status: "vendido" },
@@ -628,9 +628,9 @@ const EMPREENDIMENTOS = [
         area: "76 m² global · 43 m² privativo",
         garagem: "01 vaga de garagem",
         estoque: "Sala 76 m²",
-        planta: "po-planta",
+        planta: "po-planta-tipo",
         unidades: [
-          { apto: "305", status: "vendido", planta: "po-planta-3pav" },
+          { apto: "305", status: "vendido" },
           { apto: "405", status: "vendido" },
           { apto: "505", status: "vendido" },
           { apto: "605", status: "vendido" },
