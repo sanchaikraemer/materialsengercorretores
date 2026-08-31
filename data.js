@@ -516,7 +516,7 @@ const EMPREENDIMENTOS = [
       { src: "assets/po-aerial.webp", legenda: "Vista aérea" },
       { src: "assets/po-aerial2.webp", legenda: "Vista aérea — bairro" },
       { src: "assets/po-loc.webp", legenda: "Localização — em frente à Praça do Hospital de Clínicas" },
-      { src: "assets/po-planta.webp", legenda: "Planta — Rua Cipriano da Luz" },
+      { src: "assets/po-planta.webp", legenda: "Planta humanizada — pavimento tipo (salas 01 a 05)" },
       { src: "assets/po-map.webp", legenda: "Mapa — Rua Cipriano da Luz" },
     ],
     grupos: [
@@ -538,11 +538,16 @@ const EMPREENDIMENTOS = [
           { apto: "203", preco: 660000, status: "disponivel", areaUnit: "88 m² global · 49 m² privativo" },
         ],
       },
+      // Do 3o ao 8o pavimento a planta e a mesma: cinco salas, finais 01 a 05.
+      // A planta do pavimento tipo (po-planta) vale para as cinco tipologias,
+      // e cada uma e uma sala dela. O 2o pavimento e o terreo tem outra planta,
+      // que ainda nao veio — por isso ficam sem ligacao, e o painel cobra.
       {
         tipo: "Sala comercial",
         area: "115 m² global · 65 m² privativo",
         garagem: "01 vaga de garagem",
         estoque: "Sala 115 m²",
+        planta: "po-planta",
         unidades: [
           { apto: "301", status: "vendido" },
           { apto: "401", status: "vendido" },
@@ -557,6 +562,7 @@ const EMPREENDIMENTOS = [
         area: "129 m² global · 73 m² privativo",
         garagem: "01 vaga de garagem",
         estoque: "Sala 122 a 129 m²",
+        planta: "po-planta",
         unidades: [{ apto: "802", preco: 880000, status: "disponivel" }],
       },
       // As outras salas de final 02 tem cada uma a sua area; contam junto com a
@@ -566,6 +572,7 @@ const EMPREENDIMENTOS = [
         area: "Áreas variadas",
         garagem: "01 vaga de garagem",
         estoque: "Sala 122 a 129 m²",
+        planta: "po-planta",
         unidades: [
           { apto: "302", status: "vendido", areaUnit: "122 m² global · 69 m² privativo" },
           { apto: "402", status: "vendido", areaUnit: "124 m² global · 70 m² privativo" },
@@ -579,6 +586,7 @@ const EMPREENDIMENTOS = [
         area: "54 m² global · 31 m² privativo",
         garagem: "01 vaga de garagem",
         estoque: "Sala 54 m²",
+        planta: "po-planta",
         unidades: [
           { apto: "303", status: "vendido" },
           { apto: "403", status: "vendido" },
@@ -593,6 +601,7 @@ const EMPREENDIMENTOS = [
         area: "72 m² global · 40 m² privativo",
         garagem: "01 vaga de garagem",
         estoque: "Sala 72 m²",
+        planta: "po-planta",
         unidades: [
           { apto: "304", preco: 560000, status: "disponivel" },
           { apto: "404", status: "vendido" },
@@ -607,6 +616,7 @@ const EMPREENDIMENTOS = [
         area: "76 m² global · 43 m² privativo",
         garagem: "01 vaga de garagem",
         estoque: "Sala 76 m²",
+        planta: "po-planta",
         unidades: [
           { apto: "305", status: "vendido" },
           { apto: "405", status: "vendido" },
