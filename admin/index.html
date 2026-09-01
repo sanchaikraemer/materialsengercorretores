@@ -1,4 +1,4 @@
-<!-- SENGER ADMIN BUILD v172 - menu acordeao + central materiais + financeiro interno -->
+<!-- SENGER ADMIN BUILD v173 - INCC historico + data real + moeda BR + tabela financeira responsiva -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -370,9 +370,18 @@
     .financeiro-emp > summary { cursor:pointer; list-style:none; padding:12px 14px; display:flex; align-items:center; gap:10px; font-weight:750; font-size:.86rem; }
     .financeiro-emp > summary::-webkit-details-marker { display:none; }
     .financeiro-emp > summary .contagem { margin-left:auto; color:var(--texto-suave); font-size:.74rem; font-weight:500; }
-    .financeiro-tabela { overflow:auto; border-top:1px solid var(--borda); background:var(--cartao); }
-    .financeiro-tabela table { min-width:1240px; }
-    .custo-input, .margem-desejada-input { width:130px; padding:7px 8px; border:1px solid var(--borda); border-radius:7px; background:var(--fundo); color:var(--texto); text-align:right; font:inherit; font-size:.82rem; font-variant-numeric:tabular-nums; }
+    .financeiro-tabela { overflow-x:auto; overflow-y:visible; max-width:100%; border-top:1px solid var(--borda); background:var(--cartao); scrollbar-gutter:stable both-edges; }
+    .financeiro-tabela table { min-width:1520px; width:max-content; }
+    .financeiro-tabela th, .financeiro-tabela td { white-space:nowrap; }
+    .financeiro-tabela th:nth-child(1), .financeiro-tabela td:nth-child(1) { min-width:150px; }
+    .financeiro-tabela th:nth-child(2), .financeiro-tabela td:nth-child(2) { min-width:165px; }
+    .financeiro-tabela th:nth-child(3), .financeiro-tabela td:nth-child(3),
+    .financeiro-tabela th:nth-child(4), .financeiro-tabela td:nth-child(4) { min-width:145px; }
+    .financeiro-tabela th:nth-child(5), .financeiro-tabela td:nth-child(5) { min-width:185px; }
+    .financeiro-tabela th:nth-child(6), .financeiro-tabela td:nth-child(6) { min-width:175px; }
+    .financeiro-tabela th:nth-child(7), .financeiro-tabela td:nth-child(7) { min-width:200px; }
+    .financeiro-tabela th:nth-child(8), .financeiro-tabela td:nth-child(8) { min-width:185px; padding-right:18px; }
+    .custo-input, .margem-desejada-input { width:150px; padding:7px 8px; border:1px solid var(--borda); border-radius:7px; background:var(--fundo); color:var(--texto); text-align:right; font:inherit; font-size:.82rem; font-variant-numeric:tabular-nums; }
     .custo-input:focus, .margem-desejada-input:focus { outline:2px solid rgba(23,143,160,.2); border-color:var(--dourado); }
     .margem-positiva { color:var(--verde); font-weight:700; }
     .margem-negativa { color:var(--vermelho); font-weight:700; }
@@ -380,6 +389,13 @@
     .financeiro-status.sujo { color:#a86612; font-weight:700; }
     .financeiro-status.salvo { color:var(--verde); font-weight:700; }
     .incc-ajuda { display:block; margin-top:5px; color:var(--texto-suave); font-size:.7rem; line-height:1.35; }
+    .incc-historico { margin-top:16px; border:1px solid var(--borda); border-radius:10px; background:var(--fundo); overflow:hidden; }
+    .incc-historico > summary { cursor:pointer; list-style:none; padding:12px 14px; display:flex; gap:10px; align-items:center; font-weight:750; font-size:.86rem; }
+    .incc-historico > summary::-webkit-details-marker { display:none; }
+    .incc-historico > summary .contagem { margin-left:auto; color:var(--texto-suave); font-size:.74rem; font-weight:500; }
+    .incc-historico-tabela { overflow-x:auto; border-top:1px solid var(--borda); }
+    .incc-historico-tabela table { min-width:650px; }
+    .incc-historico-nota { padding:0 14px 12px; color:var(--texto-suave); font-size:.72rem; line-height:1.45; }
     .publicacao-tecnica { margin-top:16px; border-top:1px solid var(--borda); padding-top:14px; }
     .publicacao-tecnica summary { cursor:pointer; color:var(--texto-suave); font-size:.78rem; }
     .publicacao-tecnica-corpo { margin-top:10px; padding:12px; border:1px solid var(--borda); border-radius:9px; background:var(--fundo); }
@@ -815,7 +831,7 @@
             <div>
               <label for="incc-variacao">Variação do mês (%)</label>
               <input id="incc-variacao" placeholder="Calculada automaticamente" inputmode="decimal" autocomplete="off">
-              <small class="incc-ajuda">Calculada sobre o INCC anterior; você ainda pode ajustar manualmente se precisar.</small>
+              <small class="incc-ajuda" id="incc-variacao-ajuda"></small>
             </div>
             <div>
               <label for="incc-mes">Mês da tabela</label>
@@ -823,7 +839,8 @@
             </div>
             <div>
               <label for="incc-data">Data da tabela</label>
-              <input id="incc-data" placeholder="10/08/2026">
+              <input id="incc-data" type="date" lang="pt-BR" autocomplete="off">
+              <small class="incc-ajuda" id="incc-data-ajuda"></small>
             </div>
             <div>
               <label for="incc-arredondar">Arredondar preços para</label>
@@ -848,6 +865,17 @@
             <button class="botao" id="botao-aplicar-incc">Aplicar correção</button>
             <button class="botao secundario" id="botao-cancelar-incc">Cancelar</button>
           </div>
+
+          <details class="incc-historico" id="historico-incc">
+            <summary>Histórico do INCC <span class="contagem" id="historico-incc-contagem"></span></summary>
+            <div class="incc-historico-tabela">
+              <table>
+                <thead><tr><th>Mês da tabela</th><th>Data</th><th style="text-align:right">INCC</th><th style="text-align:right">Variação</th></tr></thead>
+                <tbody id="historico-incc-corpo"></tbody>
+              </table>
+            </div>
+            <p class="incc-historico-nota">O histórico é salvo junto com a tabela do sistema quando a correção é publicada.</p>
+          </details>
 
           <div class="custos-area">
             <h3>Custos e margem dos itens à venda</h3>
@@ -1717,6 +1745,7 @@
     renderMateriais();
     renderEmps();
     prepararCamposIncc();
+    renderHistoricoIncc();
     renderCustosMargens();
     renderPendentes();
     ativarModulo(estado.moduloAtivo, { rolar: false });
@@ -2973,14 +3002,21 @@
     return Number.isFinite(n) && n >= 0 ? n : null;
   }
 
+  function moedaFinanceira(n) {
+    const valor = Number(n);
+    return Number.isFinite(valor)
+      ? "R$ " + valor.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+      : "—";
+  }
+
   function valorFinanceiro(n, aceitaZero = false) {
     const valor = Number(n);
     if (!Number.isFinite(valor) || (aceitaZero ? valor < 0 : valor <= 0)) return "—";
-    return valor === 0 ? "R$ 0" : moeda(valor);
+    return moedaFinanceira(valor);
   }
 
   function textoMargem(margem) {
-    return margem == null ? "—" : (margem < 0 ? "−" + moeda(Math.abs(margem)) : margem === 0 ? "R$ 0" : moeda(margem));
+    return margem == null ? "—" : (margem < 0 ? "−" + moedaFinanceira(Math.abs(margem)) : moedaFinanceira(margem));
   }
 
   function atualizarLinhaFinanceira(linha, custo, margemDesejada = null) {
@@ -3019,7 +3055,7 @@
           const vendaDesejada = custo && margemDesejada != null ? custo + margemDesejada : null;
           return `<tr data-financeiro-linha data-preco="${preco}" data-chave="${escapeHtml(chave)}">
             <td>${escapeHtml(item.rotulo)}</td>
-            <td class="num"><input class="custo-input" inputmode="decimal" data-custo-chave="${escapeHtml(chave)}" value="${custo ? escapeHtml(moeda(custo)) : ""}" placeholder="Informe o custo" aria-label="Custo de ${escapeHtml(item.rotulo)}"></td>
+            <td class="num"><input class="custo-input" inputmode="decimal" data-custo-chave="${escapeHtml(chave)}" value="${custo ? escapeHtml(moedaFinanceira(custo)) : ""}" placeholder="Informe o custo" aria-label="Custo de ${escapeHtml(item.rotulo)}"></td>
             <td class="num" data-custo-5>${custo ? valorFinanceiro(custo * .95) : "—"}</td>
             <td class="num" data-custo-10>${custo ? valorFinanceiro(custo * .90) : "—"}</td>
             <td class="num"><strong>${valorFinanceiro(preco)}</strong></td>
@@ -3061,12 +3097,12 @@
       });
       input.addEventListener("focus", () => {
         const valor = custoInterno(input.dataset.custoChave);
-        if (valor) input.value = String(valor).replace(".", ",");
+        if (valor) input.value = valor.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         input.select();
       });
       input.addEventListener("blur", () => {
         const valor = custoInterno(input.dataset.custoChave);
-        input.value = valor ? moeda(valor) : "";
+        input.value = valor ? moedaFinanceira(valor) : "";
       });
     });
 
@@ -3100,7 +3136,7 @@
       });
       input.addEventListener("focus", () => {
         const valor = margemDesejadaInterna(input.dataset.margemChave);
-        if (valor != null) input.value = String(valor).replace(".", ",");
+        if (valor != null) input.value = valor.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         input.select();
       });
       input.addEventListener("blur", () => {
@@ -3162,6 +3198,22 @@
     return numeroDeMoeda(estado.dados?.META?.incc?.valor || "");
   }
 
+  function dataBrParaIso(valor) {
+    const m = String(valor || "").trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    return m ? `${m[3]}-${m[2]}-${m[1]}` : "";
+  }
+
+  function dataIsoParaBr(valor) {
+    const m = String(valor || "").trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    return m ? `${m[3]}/${m[2]}/${m[1]}` : "";
+  }
+
+  function formatarCampoIncc() {
+    const campo = $("incc-valor");
+    const valor = numeroDeMoeda(campo.value);
+    if (campo.value.trim() && valor != null && valor > 0) campo.value = moedaFinanceira(valor);
+  }
+
   function calcularVariacaoPeloNovoIncc() {
     const anterior = inccAnteriorNumero();
     const novo = numeroDeMoeda($("incc-valor").value);
@@ -3176,20 +3228,51 @@
 
   function prepararCamposIncc() {
     if (!estado.dados) return;
-    const atual = estado.dados.META.incc?.valor || "";
-    if ($("incc-valor-ajuda")) $("incc-valor-ajuda").textContent = `INCC atual: ${atual}. Ao informar o novo valor, a variação é calculada automaticamente.`;
+    const meta = estado.dados.META || {};
+    const atual = meta.incc?.valor || "";
+    const variacaoAtual = meta.incc?.variacao || "Não informada";
+    if ($("incc-valor-ajuda")) $("incc-valor-ajuda").textContent = `INCC atual: ${atual || "Não informado"}. Ao informar o novo valor, a variação é calculada automaticamente.`;
+    if ($("incc-variacao-ajuda")) $("incc-variacao-ajuda").textContent = `Variação atual: ${variacaoAtual}. A nova variação é calculada sobre o INCC anterior; você ainda pode ajustar manualmente se precisar.`;
+    if ($("incc-data-ajuda")) $("incc-data-ajuda").textContent = `Data atual da tabela: ${meta.dataTabela || "Não informada"}. Use o calendário para escolher a nova data.`;
     $("incc-valor").placeholder = atual ? `Atual: ${atual}` : "Informe o novo índice";
+    $("incc-mes").placeholder = meta.mesTabela ? `Atual: ${meta.mesTabela}` : "Setembro / 2026";
+    $("incc-data").value = "";
+  }
+
+  function historicoInccAtual() {
+    if (!estado.dados) return [];
+    const meta = estado.dados.META || {};
+    const lista = Array.isArray(meta.historicoIncc) ? meta.historicoIncc.map((x) => ({ ...x })) : [];
+    const atual = { mes: meta.mesTabela || "", data: meta.dataTabela || "", valor: meta.incc?.valor || "", variacao: meta.incc?.variacao || "" };
+    const temAtual = lista.some((x) => x.mes === atual.mes && x.data === atual.data && x.valor === atual.valor && x.variacao === atual.variacao);
+    if (atual.valor && !temAtual) lista.push(atual);
+    return lista;
+  }
+
+  function renderHistoricoIncc() {
+    const corpo = $("historico-incc-corpo");
+    if (!corpo) return;
+    const historico = historicoInccAtual();
+    $("historico-incc-contagem").textContent = conta(historico.length, "registro", "registros");
+    corpo.innerHTML = historico.length
+      ? historico.slice().reverse().map((item) => `<tr><td>${escapeHtml(item.mes || "—")}</td><td>${escapeHtml(item.data || "—")}</td><td class="num">${escapeHtml(item.valor || "—")}</td><td class="num">${escapeHtml(item.variacao || "—")}</td></tr>`).join("")
+      : `<tr class="vazio"><td colspan="4">O histórico começa a ser formado na primeira correção publicada.</td></tr>`;
   }
 
   $("incc-valor")?.addEventListener("input", calcularVariacaoPeloNovoIncc);
-  $("incc-valor")?.addEventListener("change", () => {
+  $("incc-valor")?.addEventListener("focus", () => {
+    const valor = numeroDeMoeda($("incc-valor").value);
+    if (valor != null) $("incc-valor").value = valor.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    $("incc-valor").select();
+  });
+  $("incc-valor")?.addEventListener("blur", () => {
     const valor = numeroDeMoeda($("incc-valor").value);
     if ($("incc-valor").value.trim() && (valor == null || valor <= 0)) {
       aviso("Informe um novo INCC válido.", "falha");
       return;
     }
     calcularVariacaoPeloNovoIncc();
-    if (valor && valor > 0) $("incc-valor").value = valor.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    formatarCampoIncc();
   });
 
   function lerVariacao() {
@@ -3229,14 +3312,21 @@
   $("botao-aplicar-incc").addEventListener("click", () => {
     const pct = lerVariacao();
     if (pct === null) return;
+    const valorIncc = numeroDeMoeda($("incc-valor").value);
+    if (!valorIncc || valorIncc <= 0) { aviso("Informe o novo INCC antes de aplicar a correção.", "falha"); return; }
+    const dataBr = dataIsoParaBr($("incc-data").value);
+    if (!dataBr) { aviso("Escolha a data da tabela no calendário.", "falha"); return; }
+    const mes = $("incc-mes").value.trim();
+    if (!mes) { aviso("Informe o mês da tabela.", "falha"); return; }
+    formatarCampoIncc();
     estado.ops = estado.ops.filter((op) => op.tipoOp !== "incc");
     estado.ops.push({
       tipoOp: "incc",
       pct,
       arredondar: $("incc-arredondar").value,
       valor: $("incc-valor").value.trim(),
-      mes: $("incc-mes").value.trim(),
-      data: $("incc-data").value.trim(),
+      mes,
+      data: dataBr,
     });
     $("previa-incc").classList.remove("visivel");
     aviso("Correção do INCC anotada. Clique em “Publicar no site” para valer.", "ok");
@@ -3451,21 +3541,52 @@
     });
   }
 
+  function serializarHistoricoIncc(lista) {
+    const linhas = (lista || []).map((item) => `    { mes: ${JSON.stringify(item.mes || "")}, data: ${JSON.stringify(item.data || "")}, valor: ${JSON.stringify(item.valor || "")}, variacao: ${JSON.stringify(item.variacao || "")} },`);
+    return `historicoIncc: [\n${linhas.join("\n")}\n  ],`;
+  }
+
+  function aplicarHistoricoIncc(texto, lista) {
+    const serial = serializarHistoricoIncc(lista);
+    const pos = texto.search(/historicoIncc:\s*\[/);
+    if (pos >= 0) {
+      const inicioArray = texto.indexOf("[", pos);
+      const fimArray = acharFechamentoBalanceado(texto, inicioArray, "[", "]");
+      if (fimArray < 0) throw new Error("O histórico do INCC ficou incompleto no data.js.");
+      const inicioCampo = texto.lastIndexOf("historicoIncc:", inicioArray);
+      const depois = texto.slice(fimArray + 1);
+      const virgula = depois.match(/^\s*,?/)[0];
+      return texto.slice(0, inicioCampo) + serial + texto.slice(fimArray + 1 + virgula.length);
+    }
+    const ancora = texto.match(/^(\s*)incc:\s*\{[^}]*\},\s*$/m);
+    if (!ancora) throw new Error("Não achei o INCC atual para inserir o histórico.");
+    const indent = ancora[1] || "  ";
+    const serialIndentado = serial.split("\n").map((linha) => indent + linha).join("\n");
+    return texto.replace(ancora[0], ancora[0] + "\n" + serialIndentado);
+  }
+
   function aplicarIncc(texto, op) {
     // Os preços só existem dentro de EMPREENDIMENTOS; o regex \bpreco: não pega "precoPrefixo".
     const inicio = texto.indexOf("const EMPREENDIMENTOS");
     let saida = texto.slice(0, inicio) + texto.slice(inicio).replace(/(\bpreco:\s*)(\d+)/g,
       (m, prefixo, valor) => prefixo + novoPreco(Number(valor), op.pct, op.arredondar));
 
-    const variacaoTexto = (op.pct >= 0 ? "+" : "") + op.pct.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) + "%";
+    const variacaoTexto = (op.pct >= 0 ? "+" : "") + op.pct.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "%";
+    const valorNumero = numeroDeMoeda(op.valor);
+    const valorCompleto = valorNumero != null ? moedaFinanceira(valorNumero) : (op.valor || estado.dados.META.incc?.valor || "");
     if (op.valor) {
-      const valorTexto = op.valor.replace(/^R\$\s*/, "");
-      saida = saida.replace(/incc:\s*\{[^}]*\}/, `incc: { valor: "R$ ${valorTexto}", variacao: "${variacaoTexto}" }`);
+      saida = saida.replace(/incc:\s*\{[^}]*\}/, `incc: { valor: ${JSON.stringify(valorCompleto)}, variacao: ${JSON.stringify(variacaoTexto)} }`);
     } else {
       saida = saida.replace(/(incc:\s*\{[^}]*variacao:\s*")[^"]*(")/, `$1${variacaoTexto}$2`);
     }
-    if (op.mes) saida = saida.replace(/mesTabela:\s*"[^"]*"/, `mesTabela: "${op.mes}"`);
-    if (op.data) saida = saida.replace(/dataTabela:\s*"[^"]*"/, `dataTabela: "${op.data}"`);
+    if (op.mes) saida = saida.replace(/mesTabela:\s*"[^"]*"/, `mesTabela: ${JSON.stringify(op.mes)}`);
+    if (op.data) saida = saida.replace(/dataTabela:\s*"[^"]*"/, `dataTabela: ${JSON.stringify(op.data)}`);
+
+    const historico = historicoInccAtual();
+    const novoRegistro = { mes: op.mes || estado.dados.META.mesTabela || "", data: op.data || estado.dados.META.dataTabela || "", valor: valorCompleto, variacao: variacaoTexto };
+    const duplicado = historico.some((x) => x.mes === novoRegistro.mes && x.data === novoRegistro.data && x.valor === novoRegistro.valor && x.variacao === novoRegistro.variacao);
+    if (!duplicado) historico.push(novoRegistro);
+    saida = aplicarHistoricoIncc(saida, historico);
     return saida;
   }
 
