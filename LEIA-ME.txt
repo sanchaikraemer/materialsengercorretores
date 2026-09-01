@@ -1,4 +1,4 @@
-ATUALIZAÇÃO — MATERIAL SENGER CORRETORES — v172
+ATUALIZAÇÃO — MATERIAL SENGER CORRETORES — v173
 
 Este ZIP contém o projeto completo atualizado.
 
@@ -10,12 +10,12 @@ NOVIDADES DESTA VERSÃO
 - a Chave do GitHub foi movida para Publicação > Acesso técnico para publicar e fica recolhida no uso normal;
 - o botão de “Sair do painel”/encerrar sessão foi retirado da navegação;
 - Correção pelo INCC agora também mostra todos os itens à venda separados por empreendimento, em acordeões (disponíveis e alugados; vendidos ficam fora);
-- a tabela interna possui: Unidade, Custo, Custo - 5%, Custo - 10%, Preço de venda atual e Margem extra;
-- Margem extra = Preço de venda atual - Custo;
+- a tabela interna possui: Unidade, Custo, Custo - 5%, Custo - 10%, Preço de venda atual, Margem extra atual, Margem extra desejada e Venda desejada;
+- Margem extra atual = Preço de venda atual - Custo; Venda desejada = Custo + Margem extra desejada;
 - os custos são internos e ficam apenas no navegador deste aparelho (localStorage). Eles NÃO são enviados ao data.js, GitHub ou site público;
-- a tela possui Importar custos e Exportar backup para levar a tabela interna entre computadores sem expor esses valores;
+- a tela possui Importar backup, Salvar custos e margens e Exportar backup para levar a tabela interna entre computadores sem expor esses valores;
 - enquanto as tabelas de custo não forem fornecidas, os campos de custo ficam vazios e podem ser preenchidos pelo painel;
-- cache atualizado para v172.
+- cache atualizado para v173.
 
 PADRÃO DE ARQUIVOS MOSTRADO NO PAINEL
 - Capa principal: WEBP, JPG ou PNG — 1600 × 900 px — até 5 MB.
@@ -35,9 +35,13 @@ COMO PUBLICAR NO GITHUB
 1. Substitua os arquivos alterados pelos desta versão, mantendo as pastas.
 2. Confirme o commit na branch usada para publicação.
 3. Aguarde a atualização do site.
-4. Confirme no painel que a versão carregada é v172.
+4. Confirme no painel que a versão carregada é v173.
 
-NOVIDADES v172:
+NOVIDADES v173:
+- INCC: mostra a variação anterior abaixo do campo e mantém histórico persistente no data.js.
+- Data da tabela: campo de data real com seletor/calendário e gravação em dd/mm/aaaa.
+- Valores financeiros editáveis com moeda brasileira e 2 casas decimais.
+- Tabela financeira responsiva, sem cortar Venda desejada.
 - botão visível “Salvar custos e margens”, com aviso de alterações não salvas;
 - custos e margens desejadas continuam privados neste navegador e só são persistidos ao clicar em Salvar;
 - nova coluna “Margem extra desejada”, editável por unidade;

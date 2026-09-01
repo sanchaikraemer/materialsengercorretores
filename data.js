@@ -8,6 +8,9 @@ const META = {
   mesTabela: "Agosto / 2026",
   dataTabela: "10/07/2026",
   incc: { valor: "R$ 3.377,91", variacao: "+0,62%" },
+  historicoIncc: [
+    { mes: "Agosto / 2026", data: "10/07/2026", valor: "R$ 3.377,91", variacao: "+0,62%" },
+  ],
   contato: {
     telefones: ["(54) 3331-2756", "(54) 99901-3331", "(54) 98434-6602"],
     instagram: "@construtorasenger",

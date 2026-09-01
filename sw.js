@@ -1,5 +1,5 @@
-const CACHE = "senger-portfolio-v172-20260901-financeiro-incc-auto";
-const CORE = ["./", "./index.html", "./styles.css?v=172", "./data.js?v=172", "./app.js?v=172", "./manifest.json"];
+const CACHE = "senger-portfolio-v173-20260901-incc-historico-moeda-data";
+const CORE = ["./", "./index.html", "./styles.css?v=173", "./data.js?v=173", "./app.js?v=173", "./manifest.json"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
