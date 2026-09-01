@@ -1,4 +1,4 @@
-ATUALIZAÇÃO — MATERIAL SENGER CORRETORES — v171
+ATUALIZAÇÃO — MATERIAL SENGER CORRETORES — v172
 
 Este ZIP contém o projeto completo atualizado.
 
@@ -15,7 +15,7 @@ NOVIDADES DESTA VERSÃO
 - os custos são internos e ficam apenas no navegador deste aparelho (localStorage). Eles NÃO são enviados ao data.js, GitHub ou site público;
 - a tela possui Importar custos e Exportar backup para levar a tabela interna entre computadores sem expor esses valores;
 - enquanto as tabelas de custo não forem fornecidas, os campos de custo ficam vazios e podem ser preenchidos pelo painel;
-- cache atualizado para v171.
+- cache atualizado para v172.
 
 PADRÃO DE ARQUIVOS MOSTRADO NO PAINEL
 - Capa principal: WEBP, JPG ou PNG — 1600 × 900 px — até 5 MB.
@@ -35,4 +35,12 @@ COMO PUBLICAR NO GITHUB
 1. Substitua os arquivos alterados pelos desta versão, mantendo as pastas.
 2. Confirme o commit na branch usada para publicação.
 3. Aguarde a atualização do site.
-4. Confirme no painel que a versão carregada é v171.
+4. Confirme no painel que a versão carregada é v172.
+
+NOVIDADES v172:
+- botão visível “Salvar custos e margens”, com aviso de alterações não salvas;
+- custos e margens desejadas continuam privados neste navegador e só são persistidos ao clicar em Salvar;
+- nova coluna “Margem extra desejada”, editável por unidade;
+- nova coluna “Venda desejada” = custo + margem extra desejada;
+- a variação mensal do INCC agora é calculada automaticamente quando o novo INCC é informado, comparando com o índice atual da tabela;
+- custos já digitados na v171 são migrados automaticamente.

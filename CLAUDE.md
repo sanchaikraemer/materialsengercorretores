@@ -24,7 +24,7 @@ um painel administrativo que o dono usa pelo celular.
   `EMPREENDIMENTOS`.
 - `admin/index.html` — o painel administrativo, uma página só, sem build. Lê e
   grava o `data.js` direto pela API do GitHub, na branch `main`.
-  A interface usa navegação lateral em acordeão/colapsável (v171), com módulos separados e a paleta original do painel. Configurações não é um módulo: a chave do GitHub fica recolhida em Publicação > Acesso técnico.
+  A interface usa navegação lateral em acordeão/colapsável (v172), com módulos separados e a paleta original do painel. Configurações não é um módulo: a chave do GitHub fica recolhida em Publicação > Acesso técnico.
 - `sw.js` — service worker. Navegação e arquivos do site são buscados da rede
   primeiro, então o painel nunca fica preso em cache.
 - `l/` — as **páginas-ponte**, geradas por `tools/gerar-pontes.js`. Uma por
@@ -192,3 +192,10 @@ e devolvendo os arquivos locais em base64, com
 Vale sempre conferir duas coisas: que a rotina de publicação altera o item certo
 sem tocar nos vizinhos, e que o site público continua sem mostrar o que é só do
 painel.
+
+### Financeiro interno (v172)
+- Em Correção pelo INCC, custos e margens desejadas são dados privados do painel e não entram no `data.js`/site público.
+- O usuário edita custo e margem extra desejada por item e confirma em **Salvar custos e margens**; antes disso o painel mostra **Alterações não salvas** e alerta ao fechar a aba.
+- `Margem extra atual = preço de venda atual - custo`; `Venda desejada = custo + margem extra desejada`.
+- O novo valor do INCC calcula automaticamente a variação percentual sobre `META.incc.valor`; a variação permanece ajustável manualmente se necessário.
+- Backups financeiros v2 levam `custos` e `margensDesejadas`; backups/custos legados v171 continuam importáveis.
