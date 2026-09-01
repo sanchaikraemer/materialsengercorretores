@@ -1,3 +1,4 @@
+<!-- SENGER ADMIN BUILD v171 - menu acordeao + central materiais + custos/margens -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -184,18 +185,8 @@
       border-radius: 10px;
       padding: 14px;
     }
-    /* O cartao e um botao: clicar nele abre o empreendimento logo abaixo. */
-    button.card {
-      font: inherit; color: inherit; text-align: left; cursor: pointer;
-      width: 100%; display: flex; flex-direction: column;
-    }
-    button.card:hover { border-color: var(--dourado); }
-    button.card:focus-visible { outline: 2px solid var(--dourado); outline-offset: 2px; }
-    button.card.ativo { border-color: var(--dourado); box-shadow: inset 0 0 0 1px var(--dourado); }
-    button.card .abrir {
-      display: block; margin-top: auto; padding-top: 12px; color: var(--dourado);
-      font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
-    }
+    /* Os cartões da visão geral são apenas resumo. A navegação fica no menu,
+       para não existir “Abrir” genérico sem deixar claro o destino. */
     .vazio-emp { margin: 0; }
     .card h3 {
       font-size: .92rem; margin-bottom: 8px;
@@ -293,13 +284,13 @@
     }
     .pend-emp li.grave::before { background: var(--vermelho); }
     .pend-emp li b { color: var(--vermelho); font-weight: 600; }
-    .pend-emp .abrir {
-      display: inline-block; margin-top: 10px; padding: 0;
-      border: none; background: none; font: inherit; font-size: .78rem;
-      font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
-      color: var(--dourado); cursor: pointer;
+    .pend-emp li .pend-texto { display:block; }
+    .pend-acao {
+      display:inline-block; margin-top:5px; padding:0; border:0; background:none;
+      color:var(--dourado-escuro); font:inherit; font-size:.72rem; font-weight:750;
+      cursor:pointer; text-decoration:underline; text-underline-offset:2px;
     }
-    .pend-emp .abrir:hover { color: var(--dourado-escuro); }
+    .pend-acao:hover { color:var(--dourado); }
 
     /* v168 — central de materiais: capa, logo, galeria, plantas, folder e video. */
     .materiais-lista { display: grid; gap: 14px; }
@@ -369,6 +360,26 @@
     .previa.visivel { display: block; }
     .previa .resumo { font-size: .88rem; margin-bottom: 10px; color: var(--texto-suave); }
     .tabela-previa { max-height: 320px; overflow: auto; border: 1px solid var(--borda); border-radius: 8px; }
+    .custos-area { margin-top:22px; padding-top:20px; border-top:1px solid var(--borda); }
+    .custos-area h3 { font-size:.98rem; margin-bottom:5px; }
+    .custos-nota { color:var(--texto-suave); font-size:.8rem; line-height:1.5; margin-bottom:12px; }
+    .custos-nota strong { color:var(--texto); }
+    .custos-acoes { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:0 0 14px; }
+    .custos-acoes span { color:var(--texto-suave); font-size:.72rem; }
+    .financeiro-emp { border:1px solid var(--borda); border-radius:10px; background:var(--fundo); margin-bottom:10px; overflow:hidden; }
+    .financeiro-emp > summary { cursor:pointer; list-style:none; padding:12px 14px; display:flex; align-items:center; gap:10px; font-weight:750; font-size:.86rem; }
+    .financeiro-emp > summary::-webkit-details-marker { display:none; }
+    .financeiro-emp > summary .contagem { margin-left:auto; color:var(--texto-suave); font-size:.74rem; font-weight:500; }
+    .financeiro-tabela { overflow:auto; border-top:1px solid var(--borda); background:var(--cartao); }
+    .financeiro-tabela table { min-width:880px; }
+    .custo-input { width:130px; padding:7px 8px; border:1px solid var(--borda); border-radius:7px; background:var(--fundo); color:var(--texto); text-align:right; font:inherit; font-size:.82rem; font-variant-numeric:tabular-nums; }
+    .custo-input:focus { outline:2px solid rgba(23,143,160,.2); border-color:var(--dourado); }
+    .margem-positiva { color:var(--verde); font-weight:700; }
+    .margem-negativa { color:var(--vermelho); font-weight:700; }
+    .publicacao-tecnica { margin-top:16px; border-top:1px solid var(--borda); padding-top:14px; }
+    .publicacao-tecnica summary { cursor:pointer; color:var(--texto-suave); font-size:.78rem; }
+    .publicacao-tecnica-corpo { margin-top:10px; padding:12px; border:1px solid var(--borda); border-radius:9px; background:var(--fundo); }
+    .publicacao-tecnica-corpo p { color:var(--texto-suave); font-size:.78rem; line-height:1.5; margin:0; }
 
     /* tabelas */
     table { width: 100%; border-collapse: collapse; font-size: .86rem; }
@@ -539,10 +550,6 @@
       color:var(--texto-suave); font-size:.86rem; line-height:1.55;
     }
     .publicacao-status strong { color:var(--texto); }
-    .config-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px; }
-    .config-card { padding:16px; border:1px solid var(--borda); border-radius:10px; background:var(--fundo); }
-    .config-card h3 { font-size:.9rem; margin-bottom:5px; }
-    .config-card p { color:var(--texto-suave); font-size:.8rem; line-height:1.5; }
     .menu-mobile, .sidebar-fechar, .sidebar-overlay { display:none; }
     .sidebar-fechar {
       border:1px solid var(--borda); background:var(--fundo); color:var(--texto); border-radius:8px;
@@ -624,8 +631,9 @@
       <p class="motivo" id="motivo-chave"></p>
       <div class="nota" style="margin-top:0">
         <strong>Se você já tem a chave em outro aparelho, não precisa criar outra.</strong>
-        No aparelho que ainda entra no painel, toque em <strong>Chave</strong> lá em cima, depois em
-        <strong>Copiar</strong>, mande o código para você mesmo (WhatsApp, e-mail) e cole aqui embaixo.
+        No aparelho que ainda entra no painel, abra <strong>Publicação → Acesso técnico para publicar</strong>,
+        toque em <strong>Gerenciar chave</strong>, depois em <strong>Copiar</strong>, mande o código para você mesmo
+        (WhatsApp, e-mail) e cole aqui embaixo.
         A mesma chave funciona no celular e no computador ao mesmo tempo.
       </div>
       <details class="dobra">
@@ -684,8 +692,6 @@
         <span class="pendentes" id="badge-pendentes"></span>
         <button class="botao" id="botao-publicar" disabled>Publicar no site</button>
         <button class="botao secundario" id="botao-descartar" style="display:none">Descartar</button>
-        <button class="botao secundario" id="botao-chave" style="display:none">Chave</button>
-        <button class="botao secundario" id="botao-sair" style="display:none">Sair</button>
       </div>
     </header>
 
@@ -722,13 +728,6 @@
           <button type="button" class="nav-item" data-modulo-alvo="incc"><span class="nav-icone">%</span>Correção pelo INCC</button>
           <button type="button" class="nav-item" data-modulo-alvo="publicacao"><span class="nav-icone">↑</span>Publicação</button>
 
-          <div class="nav-accordion" data-nav-grupo="configuracoes">
-            <button type="button" class="nav-accordion-toggle" data-accordion-toggle="configuracoes" aria-expanded="false"><span class="nav-icone">⚙</span>Configurações <span class="nav-seta">⌄</span></button>
-            <div class="nav-submenu">
-              <button type="button" class="nav-subitem" data-modulo-alvo="configuracoes" data-config-acao="chave">Chave do GitHub</button>
-              <button type="button" class="nav-subitem" data-modulo-alvo="configuracoes" data-config-acao="sair">Sair do painel</button>
-            </div>
-          </div>
         </nav>
         <div class="sidebar-rodape" id="sidebar-versao">—</div>
       </aside>
@@ -777,8 +776,8 @@
         <section class="bloco" data-modulo="visao" data-visao-secao="cadastro">
           <h2>O que falta no cadastro</h2>
           <p class="descricao">Tudo o que ainda falta para cada empreendimento seguir o mesmo padr&atilde;o comercial.
-            Capa, fotos, plantas, folder PDF e v&iacute;deo podem ser resolvidos na Central de Materiais logo abaixo; metragem,
-            garagem, RI e demais dados continuam nesta lista para confer&ecirc;ncia.</p>
+            Quando o painel consegue corrigir o item, a pr&oacute;pria pend&ecirc;ncia mostra o atalho para o m&oacute;dulo certo.
+            Itens sem editor no painel ficam apenas para confer&ecirc;ncia, sem bot&atilde;o gen&eacute;rico.</p>
           <p class="resumo-cadastro" id="cadastro-resumo">&mdash;</p>
           <div class="pend-lista" id="cadastro"></div>
           <button class="botao secundario" id="botao-copiar-cadastro">Copiar essa lista</button>
@@ -843,6 +842,18 @@
             <button class="botao" id="botao-aplicar-incc">Aplicar correção</button>
             <button class="botao secundario" id="botao-cancelar-incc">Cancelar</button>
           </div>
+
+          <div class="custos-area">
+            <h3>Custos e margem dos itens à venda</h3>
+            <p class="custos-nota"><strong>Custo - 5%</strong> = custo × 0,95 · <strong>Custo - 10%</strong> = custo × 0,90 · <strong>Margem extra</strong> = preço de venda atual − custo. Os custos são informação interna: ficam salvos somente neste navegador e não são enviados ao site público.</p>
+            <div class="custos-acoes">
+              <label class="botao-arquivo" for="arquivo-importar-custos">Importar custos</label>
+              <input class="arquivo-input" type="file" id="arquivo-importar-custos" accept="application/json,.json">
+              <button type="button" class="botao secundario" id="botao-exportar-custos" style="margin-top:0">Exportar backup</button>
+              <span>Use o backup para levar os custos a outro computador sem publicar esses valores.</span>
+            </div>
+            <div id="custos-venda"></div>
+          </div>
         </section>
 
         <!-- Unidades -->
@@ -867,28 +878,13 @@
             <button class="botao" id="botao-publicar-modulo" disabled>Publicar no site</button>
             <button class="botao secundario" id="botao-descartar-modulo" style="display:none">Descartar alterações</button>
           </div>
-        </section>
-
-        <!-- Configurações -->
-        <section class="bloco" data-modulo="configuracoes">
-          <h2>Configurações</h2>
-          <p class="descricao">Acesso ao GitHub e sessão deste aparelho. Nenhuma dessas opções altera o conteúdo comercial do site.</p>
-          <div class="config-grid">
-            <div class="config-card">
-              <h3>Chave do GitHub</h3>
-              <p>Veja a chave cadastrada neste aparelho, copie para outro dispositivo ou cadastre outra chave.</p>
-              <button class="botao secundario" id="botao-chave-modulo">Gerenciar chave</button>
+          <details class="publicacao-tecnica">
+            <summary>Acesso técnico para publicar</summary>
+            <div class="publicacao-tecnica-corpo">
+              <p>A chave do GitHub só é necessária para o painel conseguir gravar as alterações. Não precisa mexer nela no uso normal.</p>
+              <button class="botao secundario" id="botao-chave-publicacao">Gerenciar chave</button>
             </div>
-            <div class="config-card">
-              <h3>Versão carregada</h3>
-              <p id="config-versao">—</p>
-            </div>
-            <div class="config-card">
-              <h3>Encerrar sessão</h3>
-              <p>Sai do painel neste navegador. A chave do GitHub continua guardada até você trocá-la.</p>
-              <button class="botao secundario" id="botao-sair-modulo">Sair do painel</button>
-            </div>
-          </div>
+          </details>
         </section>
 
       </div>
@@ -935,11 +931,26 @@
     dados: null,       // { META, EMPREENDIMENTOS } avaliados do data.js
     versao: 0,         // número atual do "?v=" do index.html
     ops: [],           // alterações pendentes, aplicadas só no "Publicar"
-    empAberto: null,   // id do empreendimento escolhido no cartão
+    empAberto: null,   // id do empreendimento escolhido no seletor do painel
     moduloAtivo: "visao",
     visaoFiltro: "estoque",
     materialFiltro: "identidade",
   };
+
+  // Custos são informação interna. O site é público, portanto estes valores
+  // NÃO entram no data.js nem no GitHub: ficam somente neste navegador.
+  const CUSTOS_ITEM = "senger-admin-custos-v1";
+  function lerCustosInternos() {
+    try {
+      const obj = JSON.parse(localStorage.getItem(CUSTOS_ITEM) || "{}");
+      return obj && typeof obj === "object" ? obj : {};
+    } catch (e) { return {}; }
+  }
+  let custosInternos = lerCustosInternos();
+  function salvarCustosInternos() {
+    try { localStorage.setItem(CUSTOS_ITEM, JSON.stringify(custosInternos)); }
+    catch (e) { aviso("Não consegui salvar os custos neste navegador.", "falha"); }
+  }
 
   const $ = (id) => document.getElementById(id);
 
@@ -1039,9 +1050,8 @@
     visao: ["Visão geral", "Resumo do estoque, movimento e pendências do cadastro."],
     materiais: ["Materiais dos empreendimentos", "Capa, galeria, plantas, folder e vídeo em uma área separada por tipo de material."],
     estoque: ["Estoque / Unidades", "Disponibilidade, preços, garagem e status das unidades do empreendimento escolhido."],
-    incc: ["Correção pelo INCC", "Atualização mensal de preços com pré-visualização antes de aplicar."],
+    incc: ["Correção pelo INCC", "Atualização mensal de preços e conferência interna de custos e margens."],
     publicacao: ["Publicação", "Revisão das alterações pendentes antes de enviar ao site."],
-    configuracoes: ["Configurações", "Chave do GitHub, versão carregada e sessão deste aparelho."],
   };
 
   function fecharMenuMobile() {
@@ -1091,10 +1101,6 @@
     if (estado.moduloAtivo === "materiais") {
       document.querySelector('[data-nav-grupo="materiais"]')?.classList.add("aberto");
       document.querySelector('[data-accordion-toggle="materiais"]')?.setAttribute("aria-expanded", "true");
-    }
-    if (estado.moduloAtivo === "configuracoes") {
-      document.querySelector('[data-nav-grupo="configuracoes"]')?.classList.add("aberto");
-      document.querySelector('[data-accordion-toggle="configuracoes"]')?.setAttribute("aria-expanded", "true");
     }
   }
 
@@ -1146,8 +1152,6 @@
         visaoFiltro: botao.dataset.visaoFiltro || undefined,
         materialFiltro: botao.dataset.materialFiltro || undefined,
       });
-      if (botao.dataset.configAcao === "chave") abrirTelaDaChave("tela-painel");
-      if (botao.dataset.configAcao === "sair") $("botao-sair").click();
     });
   });
 
@@ -1663,13 +1667,13 @@
     const infoTexto = `v${estado.versao} · ${meta.mesTabela} · INCC ${meta.incc.valor} (${meta.incc.variacao})`;
     $("info-versao").textContent = infoTexto;
     if ($("sidebar-versao")) $("sidebar-versao").textContent = infoTexto;
-    if ($("config-versao")) $("config-versao").textContent = infoTexto;
     popularSeletorEmp();
     renderDashboard();
     renderUso();
     renderCadastro();
     renderMateriais();
     renderEmps();
+    renderCustosMargens();
     renderPendentes();
     ativarModulo(estado.moduloAtivo, { rolar: false });
   }
@@ -1778,26 +1782,14 @@
       const marcaCadastro = faltando
         ? `<div class="falta-cadastro">${conta(faltando, "ponto a preencher no cadastro", "pontos a preencher no cadastro")}</div>`
         : "";
-      const ativo = estado.empAberto === emp.id;
       // Quanto do estoque de unidades ja foi vendido. Box ficam de fora: sao
       // vendidos a parte e distorceriam o numero do empreendimento.
       const pct = Math.round(((contagem.vendido || 0) / itens.length) * 100);
-      return `<button type="button" class="card${ativo ? " ativo" : ""}" data-emp="${escapeHtml(emp.id)}" aria-expanded="${ativo}">
+      return `<div class="card" data-emp="${escapeHtml(emp.id)}">
         <h3>${escapeHtml(emp.nome)} <span class="pct${pct ? " tem" : ""}">${pct}% vendido</span></h3>${linhas}
         <div class="linha" style="border-top:1px solid var(--borda);margin-top:6px;padding-top:6px"><span>Total</span><strong>${itens.length}</strong></div>${linhasTipo}${listaUnidades}${blocoGaragem}${marcaCadastro}
-        <span class="abrir">${ativo ? "Fechar" : "Abrir"}</span>
-      </button>`;
+      </div>`;
     }).join("");
-
-    // O cartao e a porta de entrada do empreendimento: clicou, abre a lista.
-    alvo.querySelectorAll(".card").forEach((card) => {
-      card.addEventListener("click", () => {
-        const id = card.dataset.emp;
-        estado.empAberto = estado.empAberto === id ? null : id;
-        renderDashboard();
-        mostrarEmpAberto(true);
-      });
-    });
   }
 
   function renderMateriais() {
@@ -2080,6 +2072,7 @@
         anotarMaterial(emp, "video", valor);
         renderDashboard();
         renderCadastro();
+        renderCustosMargens();
         renderPendentes();
       });
     });
@@ -2102,14 +2095,12 @@
     const alvo = $("cadastro");
     alvo.innerHTML = comFalta.map(({ emp, faltas }) => `<div class="pend-emp">
         <h3>${escapeHtml(emp.nome)} <span class="quantos">${faltas.length} a preencher</span></h3>
-        <ul>${faltas.map((f) => `<li${f.grave ? ` class="grave"` : ""}>${f.texto}</li>`).join("")}</ul>
-        <button type="button" class="abrir" data-emp="${escapeHtml(emp.id)}">Abrir o empreendimento</button>
+        <ul>${faltas.map((f) => `<li${f.grave ? ` class="grave"` : ""}><span class="pend-texto">${f.texto}</span>${f.destino ? `<button type="button" class="pend-acao" data-emp="${escapeHtml(emp.id)}" data-modulo="${escapeHtml(f.destino.modulo)}" data-material="${escapeHtml(f.destino.materialFiltro || "")}">${escapeHtml(f.destino.rotulo)}</button>` : ""}</li>`).join("")}</ul>
       </div>`).join("");
-    alvo.querySelectorAll("button.abrir").forEach((botao) => {
+    alvo.querySelectorAll("button.pend-acao").forEach((botao) => {
       botao.addEventListener("click", () => {
         estado.empAberto = botao.dataset.emp;
-        renderDashboard();
-        mostrarEmpAberto(true);
+        ativarModulo(botao.dataset.modulo, { materialFiltro: botao.dataset.material || undefined });
       });
     });
   }
@@ -2150,7 +2141,7 @@
     aviso("Contagem zerada. Ela recomeça a partir de hoje.", "ok");
   });
 
-  // Só o empreendimento escolhido no cartão fica na tela.
+  // Só o empreendimento escolhido no seletor fica na tela.
   function mostrarEmpAberto(rolar) {
     if (rolar && estado.moduloAtivo !== "estoque") ativarModulo("estoque", { rolar: false });
     const bloco = $("bloco-unidades");
@@ -2727,7 +2718,7 @@
   // esta lista continua mostrando tambem metragem, garagem, RI e demais dados.
   function pendenciasDoEmp(emp) {
     const itens = [];
-    const marca = (texto, grave) => itens.push({ texto, grave: !!grave });
+    const marca = (texto, grave, destino) => itens.push({ texto, grave: !!grave, destino: destino || null });
     const todos = itensDoEmp(emp);
     if (!todos.length) return itens;
     const n = nomes(emp);
@@ -2782,7 +2773,7 @@
       if (!g.garagem && !ehComercial(rotulo)) semGaragem.push(rotulo);
     });
     if (semArea.length) marca(`${dizerTipologias(semArea)} sem a metragem`);
-    if (semPlanta.length) marca(`${dizerTipologias(semPlanta)} sem planta ligada — quem abre o link da unidade vê as plantas de todas as outras junto`);
+    if (semPlanta.length) marca(`${dizerTipologias(semPlanta)} sem planta ligada — quem abre o link da unidade vê as plantas de todas as outras junto`, false, { modulo: "materiais", materialFiltro: "plantas", rotulo: "Corrigir em Plantas" });
     if (semGaragem.length) marca(`${dizerTipologias(semGaragem)} sem a garagem informada`);
 
     // 3. A regra de garagem. Sem ela a tipologia fica fora da conferencia dos
@@ -2798,13 +2789,13 @@
     // 4. O que o corretor ve na ficha do empreendimento. "Outros Imoveis" fica
     // de fora: la cada imovel tem a sua propria ficha, e nao ha ficha do grupo.
     if (emp.id !== "outros") {
-      if (!materialAtual(emp, "hero")) marca("sem foto de capa", true);
-      if (!galeriaAtual(emp).some((item) => !ehPlantaMidia(item))) marca("sem fotos na galeria", true);
+      if (!materialAtual(emp, "hero")) marca("sem foto de capa", true, { modulo: "materiais", materialFiltro: "identidade", rotulo: "Corrigir em Capa e logo" });
+      if (!galeriaAtual(emp).some((item) => !ehPlantaMidia(item))) marca("sem fotos na galeria", true, { modulo: "materiais", materialFiltro: "galeria", rotulo: "Corrigir em Galeria de fotos" });
       const folder = materialAtual(emp, "folder");
       const video = materialAtual(emp, "video");
-      if (!folder) marca("<b>sem folder em PDF</b> — o padrão comercial exige 1 folder por empreendimento", true);
-      else if (!materialParecePdf(folder)) marca("folder cadastrado não parece ser um arquivo PDF — conferir o link/caminho", true);
-      if (!video) marca("<b>sem vídeo oficial</b> — o padrão comercial exige 1 vídeo por empreendimento", true);
+      if (!folder) marca("<b>sem folder em PDF</b> — o padrão comercial exige 1 folder por empreendimento", true, { modulo: "materiais", materialFiltro: "comerciais", rotulo: "Corrigir em Folder e vídeo" });
+      else if (!materialParecePdf(folder)) marca("folder cadastrado não parece ser um arquivo PDF — conferir o link/caminho", true, { modulo: "materiais", materialFiltro: "comerciais", rotulo: "Corrigir em Folder e vídeo" });
+      if (!video) marca("<b>sem vídeo oficial</b> — o padrão comercial exige 1 vídeo por empreendimento", true, { modulo: "materiais", materialFiltro: "comerciais", rotulo: "Corrigir em Folder e vídeo" });
       // Registro de incorporacao e coisa de predio: loteamento nao tem.
       if ((emp.grupos || []).length && !(emp.ri || []).length) marca("sem o registro de incorporação — na ficha sai “Não informado”");
     }
@@ -2889,6 +2880,7 @@
         // Marcar como vendido muda o que falta: a unidade passa a precisar de
         // box vinculado e nao pode mais ficar com o preco de tabela.
         renderCadastro();
+        renderCustosMargens();
         renderPendentes();
       });
     });
@@ -2914,6 +2906,137 @@
         : `<strong>Nenhuma alteração pendente.</strong><br>O site já está igual ao que aparece no painel.`;
     }
   }
+
+  // ---------------- custos e margens (interno, somente neste navegador) ----------------
+
+  function numeroDeMoeda(valor) {
+    let t = String(valor || "").trim().replace(/R\$/gi, "").replace(/\s/g, "");
+    if (!t) return null;
+    if (t.includes(",")) t = t.replace(/\./g, "").replace(",", ".");
+    else if (/^\d{1,3}(?:\.\d{3})+$/.test(t)) t = t.replace(/\./g, "");
+    const n = Number(t);
+    return Number.isFinite(n) && n >= 0 ? n : null;
+  }
+
+  function custoInterno(chave) {
+    const n = Number(custosInternos[chave]);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  }
+
+  function valorFinanceiro(n) {
+    return Number.isFinite(Number(n)) && Number(n) > 0 ? moeda(Number(n)) : "—";
+  }
+
+  function atualizarLinhaFinanceira(linha, custo) {
+    const preco = Number(linha.dataset.preco || 0);
+    linha.querySelector("[data-custo-5]").textContent = custo ? valorFinanceiro(custo * .95) : "—";
+    linha.querySelector("[data-custo-10]").textContent = custo ? valorFinanceiro(custo * .90) : "—";
+    const margem = custo && preco ? preco - custo : null;
+    const cel = linha.querySelector("[data-margem]");
+    cel.textContent = margem == null ? "—" : (margem < 0 ? "−" + moeda(Math.abs(margem)) : margem === 0 ? "R$ 0" : moeda(margem));
+    cel.classList.toggle("margem-positiva", margem != null && margem >= 0);
+    cel.classList.toggle("margem-negativa", margem != null && margem < 0);
+  }
+
+  function renderCustosMargens() {
+    const alvo = $("custos-venda");
+    if (!alvo || !estado.dados) return;
+    const grupos = estado.dados.EMPREENDIMENTOS.map((emp) => ({
+      emp,
+      // Alugado continua sendo produto à venda (investidor compra com o inquilino dentro).
+      itens: itensDoEmp(emp).filter((item) => statusAtual(emp.id, item) !== "vendido"),
+    })).filter(({ itens }) => itens.length);
+
+    alvo.innerHTML = grupos.map(({ emp, itens }) => `<details class="financeiro-emp">
+      <summary>${escapeHtml(emp.nome)} <span class="contagem">${conta(itens.length, "item à venda", "itens à venda")}</span></summary>
+      <div class="financeiro-tabela"><table>
+        <thead><tr><th>Unidade</th><th style="text-align:right">Custo</th><th style="text-align:right">Custo - 5%</th><th style="text-align:right">Custo - 10%</th><th style="text-align:right">Preço de venda atual</th><th style="text-align:right">Margem extra</th></tr></thead>
+        <tbody>${itens.map((item) => {
+          const chave = chaveDoItem(emp.id, item);
+          const custo = custoInterno(chave);
+          const preco = Number(item.preco || 0);
+          const margem = custo && preco ? preco - custo : null;
+          const margemTexto = margem == null ? "—" : (margem < 0 ? "−" + moeda(Math.abs(margem)) : margem === 0 ? "R$ 0" : moeda(margem));
+          const classeMargem = margem == null ? "" : margem < 0 ? " margem-negativa" : " margem-positiva";
+          return `<tr data-financeiro-linha data-preco="${preco}">
+            <td>${escapeHtml(item.rotulo)}</td>
+            <td class="num"><input class="custo-input" inputmode="decimal" data-custo-chave="${escapeHtml(chave)}" value="${custo ? escapeHtml(moeda(custo)) : ""}" placeholder="Informe o custo" aria-label="Custo de ${escapeHtml(item.rotulo)}"></td>
+            <td class="num" data-custo-5>${custo ? valorFinanceiro(custo * .95) : "—"}</td>
+            <td class="num" data-custo-10>${custo ? valorFinanceiro(custo * .90) : "—"}</td>
+            <td class="num"><strong>${valorFinanceiro(preco)}</strong></td>
+            <td class="num${classeMargem}" data-margem>${margemTexto}</td>
+          </tr>`;
+        }).join("")}</tbody>
+      </table></div>
+    </details>`).join("");
+
+    alvo.querySelectorAll("input[data-custo-chave]").forEach((input) => {
+      const linha = input.closest("tr[data-financeiro-linha]");
+      input.addEventListener("input", () => atualizarLinhaFinanceira(linha, numeroDeMoeda(input.value)));
+      input.addEventListener("change", () => {
+        const chave = input.dataset.custoChave;
+        const bruto = input.value.trim();
+        const valor = numeroDeMoeda(bruto);
+        if (bruto && (valor == null || valor <= 0)) {
+          aviso("Custo inválido. Informe um valor maior que zero.", "falha");
+          const anterior = custoInterno(chave);
+          input.value = anterior ? moeda(anterior) : "";
+          atualizarLinhaFinanceira(linha, anterior);
+          return;
+        }
+        if (!bruto) delete custosInternos[chave];
+        else custosInternos[chave] = valor;
+        salvarCustosInternos();
+        input.value = valor && valor > 0 ? moeda(valor) : "";
+        atualizarLinhaFinanceira(linha, valor && valor > 0 ? valor : null);
+      });
+      input.addEventListener("focus", () => {
+        const valor = custoInterno(input.dataset.custoChave);
+        if (valor) input.value = String(valor).replace(".", ",");
+        input.select();
+      });
+      input.addEventListener("blur", () => {
+        const valor = custoInterno(input.dataset.custoChave);
+        input.value = valor ? moeda(valor) : "";
+      });
+    });
+  }
+
+  $("arquivo-importar-custos")?.addEventListener("change", async (e) => {
+    const arquivo = e.target.files?.[0];
+    if (!arquivo) return;
+    try {
+      const bruto = JSON.parse(await arquivo.text());
+      const mapa = bruto && typeof bruto === "object" && bruto.custos && typeof bruto.custos === "object" ? bruto.custos : bruto;
+      if (!mapa || typeof mapa !== "object" || Array.isArray(mapa)) throw new Error("formato inválido");
+      const validos = {};
+      Object.entries(mapa).forEach(([chave, valor]) => {
+        const n = Number(valor);
+        if (chave && Number.isFinite(n) && n > 0) validos[chave] = n;
+      });
+      if (!Object.keys(validos).length) throw new Error("nenhum custo válido encontrado");
+      custosInternos = { ...custosInternos, ...validos };
+      salvarCustosInternos();
+      renderCustosMargens();
+      aviso(`${Object.keys(validos).length} custos importados neste navegador.`, "ok");
+    } catch (err) {
+      aviso(`Não consegui importar os custos: ${err.message}.`, "falha");
+    } finally {
+      e.target.value = "";
+    }
+  });
+
+  $("botao-exportar-custos")?.addEventListener("click", () => {
+    const blob = new Blob([JSON.stringify({ versao: 1, exportadoEm: new Date().toISOString(), custos: custosInternos }, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `custos-senger-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
 
   // ---------------- INCC ----------------
 
@@ -3412,8 +3535,7 @@
     mostrarTela("tela-chave");
   }
 
-  $("botao-chave").addEventListener("click", () => abrirTelaDaChave("tela-painel"));
-  $("botao-chave-modulo")?.addEventListener("click", () => $("botao-chave").click());
+  $("botao-chave-publicacao")?.addEventListener("click", () => abrirTelaDaChave("tela-painel"));
 
   $("link-diario").addEventListener("click", (e) => {
     e.preventDefault();
@@ -3457,14 +3579,6 @@
     $("erro-token").classList.remove("visivel");
     mostrarTela("tela-token");
   });
-
-  $("botao-sair").addEventListener("click", () => {
-    sessionStorage.removeItem("senger-admin-ok");
-    mostrarTela("tela-login");
-    $("campo-senha").value = "";
-  });
-
-  $("botao-sair-modulo")?.addEventListener("click", () => $("botao-sair").click());
 
   $("botao-descartar").addEventListener("click", () => {
     estado.ops = [];
