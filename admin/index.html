@@ -1,4 +1,4 @@
-<!-- SENGER ADMIN BUILD v171 - menu acordeao + central materiais + custos/margens -->
+<!-- SENGER ADMIN BUILD v172 - menu acordeao + central materiais + financeiro interno -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -371,11 +371,15 @@
     .financeiro-emp > summary::-webkit-details-marker { display:none; }
     .financeiro-emp > summary .contagem { margin-left:auto; color:var(--texto-suave); font-size:.74rem; font-weight:500; }
     .financeiro-tabela { overflow:auto; border-top:1px solid var(--borda); background:var(--cartao); }
-    .financeiro-tabela table { min-width:880px; }
-    .custo-input { width:130px; padding:7px 8px; border:1px solid var(--borda); border-radius:7px; background:var(--fundo); color:var(--texto); text-align:right; font:inherit; font-size:.82rem; font-variant-numeric:tabular-nums; }
-    .custo-input:focus { outline:2px solid rgba(23,143,160,.2); border-color:var(--dourado); }
+    .financeiro-tabela table { min-width:1240px; }
+    .custo-input, .margem-desejada-input { width:130px; padding:7px 8px; border:1px solid var(--borda); border-radius:7px; background:var(--fundo); color:var(--texto); text-align:right; font:inherit; font-size:.82rem; font-variant-numeric:tabular-nums; }
+    .custo-input:focus, .margem-desejada-input:focus { outline:2px solid rgba(23,143,160,.2); border-color:var(--dourado); }
     .margem-positiva { color:var(--verde); font-weight:700; }
     .margem-negativa { color:var(--vermelho); font-weight:700; }
+    .financeiro-status { font-size:.74rem; color:var(--texto-suave); }
+    .financeiro-status.sujo { color:#a86612; font-weight:700; }
+    .financeiro-status.salvo { color:var(--verde); font-weight:700; }
+    .incc-ajuda { display:block; margin-top:5px; color:var(--texto-suave); font-size:.7rem; line-height:1.35; }
     .publicacao-tecnica { margin-top:16px; border-top:1px solid var(--borda); padding-top:14px; }
     .publicacao-tecnica summary { cursor:pointer; color:var(--texto-suave); font-size:.78rem; }
     .publicacao-tecnica-corpo { margin-top:10px; padding:12px; border:1px solid var(--borda); border-radius:9px; background:var(--fundo); }
@@ -805,11 +809,13 @@
           <div class="form-incc">
             <div>
               <label for="incc-valor">Novo INCC (R$)</label>
-              <input id="incc-valor" placeholder="3.398,85">
+              <input id="incc-valor" placeholder="Informe o novo índice" inputmode="decimal" autocomplete="off">
+              <small class="incc-ajuda" id="incc-valor-ajuda"></small>
             </div>
             <div>
               <label for="incc-variacao">Variação do mês (%)</label>
-              <input id="incc-variacao" placeholder="0,62" inputmode="decimal">
+              <input id="incc-variacao" placeholder="Calculada automaticamente" inputmode="decimal" autocomplete="off">
+              <small class="incc-ajuda">Calculada sobre o INCC anterior; você ainda pode ajustar manualmente se precisar.</small>
             </div>
             <div>
               <label for="incc-mes">Mês da tabela</label>
@@ -845,12 +851,13 @@
 
           <div class="custos-area">
             <h3>Custos e margem dos itens à venda</h3>
-            <p class="custos-nota"><strong>Custo - 5%</strong> = custo × 0,95 · <strong>Custo - 10%</strong> = custo × 0,90 · <strong>Margem extra</strong> = preço de venda atual − custo. Os custos são informação interna: ficam salvos somente neste navegador e não são enviados ao site público.</p>
+            <p class="custos-nota"><strong>Custo - 5%</strong> = custo × 0,95 · <strong>Custo - 10%</strong> = custo × 0,90 · <strong>Margem extra atual</strong> = preço de venda atual − custo · <strong>Venda desejada</strong> = custo + margem extra desejada. Custos e margens desejadas são informação interna e não são enviados ao site público.</p>
             <div class="custos-acoes">
-              <label class="botao-arquivo" for="arquivo-importar-custos">Importar custos</label>
+              <label class="botao-arquivo" for="arquivo-importar-custos">Importar backup</label>
               <input class="arquivo-input" type="file" id="arquivo-importar-custos" accept="application/json,.json">
+              <button type="button" class="botao" id="botao-salvar-financeiro" style="margin-top:0" disabled>Salvar custos e margens</button>
               <button type="button" class="botao secundario" id="botao-exportar-custos" style="margin-top:0">Exportar backup</button>
-              <span>Use o backup para levar os custos a outro computador sem publicar esses valores.</span>
+              <span class="financeiro-status salvo" id="financeiro-status">Dados salvos neste computador ✓</span>
             </div>
             <div id="custos-venda"></div>
           </div>
@@ -937,19 +944,55 @@
     materialFiltro: "identidade",
   };
 
-  // Custos são informação interna. O site é público, portanto estes valores
-  // NÃO entram no data.js nem no GitHub: ficam somente neste navegador.
-  const CUSTOS_ITEM = "senger-admin-custos-v1";
-  function lerCustosInternos() {
+  // Custos e margens desejadas são informação interna. O site é público,
+  // portanto estes valores NÃO entram no data.js nem no GitHub. O usuário
+  // edita um rascunho e confirma no botão "Salvar custos e margens".
+  const CUSTOS_ITEM = "senger-admin-custos-v1"; // legado v171
+  const FINANCEIRO_ITEM = "senger-admin-financeiro-v2";
+  function lerFinanceiroInterno() {
     try {
-      const obj = JSON.parse(localStorage.getItem(CUSTOS_ITEM) || "{}");
-      return obj && typeof obj === "object" ? obj : {};
-    } catch (e) { return {}; }
+      const atual = JSON.parse(localStorage.getItem(FINANCEIRO_ITEM) || "null");
+      if (atual && typeof atual === "object") {
+        return {
+          custos: atual.custos && typeof atual.custos === "object" ? atual.custos : {},
+          margensDesejadas: atual.margensDesejadas && typeof atual.margensDesejadas === "object" ? atual.margensDesejadas : {},
+        };
+      }
+      // Migra automaticamente os custos já digitados na v171.
+      const legado = JSON.parse(localStorage.getItem(CUSTOS_ITEM) || "{}");
+      return { custos: legado && typeof legado === "object" ? legado : {}, margensDesejadas: {} };
+    } catch (e) { return { custos: {}, margensDesejadas: {} }; }
   }
-  let custosInternos = lerCustosInternos();
-  function salvarCustosInternos() {
-    try { localStorage.setItem(CUSTOS_ITEM, JSON.stringify(custosInternos)); }
-    catch (e) { aviso("Não consegui salvar os custos neste navegador.", "falha"); }
+  const financeiroInicial = lerFinanceiroInterno();
+  let custosInternos = { ...financeiroInicial.custos };
+  let margensDesejadas = { ...financeiroInicial.margensDesejadas };
+  let financeiroSujo = false;
+
+  function atualizarEstadoFinanceiro(sujo = financeiroSujo) {
+    financeiroSujo = !!sujo;
+    const botao = $("botao-salvar-financeiro");
+    const status = $("financeiro-status");
+    if (botao) botao.disabled = !financeiroSujo;
+    if (status) {
+      status.textContent = financeiroSujo ? "Alterações não salvas" : "Dados salvos neste computador ✓";
+      status.classList.toggle("sujo", financeiroSujo);
+      status.classList.toggle("salvo", !financeiroSujo);
+    }
+  }
+
+  function salvarFinanceiroInterno() {
+    try {
+      const pacote = { versao: 2, salvoEm: new Date().toISOString(), custos: custosInternos, margensDesejadas };
+      localStorage.setItem(FINANCEIRO_ITEM, JSON.stringify(pacote));
+      // Mantém o mapa antigo atualizado para não perder compatibilidade com backups v171.
+      localStorage.setItem(CUSTOS_ITEM, JSON.stringify(custosInternos));
+      atualizarEstadoFinanceiro(false);
+      aviso("Custos e margens desejadas salvos neste computador.", "ok");
+      return true;
+    } catch (e) {
+      aviso("Não consegui salvar os custos e margens neste navegador.", "falha");
+      return false;
+    }
   }
 
   const $ = (id) => document.getElementById(id);
@@ -1673,6 +1716,7 @@
     renderCadastro();
     renderMateriais();
     renderEmps();
+    prepararCamposIncc();
     renderCustosMargens();
     renderPendentes();
     ativarModulo(estado.moduloAtivo, { rolar: false });
@@ -2923,19 +2967,33 @@
     return Number.isFinite(n) && n > 0 ? n : null;
   }
 
-  function valorFinanceiro(n) {
-    return Number.isFinite(Number(n)) && Number(n) > 0 ? moeda(Number(n)) : "—";
+  function margemDesejadaInterna(chave) {
+    if (!Object.prototype.hasOwnProperty.call(margensDesejadas, chave)) return null;
+    const n = Number(margensDesejadas[chave]);
+    return Number.isFinite(n) && n >= 0 ? n : null;
   }
 
-  function atualizarLinhaFinanceira(linha, custo) {
+  function valorFinanceiro(n, aceitaZero = false) {
+    const valor = Number(n);
+    if (!Number.isFinite(valor) || (aceitaZero ? valor < 0 : valor <= 0)) return "—";
+    return valor === 0 ? "R$ 0" : moeda(valor);
+  }
+
+  function textoMargem(margem) {
+    return margem == null ? "—" : (margem < 0 ? "−" + moeda(Math.abs(margem)) : margem === 0 ? "R$ 0" : moeda(margem));
+  }
+
+  function atualizarLinhaFinanceira(linha, custo, margemDesejada = null) {
     const preco = Number(linha.dataset.preco || 0);
     linha.querySelector("[data-custo-5]").textContent = custo ? valorFinanceiro(custo * .95) : "—";
     linha.querySelector("[data-custo-10]").textContent = custo ? valorFinanceiro(custo * .90) : "—";
-    const margem = custo && preco ? preco - custo : null;
+    const margemAtual = custo && preco ? preco - custo : null;
     const cel = linha.querySelector("[data-margem]");
-    cel.textContent = margem == null ? "—" : (margem < 0 ? "−" + moeda(Math.abs(margem)) : margem === 0 ? "R$ 0" : moeda(margem));
-    cel.classList.toggle("margem-positiva", margem != null && margem >= 0);
-    cel.classList.toggle("margem-negativa", margem != null && margem < 0);
+    cel.textContent = textoMargem(margemAtual);
+    cel.classList.toggle("margem-positiva", margemAtual != null && margemAtual >= 0);
+    cel.classList.toggle("margem-negativa", margemAtual != null && margemAtual < 0);
+    const vendaDesejada = custo && margemDesejada != null ? custo + margemDesejada : null;
+    linha.querySelector("[data-venda-desejada]").textContent = vendaDesejada == null ? "—" : valorFinanceiro(vendaDesejada, true);
   }
 
   function renderCustosMargens() {
@@ -2950,21 +3008,24 @@
     alvo.innerHTML = grupos.map(({ emp, itens }) => `<details class="financeiro-emp">
       <summary>${escapeHtml(emp.nome)} <span class="contagem">${conta(itens.length, "item à venda", "itens à venda")}</span></summary>
       <div class="financeiro-tabela"><table>
-        <thead><tr><th>Unidade</th><th style="text-align:right">Custo</th><th style="text-align:right">Custo - 5%</th><th style="text-align:right">Custo - 10%</th><th style="text-align:right">Preço de venda atual</th><th style="text-align:right">Margem extra</th></tr></thead>
+        <thead><tr><th>Unidade</th><th style="text-align:right">Custo</th><th style="text-align:right">Custo - 5%</th><th style="text-align:right">Custo - 10%</th><th style="text-align:right">Preço de venda atual</th><th style="text-align:right">Margem extra atual</th><th style="text-align:right">Margem extra desejada</th><th style="text-align:right">Venda desejada</th></tr></thead>
         <tbody>${itens.map((item) => {
           const chave = chaveDoItem(emp.id, item);
           const custo = custoInterno(chave);
+          const margemDesejada = margemDesejadaInterna(chave);
           const preco = Number(item.preco || 0);
-          const margem = custo && preco ? preco - custo : null;
-          const margemTexto = margem == null ? "—" : (margem < 0 ? "−" + moeda(Math.abs(margem)) : margem === 0 ? "R$ 0" : moeda(margem));
-          const classeMargem = margem == null ? "" : margem < 0 ? " margem-negativa" : " margem-positiva";
-          return `<tr data-financeiro-linha data-preco="${preco}">
+          const margemAtual = custo && preco ? preco - custo : null;
+          const classeMargem = margemAtual == null ? "" : margemAtual < 0 ? " margem-negativa" : " margem-positiva";
+          const vendaDesejada = custo && margemDesejada != null ? custo + margemDesejada : null;
+          return `<tr data-financeiro-linha data-preco="${preco}" data-chave="${escapeHtml(chave)}">
             <td>${escapeHtml(item.rotulo)}</td>
             <td class="num"><input class="custo-input" inputmode="decimal" data-custo-chave="${escapeHtml(chave)}" value="${custo ? escapeHtml(moeda(custo)) : ""}" placeholder="Informe o custo" aria-label="Custo de ${escapeHtml(item.rotulo)}"></td>
             <td class="num" data-custo-5>${custo ? valorFinanceiro(custo * .95) : "—"}</td>
             <td class="num" data-custo-10>${custo ? valorFinanceiro(custo * .90) : "—"}</td>
             <td class="num"><strong>${valorFinanceiro(preco)}</strong></td>
-            <td class="num${classeMargem}" data-margem>${margemTexto}</td>
+            <td class="num${classeMargem}" data-margem>${textoMargem(margemAtual)}</td>
+            <td class="num"><input class="margem-desejada-input" inputmode="decimal" data-margem-chave="${escapeHtml(chave)}" value="${margemDesejada != null ? escapeHtml(valorFinanceiro(margemDesejada, true)) : ""}" placeholder="Informe a margem" aria-label="Margem extra desejada de ${escapeHtml(item.rotulo)}"></td>
+            <td class="num" data-venda-desejada>${vendaDesejada == null ? "—" : valorFinanceiro(vendaDesejada, true)}</td>
           </tr>`;
         }).join("")}</tbody>
       </table></div>
@@ -2972,7 +3033,15 @@
 
     alvo.querySelectorAll("input[data-custo-chave]").forEach((input) => {
       const linha = input.closest("tr[data-financeiro-linha]");
-      input.addEventListener("input", () => atualizarLinhaFinanceira(linha, numeroDeMoeda(input.value)));
+      const margemInput = linha.querySelector("input[data-margem-chave]");
+      input.addEventListener("input", () => {
+        const chave = input.dataset.custoChave;
+        const bruto = input.value.trim();
+        const valor = numeroDeMoeda(bruto);
+        atualizarLinhaFinanceira(linha, valor, numeroDeMoeda(margemInput.value));
+        if (!bruto) { delete custosInternos[chave]; atualizarEstadoFinanceiro(true); }
+        else if (valor != null && valor > 0) { custosInternos[chave] = valor; atualizarEstadoFinanceiro(true); }
+      });
       input.addEventListener("change", () => {
         const chave = input.dataset.custoChave;
         const bruto = input.value.trim();
@@ -2981,14 +3050,14 @@
           aviso("Custo inválido. Informe um valor maior que zero.", "falha");
           const anterior = custoInterno(chave);
           input.value = anterior ? moeda(anterior) : "";
-          atualizarLinhaFinanceira(linha, anterior);
+          atualizarLinhaFinanceira(linha, anterior, margemDesejadaInterna(chave));
           return;
         }
         if (!bruto) delete custosInternos[chave];
         else custosInternos[chave] = valor;
-        salvarCustosInternos();
+        atualizarEstadoFinanceiro(true);
         input.value = valor && valor > 0 ? moeda(valor) : "";
-        atualizarLinhaFinanceira(linha, valor && valor > 0 ? valor : null);
+        atualizarLinhaFinanceira(linha, valor && valor > 0 ? valor : null, numeroDeMoeda(margemInput.value));
       });
       input.addEventListener("focus", () => {
         const valor = custoInterno(input.dataset.custoChave);
@@ -3000,38 +3069,87 @@
         input.value = valor ? moeda(valor) : "";
       });
     });
+
+    alvo.querySelectorAll("input[data-margem-chave]").forEach((input) => {
+      const linha = input.closest("tr[data-financeiro-linha]");
+      const custoInput = linha.querySelector("input[data-custo-chave]");
+      input.addEventListener("input", () => {
+        const chave = input.dataset.margemChave;
+        const bruto = input.value.trim();
+        const valor = numeroDeMoeda(bruto);
+        atualizarLinhaFinanceira(linha, numeroDeMoeda(custoInput.value), valor);
+        if (!bruto) { delete margensDesejadas[chave]; atualizarEstadoFinanceiro(true); }
+        else if (valor != null && valor >= 0) { margensDesejadas[chave] = valor; atualizarEstadoFinanceiro(true); }
+      });
+      input.addEventListener("change", () => {
+        const chave = input.dataset.margemChave;
+        const bruto = input.value.trim();
+        const valor = numeroDeMoeda(bruto);
+        if (bruto && (valor == null || valor < 0)) {
+          aviso("Margem desejada inválida. Informe zero ou um valor positivo.", "falha");
+          const anterior = margemDesejadaInterna(chave);
+          input.value = anterior != null ? valorFinanceiro(anterior, true) : "";
+          atualizarLinhaFinanceira(linha, custoInterno(chave), anterior);
+          return;
+        }
+        if (!bruto) delete margensDesejadas[chave];
+        else margensDesejadas[chave] = valor;
+        atualizarEstadoFinanceiro(true);
+        input.value = valor != null ? valorFinanceiro(valor, true) : "";
+        atualizarLinhaFinanceira(linha, numeroDeMoeda(custoInput.value), valor);
+      });
+      input.addEventListener("focus", () => {
+        const valor = margemDesejadaInterna(input.dataset.margemChave);
+        if (valor != null) input.value = String(valor).replace(".", ",");
+        input.select();
+      });
+      input.addEventListener("blur", () => {
+        const valor = margemDesejadaInterna(input.dataset.margemChave);
+        input.value = valor != null ? valorFinanceiro(valor, true) : "";
+      });
+    });
+    atualizarEstadoFinanceiro(financeiroSujo);
   }
+
+  $("botao-salvar-financeiro")?.addEventListener("click", salvarFinanceiroInterno);
 
   $("arquivo-importar-custos")?.addEventListener("change", async (e) => {
     const arquivo = e.target.files?.[0];
     if (!arquivo) return;
     try {
       const bruto = JSON.parse(await arquivo.text());
-      const mapa = bruto && typeof bruto === "object" && bruto.custos && typeof bruto.custos === "object" ? bruto.custos : bruto;
-      if (!mapa || typeof mapa !== "object" || Array.isArray(mapa)) throw new Error("formato inválido");
-      const validos = {};
-      Object.entries(mapa).forEach(([chave, valor]) => {
+      const mapaCustos = bruto && typeof bruto === "object" && bruto.custos && typeof bruto.custos === "object" ? bruto.custos : bruto;
+      const mapaMargens = bruto && typeof bruto === "object" && bruto.margensDesejadas && typeof bruto.margensDesejadas === "object" ? bruto.margensDesejadas : {};
+      if (!mapaCustos || typeof mapaCustos !== "object" || Array.isArray(mapaCustos)) throw new Error("formato inválido");
+      const custosValidos = {};
+      Object.entries(mapaCustos).forEach(([chave, valor]) => {
         const n = Number(valor);
-        if (chave && Number.isFinite(n) && n > 0) validos[chave] = n;
+        if (chave && Number.isFinite(n) && n > 0) custosValidos[chave] = n;
       });
-      if (!Object.keys(validos).length) throw new Error("nenhum custo válido encontrado");
-      custosInternos = { ...custosInternos, ...validos };
-      salvarCustosInternos();
+      const margensValidas = {};
+      Object.entries(mapaMargens).forEach(([chave, valor]) => {
+        const n = Number(valor);
+        if (chave && Number.isFinite(n) && n >= 0) margensValidas[chave] = n;
+      });
+      if (!Object.keys(custosValidos).length && !Object.keys(margensValidas).length) throw new Error("nenhum custo ou margem válido encontrado");
+      custosInternos = { ...custosInternos, ...custosValidos };
+      margensDesejadas = { ...margensDesejadas, ...margensValidas };
+      atualizarEstadoFinanceiro(true);
       renderCustosMargens();
-      aviso(`${Object.keys(validos).length} custos importados neste navegador.`, "ok");
+      aviso(`${Object.keys(custosValidos).length} custos e ${Object.keys(margensValidas).length} margens importados. Clique em “Salvar custos e margens”.`, "ok");
     } catch (err) {
-      aviso(`Não consegui importar os custos: ${err.message}.`, "falha");
+      aviso(`Não consegui importar o backup: ${err.message}.`, "falha");
     } finally {
       e.target.value = "";
     }
   });
 
   $("botao-exportar-custos")?.addEventListener("click", () => {
-    const blob = new Blob([JSON.stringify({ versao: 1, exportadoEm: new Date().toISOString(), custos: custosInternos }, null, 2)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify({ versao: 2, exportadoEm: new Date().toISOString(), custos: custosInternos, margensDesejadas }, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `custos-senger-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `financeiro-senger-${new Date().toISOString().slice(0, 10)}.json`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -3039,6 +3157,40 @@
   });
 
   // ---------------- INCC ----------------
+
+  function inccAnteriorNumero() {
+    return numeroDeMoeda(estado.dados?.META?.incc?.valor || "");
+  }
+
+  function calcularVariacaoPeloNovoIncc() {
+    const anterior = inccAnteriorNumero();
+    const novo = numeroDeMoeda($("incc-valor").value);
+    if (!anterior || novo == null || novo <= 0) {
+      if (!$("incc-valor").value.trim()) $("incc-variacao").value = "";
+      return null;
+    }
+    const pct = ((novo / anterior) - 1) * 100;
+    $("incc-variacao").value = pct.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return pct;
+  }
+
+  function prepararCamposIncc() {
+    if (!estado.dados) return;
+    const atual = estado.dados.META.incc?.valor || "";
+    if ($("incc-valor-ajuda")) $("incc-valor-ajuda").textContent = `INCC atual: ${atual}. Ao informar o novo valor, a variação é calculada automaticamente.`;
+    $("incc-valor").placeholder = atual ? `Atual: ${atual}` : "Informe o novo índice";
+  }
+
+  $("incc-valor")?.addEventListener("input", calcularVariacaoPeloNovoIncc);
+  $("incc-valor")?.addEventListener("change", () => {
+    const valor = numeroDeMoeda($("incc-valor").value);
+    if ($("incc-valor").value.trim() && (valor == null || valor <= 0)) {
+      aviso("Informe um novo INCC válido.", "falha");
+      return;
+    }
+    calcularVariacaoPeloNovoIncc();
+    if (valor && valor > 0) $("incc-valor").value = valor.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  });
 
   function lerVariacao() {
     const bruto = $("incc-variacao").value.trim().replace("%", "").replace(",", ".");
@@ -3592,7 +3744,7 @@
 
   // Aviso antes de fechar a aba com mudanças não publicadas.
   window.addEventListener("beforeunload", (e) => {
-    if (estado.ops.length) { e.preventDefault(); e.returnValue = ""; }
+    if (estado.ops.length || financeiroSujo) { e.preventDefault(); e.returnValue = ""; }
   });
 
   async function iniciarPainel() {
