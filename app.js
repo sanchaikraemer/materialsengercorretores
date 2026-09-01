@@ -1103,9 +1103,9 @@
       // mostrar as do empreendimento, entao agora esse e o piso.
       if (plantas.length) {
         // v165 — o apelido da planta tem de bater COM O NOME DO ARQUIVO INTEIRO.
-        // Comparando por pedaco, um apelido curto casava tambem com os nomes
-        // que comecam por ele ("po-planta" pegava "po-planta-2pav" junto), e a
-        // sala de um andar mostrava a planta do outro.
+        // Comparando por pedaco, "po-planta" casava tambem com
+        // "po-planta-2pav" e "po-planta-3pav", e a sala de um andar mostrava a
+        // planta dos outros dois junto.
         plantImages = plantImages.filter((item) => plantas.includes(nomeDaPlanta(item)));
         plantFiles = plantFiles.filter((item) => plantas.includes(nomeDaPlanta(item)));
       } else if (plantaNota) {

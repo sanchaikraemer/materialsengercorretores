@@ -1,19 +1,21 @@
-ATUALIZAÇÃO — MATERIAL SENGER CORRETORES — v169
+ATUALIZAÇÃO — MATERIAL SENGER CORRETORES — v171
 
 Este ZIP contém o projeto completo atualizado.
 
 NOVIDADES DESTA VERSÃO
-- painel administrativo reorganizado no MODELO 4 escolhido: menu lateral em acordeão/colapsável;
-- a paleta original do painel foi preservada (branco/cinza + azul-petróleo/teal atual), sem cores aleatórias por módulo;
-- módulos agora ficam separados: Visão geral, Materiais, Estoque/Unidades, Correção pelo INCC, Publicação e Configurações;
-- Visão geral também foi dividida em Estoque geral, Movimento do portfólio e Pendências do cadastro, exibindo só uma área por vez;
-- Materiais possui submenu próprio: Capa e logo, Galeria de fotos, Plantas e Folder e vídeo;
-- o seletor de empreendimento aparece nos módulos em que faz sentido (Materiais e Estoque/Unidades);
-- no celular, o menu lateral vira uma gaveta recolhível e não ocupa a tela inteira;
-- Publicação ganhou uma tela própria com o resumo das alterações pendentes, mantendo também o botão rápido no topo;
-- Chave do GitHub e Sair foram concentrados em Configurações para tirar botões soltos do cabeçalho;
-- todas as funções da Central de Materiais da v168 foram preservadas;
-- cache atualizado para v169.
+- retirado o “Abrir” genérico dos cartões da Visão geral; os cartões agora são somente resumo;
+- em Pendências do cadastro, não existe mais “Abrir o empreendimento” genérico; quando a pendência tem editor no painel, aparece um atalho direto para o módulo correto (Capa e logo, Galeria, Plantas ou Folder e vídeo);
+- pendências que ainda não possuem editor específico ficam apenas como conferência, sem botão inútil;
+- o módulo Configurações foi retirado do menu;
+- a Chave do GitHub foi movida para Publicação > Acesso técnico para publicar e fica recolhida no uso normal;
+- o botão de “Sair do painel”/encerrar sessão foi retirado da navegação;
+- Correção pelo INCC agora também mostra todos os itens à venda separados por empreendimento, em acordeões (disponíveis e alugados; vendidos ficam fora);
+- a tabela interna possui: Unidade, Custo, Custo - 5%, Custo - 10%, Preço de venda atual e Margem extra;
+- Margem extra = Preço de venda atual - Custo;
+- os custos são internos e ficam apenas no navegador deste aparelho (localStorage). Eles NÃO são enviados ao data.js, GitHub ou site público;
+- a tela possui Importar custos e Exportar backup para levar a tabela interna entre computadores sem expor esses valores;
+- enquanto as tabelas de custo não forem fornecidas, os campos de custo ficam vazios e podem ser preenchidos pelo painel;
+- cache atualizado para v171.
 
 PADRÃO DE ARQUIVOS MOSTRADO NO PAINEL
 - Capa principal: WEBP, JPG ou PNG — 1600 × 900 px — até 5 MB.
@@ -23,23 +25,14 @@ PADRÃO DE ARQUIVOS MOSTRADO NO PAINEL
 - Folder: PDF — até 25 MB.
 - Vídeo: MP4, WebM ou Ogg — recomendado 1920 × 1080 px (Full HD) — até 80 MB; para arquivos maiores, usar YouTube/Vimeo.
 
-COMO FUNCIONA O ARMAZENAMENTO
-Quando um arquivo novo é anexado pelo painel e publicado, ele é enviado ao próprio repositório GitHub. Os novos caminhos seguem esta organização:
-- assets/renaissance/capa.webp
-- assets/renaissance/logo.png
-- assets/renaissance/galeria/...
-- assets/renaissance/plantas/...
-- assets/renaissance/folder.pdf
-- assets/renaissance/video.mp4
+COMO FUNCIONA O ARMAZENAMENTO DE MATERIAIS
+Quando um arquivo novo é anexado pelo painel e publicado, ele é enviado ao próprio repositório GitHub. Os novos caminhos seguem a organização assets/<empreendimento>/...
 
-O mesmo padrão vale para os demais empreendimentos. O data.js guarda a referência para esses arquivos.
-
-IMPORTANTE
-- As dimensões são verificadas para IMAGENS NOVAS. Arquivos antigos, que já existiam no projeto em tamanhos variados, continuam válidos e não foram apagados.
-- "Outros Imóveis" continua fora do padrão de 1 folder + 1 vídeo, pois é um agrupador de imóveis diferentes.
+IMPORTANTE SOBRE CUSTOS
+Os custos não ficam no repositório público. Eles são gravados somente no navegador que está usando o painel. Isso evita expor custo e margem comercial no site. Se trocar de computador/navegador, esses valores não acompanham automaticamente.
 
 COMO PUBLICAR NO GITHUB
 1. Substitua os arquivos alterados pelos desta versão, mantendo as pastas.
 2. Confirme o commit na branch usada para publicação.
 3. Aguarde a atualização do site.
-4. Confirme no painel que a versão carregada é v169.
+4. Confirme no painel que a versão carregada é v171.

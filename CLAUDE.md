@@ -24,7 +24,7 @@ um painel administrativo que o dono usa pelo celular.
   `EMPREENDIMENTOS`.
 - `admin/index.html` — o painel administrativo, uma página só, sem build. Lê e
   grava o `data.js` direto pela API do GitHub, na branch `main`.
-  A interface usa navegação lateral em acordeão/colapsável (v169), com módulos separados e a paleta original do painel.
+  A interface usa navegação lateral em acordeão/colapsável (v171), com módulos separados e a paleta original do painel. Configurações não é um módulo: a chave do GitHub fica recolhida em Publicação > Acesso técnico.
 - `sw.js` — service worker. Navegação e arquivos do site são buscados da rede
   primeiro, então o painel nunca fica preso em cache.
 - `l/` — as **páginas-ponte**, geradas por `tools/gerar-pontes.js`. Uma por
@@ -59,6 +59,10 @@ modificar a planta). O site esconde as vendidas e omite o grupo que ficar sem
 nenhuma disponível; se a venda for desfeita, o preço aparece como "Sob consulta"
 até alguém informar o novo valor.
 
+
+### Custos e margem (somente painel)
+
+A tela de INCC também possui uma tabela interna dos itens à venda com `Custo`, `Custo - 5%`, `Custo - 10%`, `Preço de venda atual` e `Margem extra` (`preço - custo`). **Nunca grave custo no `data.js` ou em outro arquivo público do repositório.** Os custos ficam em `localStorage` na chave `senger-admin-custos-v1`, somente no navegador do administrador. O painel permite importar/exportar um JSON de backup para transferir os custos entre aparelhos sem publicá-los.
 
 ## Materiais obrigatórios por empreendimento
 
