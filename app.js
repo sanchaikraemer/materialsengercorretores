@@ -1621,7 +1621,9 @@
   // com 7+, a ultima faixa vira "+N veja no link". Historico: a v90 mandava so a capa do
   // primeiro (vetado), a v91 usou cartoes claros (vetado como simples demais pra imovel de
   // R$ 1 milhao+).
-  async function montarMosaicoLista(enterprises) {
+  // v174 — o `rodape` muda conforme o envio: no link, "veja no link"; na mensagem
+  // com descricao nao ha link nenhum, entao a linha aponta para o proprio texto.
+  async function montarMosaicoLista(enterprises, rodape = "Fotos, valores e disponibilidade no link") {
     if (enterprises.length < 2) return null; // 1 so: a capa dele e a imagem certa
     const MAX = 6;
     const visiveis = enterprises.length > MAX ? enterprises.slice(0, MAX - 1) : enterprises.slice(0, MAX);
@@ -1718,7 +1720,7 @@
     ctx.textAlign = "center";
     ctx.font = `500 26px ${SANS}`;
     ctx.textBaseline = "middle";
-    ctx.fillText("Fotos, valores e disponibilidade no link", W / 2, y1 + FOOT / 2 + 2);
+    ctx.fillText(rodape, W / 2, y1 + FOOT / 2 + 2);
     ctx.textAlign = "left";
     const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.88));
     return blob ? new File([blob], "selecao-senger.jpg", { type: "image/jpeg" }) : null;
@@ -1863,9 +1865,11 @@
       const foto = photos[Number(button.dataset.downloadPhoto)];
       button.addEventListener("click", () => baixarFotoJpeg(foto.src, foto.nome, button));
     });
-    hint.textContent = photos.length > 1
-      ? `São ${photos.length} empreendimentos: copie e cole cada foto no WhatsApp, depois cole a mensagem.`
-      : "No WhatsApp: cole a foto primeiro, depois cole a mensagem na legenda.";
+    hint.textContent = photos.some((photo) => photo.montagem)
+      ? "A primeira imagem já traz todos os selecionados numa foto só: cole ela no WhatsApp e depois cole a mensagem. As demais são as fotos separadas, se preferir mandar uma a uma."
+      : photos.length > 1
+        ? `São ${photos.length} empreendimentos: copie e cole cada foto no WhatsApp, depois cole a mensagem.`
+        : "No WhatsApp: cole a foto primeiro, depois cole a mensagem na legenda.";
 
     modal.classList.add("open");
     modal.setAttribute("aria-hidden", "false");
@@ -1980,11 +1984,14 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
     }
   }
 
-  async function sendShare(text, title = "Construtora Senger", photos = []) {
+  // `arquivo`: imagem ja montada para o envio. `null` diz "vai sem foto" — e o caso
+  // de varios empreendimentos sem montagem, em que a capa de um so engana o cliente.
+  // Deixando de fora, a foto sai da primeira da lista, como sempre.
+  async function sendShare(text, title = "Construtora Senger", photos = [], arquivo) {
     const imageUrl = photos[0]?.src || "";
     if (navigator.share) {
-      const file = await loadShareFile(imageUrl);
-      if (file && navigator.canShare({ title, text, files: [file] })) {
+      const file = arquivo !== undefined ? arquivo : await loadShareFile(imageUrl);
+      if (file && navigator.canShare?.({ title, text, files: [file] })) {
         try {
           await navigator.share({ title, text, files: [file] });
           return;
@@ -2003,6 +2010,25 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
   }
 
   const coverPhoto = (emp) => ({ src: assetUrl(cardImage(emp)), nome: emp.nome });
+
+  // Os empreendimentos da selecao, na ordem em que apareceram e sem repetir.
+  function empreendimentosDe(items) {
+    const vistos = new Set();
+    return items.reduce((emps, item) => {
+      if (!vistos.has(item.emp.id)) { vistos.add(item.emp.id); emps.push(item.emp); }
+      return emps;
+    }, []);
+  }
+
+  // A montagem entra tambem na janela de copiar/baixar (computador, ou celular sem
+  // compartilhamento nativo), como primeira foto da lista. O endereco temporario da
+  // anterior e liberado a cada nova montagem.
+  let urlMontagem = "";
+  function fotoDaMontagem(file) {
+    if (urlMontagem) URL.revokeObjectURL(urlMontagem);
+    urlMontagem = URL.createObjectURL(file);
+    return { src: urlMontagem, nome: "Seleção — todos numa imagem", montagem: true };
+  }
 
   // Uma foto por empreendimento, sem repetir quando ha varias unidades do mesmo.
   function coverPhotosFor(items) {
@@ -2192,11 +2218,18 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
     return [...state.selected].map((key) => itemMap.get(key)).filter(Boolean);
   }
 
-  function shareSelection(includePrices) {
+  // v174 — a mensagem com descricao leva a MESMA imagem do envio por link: a montagem
+  // com a fachada de todos os selecionados. Antes saia so a capa do primeiro, e o
+  // cliente via um predio so numa mensagem que falava de cinco.
+  async function shareSelection(includePrices) {
     const items = selectedItems();
     if (!items.length) return;
     unique(items.map((item) => item.emp.id)).forEach((id) => registrar("enviou", id));
-    sendShare(selectedMessage(includePrices), "Seleção de imóveis", coverPhotosFor(items));
+    const emps = empreendimentosDe(items);
+    const montagem = emps.length === 1 ? undefined : await montarMosaicoLista(emps, "Detalhes de cada imóvel na mensagem");
+    const fotos = coverPhotosFor(items);
+    if (montagem) fotos.unshift(fotoDaMontagem(montagem));
+    await sendShare(selectedMessage(includePrices), "Seleção de imóveis", fotos, montagem);
   }
 
   // v94 — a selecao tambem vai como LINK (mesma janela que uma unidade sozinha ja tinha):
@@ -2208,13 +2241,11 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
     if (!items.length) return;
     unique(items.map((item) => item.emp.id)).forEach((id) => registrar("enviou", id));
     closeDrawer();
-    const emps = [];
-    const vistos = new Set();
-    items.forEach((item) => { if (!vistos.has(item.emp.id)) { vistos.add(item.emp.id); emps.push(item.emp); } });
+    const emps = empreendimentosDe(items);
     const sel = items.map((item) => `${item.emp.id}~${encodeURIComponent(String(item.code))}`).join(",");
     // Um empreendimento so: vai pela ponte dele, e a previa mostra a foto certa.
-    // Varios: nao ha uma foto unica que represente todos, entao segue direto —
-    // e a mensagem ja leva as capas de cada um como anexo separado.
+    // Varios: nao ha ponte que represente todos, entao segue direto — e a
+    // mensagem leva a montagem com a fachada de cada um.
     const url = emps.length === 1
       ? pontePara(emps[0].id, `sel=${sel}`)
       : linkCliente(`sel=${sel}`);
@@ -2222,19 +2253,10 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
     items.forEach((item) => linhas.push(`• ${item.emp.nome} — ${itemLabel(item)}`));
     linhas.push("", "👇 Clique no link abaixo para ver fotos, plantas, valores e todas as informações:", url);
     const text = linhas.join("\n");
-    const title = "Seleção Construtora Senger";
-    if (navigator.share) {
-      const file = emps.length === 1
-        ? await loadShareFile(assetUrl(cardImage(emps[0])))
-        : await montarMosaicoLista(emps);
-      if (file && navigator.canShare && navigator.canShare({ title, text, files: [file] })) {
-        try { await navigator.share({ title, text, files: [file] }); return; }
-        catch (error) { if (error?.name === "AbortError") return; }
-      }
-      try { await navigator.share({ title, text }); return; }
-      catch (error) { if (error?.name === "AbortError") return; }
-    }
-    openShareModal(text, emps.map(coverPhoto));
+    const montagem = emps.length === 1 ? undefined : await montarMosaicoLista(emps);
+    const fotos = emps.map(coverPhoto);
+    if (montagem) fotos.unshift(fotoDaMontagem(montagem));
+    await sendShare(text, "Seleção Construtora Senger", fotos, montagem);
   }
 
   function selectedMessage(includePrices) {
