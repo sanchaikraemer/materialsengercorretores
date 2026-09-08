@@ -363,9 +363,9 @@ const EMPREENDIMENTOS = [
         area: "99 m² global · 73 m² privativo",
         garagem: "01 box",
         unidades: [
-          { apto: "404", preco: 736200, status: "disponivel", tags: ["Casa Suspensa"], areaUnit: "135 m² global · 104 m² privativo" },
-          { apto: "504", preco: 695900, status: "disponivel" },
-          { apto: "604", preco: 706000, status: "disponivel" },
+          { apto: "404", preco: 765000, status: "disponivel", tags: ["Casa Suspensa"], areaUnit: "135 m² global · 104 m² privativo" },
+          { apto: "504", preco: 715000, status: "disponivel" },
+          { apto: "604", preco: 715000, status: "disponivel" },
           { apto: "704", preco: 716000, status: "disponivel" },
           { apto: "804", preco: 726100, status: "disponivel" },
         ],
