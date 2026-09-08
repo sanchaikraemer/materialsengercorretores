@@ -925,9 +925,8 @@
             <div class="faixa-precos" id="area-aplicar-precos" style="display:none">
               <div>
                 <strong id="aplicar-precos-status"></strong>
-                <span>O custo e a margem ficam só aqui dentro. A <strong>venda desejada</strong> é preço: mande para a fila e depois clique em “Publicar no site”.</span>
+                <span>O custo e a margem ficam só aqui dentro. A <strong>venda desejada</strong> é preço: ela vai junto quando você clicar em <strong>“Publicar no site”</strong>, que mostra a lista antes de gravar.</span>
               </div>
-              <button type="button" class="botao" id="botao-aplicar-precos" style="margin-top:0;white-space:nowrap">Mandar para o site</button>
             </div>
             <div class="custos-acoes">
               <label class="botao-arquivo" for="arquivo-importar-custos">Importar backup</label>
@@ -1166,7 +1165,9 @@
     }
     const vazio = $("financeiro-vazio");
     if (vazio) vazio.style.display = !financeiroSujo && financeiroCobertura.comCusto === 0 ? "block" : "none";
-    atualizarBotaoAplicarPrecos();
+    // Mexeu na venda desejada, a fila de publicacao muda junto — e o
+    // "Publicar no site" acende ou apaga na hora.
+    renderPendentes();
   }
 
   // O custo sai da tabela do mes. Quando a tabela e corrigida pelo INCC, custo
@@ -3256,6 +3257,8 @@
   // botao leva as que estao diferentes do preco atual para a fila de
   // publicacao, e so entao o dono publica. Vendido e box no preco do
   // apartamento ficam de fora.
+  const precosDispensados = new Set();
+
   function precosDesejadosPendentes() {
     if (!estado.dados) return [];
     const lista = [];
@@ -3276,20 +3279,31 @@
     return lista;
   }
 
+  // A venda desejada e preco: nao existe um segundo botao para "mandar para o
+  // site". Toda diferenca entre a venda desejada e o preco no ar ja entra na
+  // fila de publicacao, e o "Publicar no site" acende sozinho.
+  function sincronizarPrecosDesejados() {
+    estado.ops = estado.ops.filter((op) => op.tipoOp !== "preco");
+    precosDesejadosPendentes().forEach((p) => {
+      if (precosDispensados.has(`${p.chave}=${p.novo}`)) return;
+      estado.ops.push(p);
+    });
+  }
+
   function atualizarBotaoAplicarPrecos() {
     const area = $("area-aplicar-precos");
     if (!area) return;
     const naFila = estado.ops.filter((op) => op.tipoOp === "preco").length;
-    const pendentes = precosDesejadosPendentes().filter((p) => !estado.ops.some((op) => op.tipoOp === "preco" && op.chave === p.chave));
-    area.style.display = naFila || pendentes.length ? "flex" : "none";
-    $("botao-aplicar-precos").disabled = pendentes.length === 0;
-    const status = $("aplicar-precos-status");
-    status.textContent = naFila
-      ? `${naFila} ${naFila === 1 ? "preço está" : "preços estão"} na fila — falta clicar em “Publicar no site”.`
-      : `${pendentes.length} ${pendentes.length === 1 ? "item tem venda desejada diferente" : "itens têm venda desejada diferente"} do preço que está no site.`;
+    area.style.display = naFila ? "flex" : "none";
+    if (naFila) {
+      $("aplicar-precos-status").textContent = naFila === 1
+        ? "1 item está com venda desejada diferente do preço que está no site."
+        : `${naFila} itens estão com venda desejada diferente do preço que está no site.`;
+    }
   }
 
   function renderPendentes() {
+    sincronizarPrecosDesejados();
     const mudancas = estado.ops.filter((op) => op.tipoOp !== "upload").length;
     const uploads = estado.ops.filter((op) => op.tipoOp === "upload").length;
     const n = estado.ops.length;
@@ -3672,19 +3686,6 @@
     } finally {
       e.target.value = "";
     }
-  });
-
-  // A venda desejada e o preco que o dono quer no site. Aqui ela entra na fila
-  // de publicacao; nada muda no site enquanto ele nao clicar em "Publicar".
-  $("botao-aplicar-precos")?.addEventListener("click", () => {
-    const pendentes = precosDesejadosPendentes().filter((p) => !estado.ops.some((op) => op.tipoOp === "preco" && op.chave === p.chave));
-    if (!pendentes.length) return;
-    const amostra = pendentes.slice(0, 3).map((p) => `${p.rotulo}: ${moeda(p.atual)} → ${moeda(p.novo)}`).join("\n");
-    const resto = pendentes.length > 3 ? `\n… e mais ${pendentes.length - 3}.` : "";
-    if (!confirm(`Levar ${pendentes.length} ${pendentes.length === 1 ? "preço" : "preços"} para o site?\n\n${amostra}${resto}\n\nNada muda no site até você clicar em “Publicar no site”.`)) return;
-    pendentes.forEach((p) => estado.ops.push(p));
-    renderPendentes();
-    aviso(`${pendentes.length} ${pendentes.length === 1 ? "preço entrou" : "preços entraram"} na fila. Clique em “Publicar no site” para valer no site.`, "ok");
   });
 
   $("botao-exportar-custos")?.addEventListener("click", () => {
@@ -4194,6 +4195,14 @@
 
   async function publicar() {
     const botao = $("botao-publicar");
+    // Preco novo e a mudanca que o cliente ve. Antes de gravar, o painel mostra
+    // a lista do que vai mudar — de quanto para quanto.
+    const precos = estado.ops.filter((op) => op.tipoOp === "preco");
+    if (precos.length) {
+      const amostra = precos.slice(0, 6).map((op) => `${op.rotulo}: ${moeda(op.atual)} → ${moeda(op.novo)}`).join("\n");
+      const resto = precos.length > 6 ? `\n… e mais ${precos.length - 6}.` : "";
+      if (!confirm(`${precos.length === 1 ? "1 preço vai mudar" : `${precos.length} preços vão mudar`} no site:\n\n${amostra}${resto}\n\nPublicar agora?`)) return;
+    }
     botao.disabled = true;
     botao.textContent = "Publicando…";
     try {
@@ -4445,6 +4454,9 @@
   });
 
   $("botao-descartar").addEventListener("click", () => {
+    // Descartar tem de valer tambem para o preco, senao ele voltaria sozinho
+    // na linha seguinte. Volta a aparecer assim que a venda desejada mudar.
+    estado.ops.filter((op) => op.tipoOp === "preco").forEach((op) => precosDispensados.add(`${op.chave}=${op.novo}`));
     estado.ops = [];
     renderTudo();
     aviso("Alterações descartadas.", "ok");
