@@ -389,6 +389,7 @@
     .financeiro-tabela th:nth-child(8), .financeiro-tabela td:nth-child(8) { min-width:122px; }
     .financeiro-tabela th:nth-child(9), .financeiro-tabela td:nth-child(9) { min-width:112px; padding-right:10px; }
     .box-tipo { color:var(--texto-suave); font-size:.72rem; font-weight:500; }
+    .financeiro-tabela td.box-incluso { text-align:left; color:var(--texto-suave); font-style:italic; }
     /* Vendido continua na tabela, mas em vermelho: e passado, nao oferta. */
     .financeiro-tabela tr.linha-vendida td { color:var(--vermelho); background:rgba(198,40,40,.045); }
     .financeiro-tabela tr.linha-vendida td:first-child { font-weight:700; }
@@ -3263,28 +3264,33 @@
     const grupos = estado.dados.EMPREENDIMENTOS.map((emp) => ({
       emp,
       // Alugado continua sendo produto à venda (investidor compra com o inquilino dentro).
-      // O box so entra como item onde ele e venda separada (Renaissance). Nos
-      // demais o box ja esta dentro do preco do apartamento, entao cobrar
-      // custo dele de novo contaria a garagem duas vezes.
+      // Os box de todos os predios aparecem, para o dono ver o que ainda esta
+      // livre. Onde o box e venda separada (Renaissance) ele tem valor e custo
+      // proprios; nos demais ele ja esta no preco do apartamento e entra so
+      // como situacao, sem valor — senao a garagem contaria duas vezes.
       // Vendido tambem aparece, no fim da lista e em vermelho: o predio
       // inteiro fica a vista, e o dono ve o custo do que ja saiu.
-      itens: [...itensDoEmp(emp), ...(emp.boxSeparado ? boxesDoEmp(emp) : [])]
-        .sort((a, b) => (statusAtual(emp.id, a) === "vendido" ? 1 : 0) - (statusAtual(emp.id, b) === "vendido" ? 1 : 0)),
+      itens: [...itensDoEmp(emp), ...boxesDoEmp(emp).map((b) => ({ ...b, semValor: !emp.boxSeparado }))]
+        .sort((a, b) => (a.tipo === "box" ? 1 : 0) - (b.tipo === "box" ? 1 : 0)
+          || (statusAtual(emp.id, a) === "vendido" ? 1 : 0) - (statusAtual(emp.id, b) === "vendido" ? 1 : 0)),
     })).filter(({ itens }) => itens.length);
 
     // Quantos itens A VENDA ja tem custo: e o numero que a linha de status
-    // mostra. O vendido nao entra na conta — nao ha mais o que precificar.
+    // mostra. Nao entram o vendido (nao ha mais o que precificar) nem o box
+    // que ja esta no preco do apartamento (nao tem custo proprio).
     financeiroCobertura = { comCusto: 0, total: 0 };
     grupos.forEach(({ emp, itens }) => itens.forEach((item) => {
-      if (statusAtual(emp.id, item) === "vendido") return;
+      if (item.semValor || statusAtual(emp.id, item) === "vendido") return;
       financeiroCobertura.total++;
       if (custoInterno(chaveDoItem(emp.id, item))) financeiroCobertura.comCusto++;
     }));
 
     alvo.innerHTML = grupos.map(({ emp, itens }) => {
-      const vendidos = itens.filter((item) => statusAtual(emp.id, item) === "vendido").length;
+      const daVenda = itens.filter((item) => !item.semValor);
+      const vendidos = daVenda.filter((item) => statusAtual(emp.id, item) === "vendido").length;
+      const boxInclusos = itens.length - daVenda.length;
       return `<details class="financeiro-emp">
-      <summary>${escapeHtml(emp.nome)} <span class="contagem">${conta(itens.length - vendidos, "item à venda", "itens à venda")}${vendidos ? ` · ${vendidos} vendido${vendidos === 1 ? "" : "s"}` : ""}</span></summary>
+      <summary>${escapeHtml(emp.nome)} <span class="contagem">${conta(daVenda.length - vendidos, "item à venda", "itens à venda")}${vendidos ? ` · ${vendidos} vendido${vendidos === 1 ? "" : "s"}` : ""}${boxInclusos ? ` · ${boxInclusos} box no preço` : ""}</span></summary>
       <div class="financeiro-tabela"><table>
         <thead><tr><th>Unidade</th><th>Situação</th><th style="text-align:right">Custo</th><th style="text-align:right">Custo - 5%</th><th style="text-align:right">Custo - 10%</th><th style="text-align:right">Preço atual</th><th style="text-align:right">Margem atual</th><th style="text-align:right">Margem desejada</th><th style="text-align:right">Venda desejada</th></tr></thead>
         <tbody>${itens.map((item) => {
@@ -3297,9 +3303,19 @@
           const vendaDesejada = custo && margemDesejada != null ? custo + margemDesejada : null;
           const situacao = statusAtual(emp.id, item);
           const vendido = situacao === "vendido";
+          const nome = `<td>${escapeHtml(item.rotulo)}${item.tipo === "box" ? ` <span class="box-tipo">${item.vagas > 1 ? "duplo" : "simples"}${item.pne ? " · PCD" : ""}</span>` : ""}</td>`;
+          const situacaoCel = `<td><span class="st-${situacao}"><span class="bolinha"></span>${escapeHtml(STATUS_LABEL[situacao] || situacao)}</span></td>`;
+          // Box ja incluso no preco do apartamento: entra so para o dono ver o
+          // que esta livre, sem custo nem margem propria.
+          if (item.semValor) {
+            return `<tr data-financeiro-linha${vendido ? " class=\"linha-vendida\"" : ""} data-preco="0" data-chave="${escapeHtml(chave)}">
+              ${nome}${situacaoCel}
+              <td class="num box-incluso" colspan="7">Já incluso no preço do apartamento</td>
+            </tr>`;
+          }
           return `<tr data-financeiro-linha${vendido ? " class=\"linha-vendida\"" : ""} data-preco="${preco}" data-chave="${escapeHtml(chave)}">
-            <td>${escapeHtml(item.rotulo)}${item.tipo === "box" ? ` <span class="box-tipo">${item.vagas > 1 ? "duplo" : "simples"}${item.pne ? " · PCD" : ""}</span>` : ""}</td>
-            <td><span class="st-${situacao}"><span class="bolinha"></span>${escapeHtml(STATUS_LABEL[situacao] || situacao)}</span></td>
+            ${nome}
+            ${situacaoCel}
             <td class="num"><input class="custo-input" inputmode="decimal" data-custo-chave="${escapeHtml(chave)}" value="${custo ? escapeHtml(moedaFinanceira(custo)) : ""}" placeholder="Informe o custo" aria-label="Custo de ${escapeHtml(item.rotulo)}"></td>
             <td class="num" data-custo-5>${custo ? valorFinanceiro(custo * .95) : "—"}</td>
             <td class="num" data-custo-10>${custo ? valorFinanceiro(custo * .90) : "—"}</td>
