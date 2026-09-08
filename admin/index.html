@@ -371,16 +371,18 @@
     .financeiro-emp > summary::-webkit-details-marker { display:none; }
     .financeiro-emp > summary .contagem { margin-left:auto; color:var(--texto-suave); font-size:.74rem; font-weight:500; }
     .financeiro-tabela { overflow-x:auto; overflow-y:visible; max-width:100%; border-top:1px solid var(--borda); background:var(--cartao); scrollbar-gutter:stable both-edges; }
-    .financeiro-tabela table { min-width:1520px; width:max-content; }
+    .financeiro-tabela table { min-width:1650px; width:max-content; }
     .financeiro-tabela th, .financeiro-tabela td { white-space:nowrap; }
-    .financeiro-tabela th:nth-child(1), .financeiro-tabela td:nth-child(1) { min-width:150px; }
-    .financeiro-tabela th:nth-child(2), .financeiro-tabela td:nth-child(2) { min-width:165px; }
-    .financeiro-tabela th:nth-child(3), .financeiro-tabela td:nth-child(3),
-    .financeiro-tabela th:nth-child(4), .financeiro-tabela td:nth-child(4) { min-width:145px; }
-    .financeiro-tabela th:nth-child(5), .financeiro-tabela td:nth-child(5) { min-width:185px; }
-    .financeiro-tabela th:nth-child(6), .financeiro-tabela td:nth-child(6) { min-width:175px; }
-    .financeiro-tabela th:nth-child(7), .financeiro-tabela td:nth-child(7) { min-width:200px; }
-    .financeiro-tabela th:nth-child(8), .financeiro-tabela td:nth-child(8) { min-width:185px; padding-right:18px; }
+    .financeiro-tabela th:nth-child(1), .financeiro-tabela td:nth-child(1) { min-width:170px; }
+    .financeiro-tabela th:nth-child(2), .financeiro-tabela td:nth-child(2) { min-width:125px; }
+    .financeiro-tabela th:nth-child(3), .financeiro-tabela td:nth-child(3) { min-width:165px; }
+    .financeiro-tabela th:nth-child(4), .financeiro-tabela td:nth-child(4),
+    .financeiro-tabela th:nth-child(5), .financeiro-tabela td:nth-child(5) { min-width:145px; }
+    .financeiro-tabela th:nth-child(6), .financeiro-tabela td:nth-child(6) { min-width:185px; }
+    .financeiro-tabela th:nth-child(7), .financeiro-tabela td:nth-child(7) { min-width:175px; }
+    .financeiro-tabela th:nth-child(8), .financeiro-tabela td:nth-child(8) { min-width:200px; }
+    .financeiro-tabela th:nth-child(9), .financeiro-tabela td:nth-child(9) { min-width:185px; padding-right:18px; }
+    .box-tipo { color:var(--texto-suave); font-size:.72rem; font-weight:500; }
     .custo-input, .margem-desejada-input { width:150px; padding:7px 8px; border:1px solid var(--borda); border-radius:7px; background:var(--fundo); color:var(--texto); text-align:right; font:inherit; font-size:.82rem; font-variant-numeric:tabular-nums; }
     .custo-input:focus, .margem-desejada-input:focus { outline:2px solid rgba(23,143,160,.2); border-color:var(--dourado); }
     .margem-positiva { color:var(--verde); font-weight:700; }
@@ -1689,6 +1691,8 @@
       box: b.box,
       rotulo: "Box " + b.box,
       vagas: b.vagas || 1,
+      // O box e venda separada, com valor proprio de tabela.
+      preco: b.preco,
       apto: b.apto || "",
       areaPriv: b.areaPriv,
       areaGlobal: b.areaGlobal,
@@ -3240,7 +3244,9 @@
     const grupos = estado.dados.EMPREENDIMENTOS.map((emp) => ({
       emp,
       // Alugado continua sendo produto à venda (investidor compra com o inquilino dentro).
-      itens: itensDoEmp(emp).filter((item) => statusAtual(emp.id, item) !== "vendido"),
+      // Os box entram junto: sao venda separada, com valor e situacao proprios.
+      itens: [...itensDoEmp(emp), ...boxesDoEmp(emp)]
+        .filter((item) => statusAtual(emp.id, item) !== "vendido"),
     })).filter(({ itens }) => itens.length);
 
     // Quantos itens ja tem custo: e o numero que a linha de status mostra.
@@ -3253,7 +3259,7 @@
     alvo.innerHTML = grupos.map(({ emp, itens }) => `<details class="financeiro-emp">
       <summary>${escapeHtml(emp.nome)} <span class="contagem">${conta(itens.length, "item à venda", "itens à venda")}</span></summary>
       <div class="financeiro-tabela"><table>
-        <thead><tr><th>Unidade</th><th style="text-align:right">Custo</th><th style="text-align:right">Custo - 5%</th><th style="text-align:right">Custo - 10%</th><th style="text-align:right">Preço de venda atual</th><th style="text-align:right">Margem extra atual</th><th style="text-align:right">Margem extra desejada</th><th style="text-align:right">Venda desejada</th></tr></thead>
+        <thead><tr><th>Unidade</th><th>Situação</th><th style="text-align:right">Custo</th><th style="text-align:right">Custo - 5%</th><th style="text-align:right">Custo - 10%</th><th style="text-align:right">Preço de venda atual</th><th style="text-align:right">Margem extra atual</th><th style="text-align:right">Margem extra desejada</th><th style="text-align:right">Venda desejada</th></tr></thead>
         <tbody>${itens.map((item) => {
           const chave = chaveDoItem(emp.id, item);
           const custo = custoInterno(chave);
@@ -3262,8 +3268,10 @@
           const margemAtual = custo && preco ? preco - custo : null;
           const classeMargem = margemAtual == null ? "" : margemAtual < 0 ? " margem-negativa" : " margem-positiva";
           const vendaDesejada = custo && margemDesejada != null ? custo + margemDesejada : null;
+          const situacao = statusAtual(emp.id, item);
           return `<tr data-financeiro-linha data-preco="${preco}" data-chave="${escapeHtml(chave)}">
-            <td>${escapeHtml(item.rotulo)}</td>
+            <td>${escapeHtml(item.rotulo)}${item.tipo === "box" ? ` <span class="box-tipo">${item.vagas > 1 ? "duplo" : "simples"}${item.pne ? " · PCD" : ""}</span>` : ""}</td>
+            <td><span class="st-${situacao}"><span class="bolinha"></span>${escapeHtml(STATUS_LABEL[situacao] || situacao)}</span></td>
             <td class="num"><input class="custo-input" inputmode="decimal" data-custo-chave="${escapeHtml(chave)}" value="${custo ? escapeHtml(moedaFinanceira(custo)) : ""}" placeholder="Informe o custo" aria-label="Custo de ${escapeHtml(item.rotulo)}"></td>
             <td class="num" data-custo-5>${custo ? valorFinanceiro(custo * .95) : "—"}</td>
             <td class="num" data-custo-10>${custo ? valorFinanceiro(custo * .90) : "—"}</td>
@@ -3367,12 +3375,15 @@
     const porNome = new Map();
     const limpo = (t) => String(t || "").toLowerCase().replace(/[^a-z0-9]+/g, "");
     (estado.dados?.EMPREENDIMENTOS || []).forEach((emp) => {
-      itensDoEmp(emp).forEach((item) => {
+      [...itensDoEmp(emp), ...boxesDoEmp(emp)].forEach((item) => {
         const chave = chaveDoItem(emp.id, item);
         porChave.set(chave, chave);
-        [item.apto, item.numero, item.nome, item.rotulo].forEach((nome) => {
+        // O nome so vale dentro do mesmo empreendimento E do mesmo tipo: o
+        // Box 101 nunca pode virar o Apto 101, nem o 401 de outro predio.
+        const marca = chave.split(":")[1].charAt(0);
+        [item.apto, item.numero, item.nome, item.box, item.rotulo].forEach((nome) => {
           if (nome == null || nome === "") return;
-          const id = emp.id + "|" + limpo(nome);
+          const id = emp.id + "|" + marca + "|" + limpo(nome);
           if (!porNome.has(id)) porNome.set(id, chave);
         });
       });
@@ -3386,10 +3397,11 @@
     const partes = String(chaveArquivo).split(":");
     if (partes.length < 3) return null;
     const empId = partes[0];
+    const marca = String(partes[1] || "").charAt(0);
     // Ultimo pedaco pode ser a ocorrencia (0, 1...) — o nome vem antes.
     const candidatos = [partes.slice(2).join(" "), partes[2], partes[partes.length - 1]];
     for (const nome of candidatos) {
-      const achou = indice.porNome.get(empId + "|" + indice.limpo(nome));
+      const achou = indice.porNome.get(empId + "|" + marca + "|" + indice.limpo(nome));
       if (achou) return achou;
     }
     return null;
