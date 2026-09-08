@@ -82,16 +82,20 @@ A linha de status diz a verdade — `X de Y itens com custo ✓ · salvo em dd/m
 
 **Importar backup** reconhece a linha pelo código interno e, se ele mudou, pelo nome da unidade — sempre **dentro do mesmo empreendimento e do mesmo tipo** (`u`, `b`, `t`, `o`), para o Box 101 nunca virar o Apto 101 nem o 401 de outro prédio. A importação só preenche a tela (fica "Alterações não salvas"); quem grava é o dono, no botão. Embaixo dos botões fica uma linha fixa dizendo quantos custos entraram, quantos não têm correspondência, ou o motivo da falha.
 
-**A venda desejada vira o preço do site (v200).** Custo e margem são internos e
-nunca acendem o "Publicar no site" — foi o que confundiu o dono, que ajustou os
-valores e viu o botão apagado. A **venda desejada**, porém, é preço de verdade:
-logo acima da tabela financeira há uma faixa amarela com o botão **"Mandar para
-o site"** (v201; na v200 ele ficava discreto embaixo e passou despercebido), que
-diz quantos itens estão diferentes, mostra o que vai mudar (de → para), põe na fila de publicação
-como `tipoOp: "preco"` e só então acende o botão de publicar. Fica de fora o que
-está vendido, o box que já está no preço do apartamento e o item cuja venda
-desejada é igual ao preço atual. A gravação é textual (`aplicarPreco`), pela
-mesma chave do resto do painel, e mexe só na linha do item.
+**A venda desejada vira o preço do site (v202).** Custo e margem são internos e
+não vão para lugar nenhum. A **venda desejada**, porém, é preço: toda vez que ela
+fica diferente do preço que está no ar, isso já entra na fila de publicação
+(`tipoOp: "preco"`) e o **"Publicar no site"** acende sozinho — **não há um
+segundo botão**. As v200/v201 tinham um "mandar para o site" separado, que o dono
+leu, com razão, como dois botões para a mesma coisa.
+
+Acima da tabela financeira uma faixa avisa quantos itens estão diferentes. Ao
+clicar em "Publicar no site", o painel lista o que vai mudar (de → para) e só
+grava depois do "ok". **Descartar** também vale para o preço, senão ele voltaria
+sozinho na linha seguinte; ele reaparece assim que a venda desejada mudar de
+valor. Ficam de fora o vendido, o box que já está no preço do apartamento e o
+item cuja venda desejada é igual ao preço atual. A gravação é textual
+(`aplicarPreco`), pela mesma chave do resto do painel, e mexe só na linha do item.
 
 ## Materiais obrigatórios por empreendimento
 
