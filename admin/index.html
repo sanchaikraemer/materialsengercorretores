@@ -887,8 +887,8 @@
             <div>
               <label for="incc-arredondar">Arredondar preços para</label>
               <select id="incc-arredondar">
-                <option value="100" selected>R$ 100 mais próximo</option>
-                <option value="1000">R$ 1.000 mais próximo</option>
+                <option value="100" selected>R$ 100 para cima</option>
+                <option value="1000">R$ 1.000 para cima</option>
                 <option value="1">Valor exato (sem arredondar)</option>
               </select>
             </div>
@@ -3824,9 +3824,13 @@
     return Number.isFinite(pct) && bruto !== "" ? pct : null;
   }
 
+  // Arredondar para o MAIS PROXIMO jogava o preco para baixo do valor corrigido
+  // — o 1301 subiu para 1.603.515 e virou 1.603.500, R$ 15 abaixo do custo, que
+  // e corrigido sem arredondar. Arredondamento e sempre para cima: a correcao
+  // do mes nunca pode diminuir a margem.
   function novoPreco(preco, pct, arredondar) {
     const passo = Number(arredondar);
-    return Math.round((preco * (1 + pct / 100)) / passo) * passo;
+    return Math.ceil((preco * (1 + pct / 100)) / passo) * passo;
   }
 
   $("botao-previa").addEventListener("click", () => {
