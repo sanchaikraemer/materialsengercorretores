@@ -175,6 +175,32 @@ corretores fazem fica no celular de cada um.
 Sempre **truncadas**, nunca arredondadas para cima: 99,6188 m² vira "99 m²", e
 73,665 m² vira "73 m²". O site nunca anuncia área maior que a real.
 
+## Antes de publicar: nunca passe por cima do painel
+
+O dono publica correções de INCC e de preço pelo próprio painel, direto na
+`main`. Uma branch de trabalho aberta antes disso carrega um `data.js` velho, e
+um merge desatento devolve a tabela antiga ao ar — foi o que aconteceu na v197,
+que trouxe agosto de volta depois de setembro já publicado, deixando os preços
+abaixo do custo.
+
+Então, **em todo merge e em toda publicação**, antes de mandar para a `main`:
+
+1. `git fetch origin main` e comparar o `data.js` do trabalho com o da `main`:
+   `git diff origin/main -- data.js`.
+2. Se aparecer diferença em `META` (mês da tabela, INCC, histórico) ou em
+   `preco` sem que a tarefa fosse mexer nisso, **a versão certa é a da `main`** —
+   é publicação do dono. Traga a dela (`git checkout origin/main -- data.js`) e
+   refaça só o que a tarefa pedia.
+3. Depois do merge, conferir de novo no que ficou na `main`: mês da tabela,
+   valor do INCC, tamanho do `historicoIncc` e um preço conhecido.
+4. Resolver conflito com `--ours`/`--theirs` sem olhar é proibido; sempre
+   `grep -c "<<<<<<<" ` nos arquivos tocados e ler o `data.js` resultante.
+
+Custo e preço vivem separados: o custo corrigido pelo INCC continua no cofre
+mesmo quando o preço volta atrás, e é isso que faz a margem aparecer negativa.
+Margem negativa depois de uma publicação é sinal de tabela errada no ar, não de
+custo errado.
+
 ## Painel administrativo
 
 - A senha é comparada por hash SHA-256; o token do GitHub fica no `localStorage`
