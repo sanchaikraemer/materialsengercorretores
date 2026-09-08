@@ -130,9 +130,15 @@ A galeria permite adicionar várias fotos, editar legenda, reordenar e remover r
 
 O botão “Baixar folder” e a seção de vídeo só aparecem no site quando o respectivo campo está preenchido.
 
-## O PDF do portfólio traz a lista inteira (v197)
+## O PDF do portfólio é a lista (v208)
 
-O botão "Gerar PDF / imprimir" da home monta primeiro os cartões (2 por linha, 3 linhas por página) e **depois uma página por empreendimento com todas as unidades** — tipologia, área, situação e valor, mais lotes e os imóveis de `outros`. Antes saía só o "a partir de" de cada prédio, o que não servia para o corretor levar a tabela inteira. As tabelas vêm de `tabelasDeUnidades(emp)`, a mesma função que a folha de um empreendimento usa.
+O botão "Gerar PDF / imprimir" da home monta **uma página por empreendimento com
+todas as unidades** — tipologia, área, situação e valor, mais lotes e os imóveis
+de `outros`. As tabelas vêm de `tabelasDeUnidades(emp)`, a mesma função que a
+folha de um empreendimento usa.
+
+Antes da v197 saía só o "a partir de" de cada prédio; a v197 juntou os cartões
+e a lista, e a v208 tirou os cartões: o corretor leva a tabela, não a vitrine.
 
 ## Fotos
 

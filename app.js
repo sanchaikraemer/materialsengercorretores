@@ -2316,47 +2316,16 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
     return Promise.race([ready, new Promise((resolve) => setTimeout(resolve, timeout))]);
   }
 
-  // Folha exclusiva do PDF: capa de cada empreendimento, prazo de entrega e valor inicial.
+  // Folha exclusiva do PDF: a lista de unidades de todos os empreendimentos.
   function buildPrintSheet(enterprises) {
     // O PDF sai assinado por quem gerou; sem dados preenchidos, vale o contato da empresa.
     const contato = [assinaturaTexto() || META.contato?.telefones?.[0], META.contato?.instagram, META.contato?.site].filter(Boolean).join(" · ");
     const cidades = unique(enterprises.flatMap((emp) => emp.cidade.split(" · ")))
       .map((city) => city.replace("/RS", "")).join(" · ");
 
-    const cards = enterprises.map((emp) => {
-      const minimo = minPrice(emp);
-      const prazo = semPonto(emp.entrega || emp.statusLabel || "");
-      return `
-        <article class="ps-card">
-          <div class="ps-media"><img src="${escapeHtml(assetUrl(cardImage(emp)))}" alt="${escapeHtml(emp.nome)}"></div>
-          <div class="ps-body">
-            <div class="ps-badges">
-              <span class="ps-badge ps-badge-stage">${escapeHtml(emp.statusLabel || prazo)}</span>
-              <span class="ps-badge">${escapeHtml(CATEGORY_LABELS[emp.categoria] || emp.categoria)}</span>
-            </div>
-            <h2>${escapeHtml(emp.nome)}</h2>
-            <p class="ps-city">${escapeHtml(emp.cidade)}</p>
-            <p class="ps-tagline">${escapeHtml(emp.tagline || "")}</p>
-            <div class="ps-facts">
-              <div class="ps-fact-wide"><span>Entrega</span><strong>${escapeHtml(prazo || "Consultar")}</strong></div>
-              <div class="ps-fact-row">
-                <div><span>A partir de</span><strong>${minimo ? money(minimo) : "Sob consulta"}</strong></div>
-              </div>
-            </div>
-          </div>
-        </article>
-      `;
-    });
-
-    // Paginacao explicita (a quebra automatica do Chrome e imprevisivel):
-    // 2 cartoes por linha, 3 linhas por pagina A4.
-    const rows = [];
-    for (let i = 0; i < cards.length; i += 2) rows.push(`<div class="ps-row">${cards[i]}${cards[i + 1] || ""}</div>`);
-    const pages = [];
-    for (let i = 0; i < rows.length; i += 3) pages.push(`<div class="ps-page">${rows.slice(i, i + 3).join("")}</div>`);
-
-    // Depois dos cartoes vem a lista inteira: cada empreendimento com todas as
-    // suas unidades, area, situacao e valor — nao so o "a partir de".
+    // O PDF do portfolio e a LISTA: uma pagina por empreendimento com todas as
+    // unidades. Ate a v207 vinham antes os cartoes com o "a partir de" de cada
+    // predio — o corretor quer a tabela, nao a vitrine.
     const listas = enterprises.map((emp) => {
       const { groupTables, landTable, otherTable } = tabelasDeUnidades(emp);
       if (!groupTables && !landTable && !otherTable) return "";
@@ -2380,7 +2349,6 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
           <p class="ps-contact">${contato ? `${escapeHtml(contato)} — ` : ""}Valores e disponibilidade sujeitos a alteração sem aviso prévio. Imagens meramente ilustrativas.</p>
         </div>
       </header>
-      ${pages.join("")}
       ${listas}
     `);
   }
