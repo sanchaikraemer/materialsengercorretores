@@ -418,6 +418,10 @@
     .custo-input:focus, .margem-desejada-input:focus { outline:2px solid rgba(23,143,160,.2); border-color:var(--dourado); }
     .margem-positiva { color:var(--verde); font-weight:700; }
     .margem-negativa { color:var(--vermelho); font-weight:700; }
+    .faixa-precos { display:flex; gap:14px; align-items:center; justify-content:space-between; flex-wrap:wrap;
+      background:#fff6e5; border:1px solid #f0c987; border-radius:10px; padding:12px 14px; margin:0 0 12px; }
+    .faixa-precos #aplicar-precos-status { display:block; font-size:.86rem; color:#8a5a12; }
+    .faixa-precos span { font-size:.76rem; color:var(--texto-suave); }
     .financeiro-status { font-size:.74rem; color:var(--texto-suave); }
     .financeiro-status.sujo { color:#a86612; font-weight:700; }
     .financeiro-status.salvo { color:var(--verde); font-weight:700; }
@@ -918,6 +922,13 @@
           <div class="custos-area">
             <h3>Custos e margem dos itens à venda</h3>
             <p class="custos-nota"><strong>Custo - 5%</strong> = custo × 0,95 · <strong>Custo - 10%</strong> = custo × 0,90 · <strong>Margem extra atual</strong> = preço de venda atual − custo · <strong>Venda desejada</strong> = custo + margem extra desejada. Custos e margens desejadas são informação interna e não são enviados ao site público.</p>
+            <div class="faixa-precos" id="area-aplicar-precos" style="display:none">
+              <div>
+                <strong id="aplicar-precos-status"></strong>
+                <span>O custo e a margem ficam só aqui dentro. A <strong>venda desejada</strong> é preço: mande para a fila e depois clique em “Publicar no site”.</span>
+              </div>
+              <button type="button" class="botao" id="botao-aplicar-precos" style="margin-top:0;white-space:nowrap">Mandar para o site</button>
+            </div>
             <div class="custos-acoes">
               <label class="botao-arquivo" for="arquivo-importar-custos">Importar backup</label>
               <input class="arquivo-input" type="file" id="arquivo-importar-custos" accept="application/json,.json">
@@ -927,10 +938,6 @@
             </div>
             <p class="financeiro-cofre" id="financeiro-cofre"></p>
             <button type="button" class="botao secundario" id="botao-chave-financeiro" style="display:none;margin:0 0 12px">Trocar a chave do GitHub</button>
-            <div class="custos-acoes" id="area-aplicar-precos" style="display:none">
-              <button type="button" class="botao" id="botao-aplicar-precos" style="margin-top:0">Usar as vendas desejadas como preço do site</button>
-              <span class="financeiro-status" id="aplicar-precos-status"></span>
-            </div>
             <p class="financeiro-cofre" id="financeiro-import" style="display:none"></p>
             <p class="financeiro-vazio" id="financeiro-vazio" style="display:none">Nenhum custo aparece aqui neste aparelho. Os custos são guardados na sua conta do GitHub, em repositório privado, e descem sozinhos quando o painel abre. Se a mensagem acima disser que não deu para alcançar a conta, use <strong>Importar backup</strong> com o arquivo que você exportou.</p>
             <div id="custos-venda"></div>
@@ -3277,7 +3284,6 @@
     area.style.display = naFila || pendentes.length ? "flex" : "none";
     $("botao-aplicar-precos").disabled = pendentes.length === 0;
     const status = $("aplicar-precos-status");
-    status.className = "financeiro-status" + (naFila ? " sujo" : "");
     status.textContent = naFila
       ? `${naFila} ${naFila === 1 ? "preço está" : "preços estão"} na fila — falta clicar em “Publicar no site”.`
       : `${pendentes.length} ${pendentes.length === 1 ? "item tem venda desejada diferente" : "itens têm venda desejada diferente"} do preço que está no site.`;

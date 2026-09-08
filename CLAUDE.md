@@ -85,8 +85,9 @@ A linha de status diz a verdade — `X de Y itens com custo ✓ · salvo em dd/m
 **A venda desejada vira o preço do site (v200).** Custo e margem são internos e
 nunca acendem o "Publicar no site" — foi o que confundiu o dono, que ajustou os
 valores e viu o botão apagado. A **venda desejada**, porém, é preço de verdade:
-embaixo da tabela financeira há o botão **"Usar as vendas desejadas como preço
-do site"**, que mostra o que vai mudar (de → para), põe na fila de publicação
+logo acima da tabela financeira há uma faixa amarela com o botão **"Mandar para
+o site"** (v201; na v200 ele ficava discreto embaixo e passou despercebido), que
+diz quantos itens estão diferentes, mostra o que vai mudar (de → para), põe na fila de publicação
 como `tipoOp: "preco"` e só então acende o botão de publicar. Fica de fora o que
 está vendido, o box que já está no preço do apartamento e o item cuja venda
 desejada é igual ao preço atual. A gravação é textual (`aplicarPreco`), pela
