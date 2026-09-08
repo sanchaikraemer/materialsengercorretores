@@ -904,6 +904,7 @@
               <span class="financeiro-status salvo" id="financeiro-status">Dados salvos neste aparelho ✓</span>
             </div>
             <p class="financeiro-cofre" id="financeiro-cofre"></p>
+            <button type="button" class="botao secundario" id="botao-chave-financeiro" style="display:none;margin:0 0 12px">Trocar a chave do GitHub</button>
             <p class="financeiro-cofre" id="financeiro-import" style="display:none"></p>
             <p class="financeiro-vazio" id="financeiro-vazio" style="display:none">Nenhum custo aparece aqui neste aparelho. Os custos são guardados na sua conta do GitHub, em repositório privado, e descem sozinhos quando o painel abre. Se a mensagem acima disser que não deu para alcançar a conta, use <strong>Importar backup</strong> com o arquivo que você exportou.</p>
             <div id="custos-venda"></div>
@@ -1108,6 +1109,10 @@
     el.textContent = COFRE_TEXTO[estadoCofre] || "";
     el.classList.toggle("ok", estadoCofre === "ok");
     el.classList.toggle("alerta", estadoCofre === "sem-permissao" || estadoCofre === "conflito");
+    // O caminho para resolver fica ao lado do problema: sem isso o dono tem
+    // de procurar a chave em outro modulo do painel.
+    const botao = $("botao-chave-financeiro");
+    if (botao) botao.style.display = estadoCofre === "sem-permissao" ? "inline-block" : "none";
   }
 
   function atualizarEstadoFinanceiro(sujo = financeiroSujo) {
@@ -4108,6 +4113,7 @@
   }
 
   $("botao-chave-publicacao")?.addEventListener("click", () => abrirTelaDaChave("tela-painel"));
+  $("botao-chave-financeiro")?.addEventListener("click", () => abrirTelaDaChave("tela-painel"));
 
   $("link-diario").addEventListener("click", (e) => {
     e.preventDefault();
