@@ -216,6 +216,7 @@ painel.
 - O usuário edita custo e margem extra desejada por item e confirma em **Salvar custos e margens**; antes disso o painel mostra **Alterações não salvas** e alerta ao fechar a aba.
 - `Margem extra atual = preço de venda atual - custo`; `Venda desejada = custo + margem extra desejada`.
 - **Margem desejada e venda desejada são os dois editáveis (v192)** e conversam entre si: digitar a venda calcula a margem (`venda − custo`), digitar a margem calcula a venda. O que fica guardado é sempre a **margem** — backup e cofre não mudam de formato. Venda abaixo do custo grava margem negativa, de propósito; sem custo lançado, o painel avisa em vez de adivinhar.
+- **A correção do INCC também corrige os custos (v195).** O custo sai da tabela do mês; ao publicar a correção, o painel multiplica `custos` e `margensDesejadas` pela mesma variação, grava no aparelho e manda para o cofre. O aviso diz quantos foram corrigidos. Sem isso a margem apareceria maior sem ninguém ter ganhado nada.
 - **Novo INCC e variação são os dois editáveis (v193)** e conversam: informar o novo índice calcula a variação sobre `META.incc.valor`, e informar a variação calcula o novo índice (`anterior × (1 + pct/100)`, arredondado ao centavo). Apagar a variação limpa o novo índice.
 - Backups financeiros v2 levam `custos` e `margensDesejadas`; backups/custos legados v171 continuam importáveis.
 

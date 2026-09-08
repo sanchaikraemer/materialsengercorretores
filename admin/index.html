@@ -1155,6 +1155,31 @@
     if (vazio) vazio.style.display = !financeiroSujo && financeiroCobertura.comCusto === 0 ? "block" : "none";
   }
 
+  // O custo sai da tabela do mes. Quando a tabela e corrigida pelo INCC, custo
+  // e margem desejada sobem no mesmo passo — senao a margem apareceria maior
+  // sem ninguem ter ganhado nada.
+  function corrigirFinanceiroPeloIncc(pct) {
+    const fator = 1 + Number(pct) / 100;
+    if (!Number.isFinite(fator) || fator <= 0) return 0;
+    const corrigido = (n) => Math.round(n * fator * 100) / 100;
+    let quantos = 0;
+    Object.keys(custosInternos).forEach((chave) => {
+      const n = Number(custosInternos[chave]);
+      if (!Number.isFinite(n) || n <= 0) return;
+      custosInternos[chave] = corrigido(n);
+      quantos++;
+    });
+    Object.keys(margensDesejadas).forEach((chave) => {
+      const n = Number(margensDesejadas[chave]);
+      if (!Number.isFinite(n)) return;
+      margensDesejadas[chave] = corrigido(n);
+    });
+    if (!quantos) return 0;
+    financeiroSalvoEm = new Date().toISOString();
+    gravarFinanceiroLocal();
+    return quantos;
+  }
+
   async function salvarFinanceiroInterno() {
     financeiroSalvoEm = new Date().toISOString();
     if (!gravarFinanceiroLocal()) {
@@ -4096,8 +4121,12 @@
       await ghGravar("index.html", novoIndex, indexHtml.sha, mensagem);
       await ghGravar("sw.js", novoSw, swJs.sha, mensagem);
 
-      aviso(`Publicado! O site sobe para a v${novaVersao} em 1–2 minutos.`, "ok");
+      // A tabela subiu: o custo, que sai dela, sobe no mesmo passo.
+      const custosCorrigidos = incc ? corrigirFinanceiroPeloIncc(incc.pct) : 0;
+      aviso(`Publicado! O site sobe para a v${novaVersao} em 1–2 minutos.` +
+        (custosCorrigidos ? ` ${custosCorrigidos} custos também foram corrigidos em ${incc.pct.toLocaleString("pt-BR")}%.` : ""), "ok");
       await carregarTudo();
+      if (custosCorrigidos) await enviarAoCofre();
     } catch (erro) {
       // Chave recusada no meio da publicacao: as alteracoes ficam guardadas na
       // tela e o dono so precisa cadastrar a chave nova e clicar em Publicar de
