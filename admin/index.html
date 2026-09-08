@@ -389,7 +389,7 @@
     .financeiro-tabela th:nth-child(8), .financeiro-tabela td:nth-child(8) { min-width:122px; }
     .financeiro-tabela th:nth-child(9), .financeiro-tabela td:nth-child(9) { min-width:112px; padding-right:10px; }
     .box-tipo { color:var(--texto-suave); font-size:.72rem; font-weight:500; }
-    .financeiro-tabela td.box-incluso { text-align:left; color:var(--texto-suave); font-style:italic; }
+    .box-incluso { color:var(--texto-suave); font-style:italic; font-size:.72rem; }
     .vinculo-box { display:block; color:var(--texto-suave); font-size:.68rem; font-weight:500; margin-top:2px; white-space:normal; line-height:1.3; }
     .financeiro-tabela tr.linha-vendida .vinculo-box { color:var(--vermelho); opacity:.85; }
     /* Vendido continua na tabela, mas em vermelho: e passado, nao oferta. */
@@ -3318,21 +3318,13 @@
           const vinculo = vinculoDoItem(item);
           const nome = `<td>${escapeHtml(item.rotulo)}${item.tipo === "box" ? ` <span class="box-tipo">${item.vagas > 1 ? "duplo" : "simples"}${item.pne ? " · PCD" : ""}</span>` : ""}${vinculo ? `<span class="vinculo-box">${escapeHtml(vinculo)}</span>` : ""}</td>`;
           const situacaoCel = `<td><span class="st-${situacao}"><span class="bolinha"></span>${escapeHtml(STATUS_LABEL[situacao] || situacao)}</span></td>`;
-          // Box ja incluso no preco do apartamento: entra so para o dono ver o
-          // que esta livre, sem custo nem margem propria.
-          if (item.semValor) {
-            return `<tr data-financeiro-linha${vendido ? " class=\"linha-vendida\"" : ""} data-preco="0" data-chave="${escapeHtml(chave)}">
-              ${nome}${situacaoCel}
-              <td class="num box-incluso" colspan="7">Já incluso no preço do apartamento</td>
-            </tr>`;
-          }
           return `<tr data-financeiro-linha${vendido ? " class=\"linha-vendida\"" : ""} data-preco="${preco}" data-chave="${escapeHtml(chave)}">
             ${nome}
             ${situacaoCel}
             <td class="num"><input class="custo-input" inputmode="decimal" data-custo-chave="${escapeHtml(chave)}" value="${custo ? escapeHtml(moedaFinanceira(custo)) : ""}" placeholder="Informe o custo" aria-label="Custo de ${escapeHtml(item.rotulo)}"></td>
             <td class="num" data-custo-5>${custo ? valorFinanceiro(custo * .95) : "—"}</td>
             <td class="num" data-custo-10>${custo ? valorFinanceiro(custo * .90) : "—"}</td>
-            <td class="num"><strong>${valorFinanceiro(preco)}</strong></td>
+            <td class="num">${item.semValor ? `<span class="box-incluso">no preço do apto</span>` : `<strong>${valorFinanceiro(preco)}</strong>`}</td>
             <td class="num${classeMargem}" data-margem>${textoMargem(margemAtual)}</td>
             <td class="num"><input class="margem-desejada-input" inputmode="decimal" data-margem-chave="${escapeHtml(chave)}" value="${margemDesejada != null ? escapeHtml(valorFinanceiro(margemDesejada, true)) : ""}" placeholder="Informe a margem" aria-label="Margem extra desejada de ${escapeHtml(item.rotulo)}"></td>
             <td class="num" data-venda-desejada>${vendaDesejada == null ? "—" : valorFinanceiro(vendaDesejada, true)}</td>
@@ -3433,7 +3425,7 @@
     const porNome = new Map();
     const limpo = (t) => String(t || "").toLowerCase().replace(/[^a-z0-9]+/g, "");
     (estado.dados?.EMPREENDIMENTOS || []).forEach((emp) => {
-      [...itensDoEmp(emp), ...(emp.boxSeparado ? boxesDoEmp(emp) : [])].forEach((item) => {
+      [...itensDoEmp(emp), ...boxesDoEmp(emp)].forEach((item) => {
         const chave = chaveDoItem(emp.id, item);
         porChave.set(chave, chave);
         // O nome so vale dentro do mesmo empreendimento E do mesmo tipo: o
