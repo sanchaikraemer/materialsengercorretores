@@ -383,6 +383,12 @@
     .financeiro-tabela th:nth-child(8), .financeiro-tabela td:nth-child(8) { min-width:200px; }
     .financeiro-tabela th:nth-child(9), .financeiro-tabela td:nth-child(9) { min-width:185px; padding-right:18px; }
     .box-tipo { color:var(--texto-suave); font-size:.72rem; font-weight:500; }
+    /* Vendido continua na tabela, mas em vermelho: e passado, nao oferta. */
+    .financeiro-tabela tr.linha-vendida td { color:var(--vermelho); background:rgba(198,40,40,.045); }
+    .financeiro-tabela tr.linha-vendida td:first-child { font-weight:700; }
+    .financeiro-tabela tr.linha-vendida .box-tipo { color:var(--vermelho); opacity:.8; }
+    .financeiro-tabela tr.linha-vendida .custo-input,
+    .financeiro-tabela tr.linha-vendida .margem-desejada-input { color:var(--vermelho); border-color:rgba(198,40,40,.35); }
     .custo-input, .margem-desejada-input { width:150px; padding:7px 8px; border:1px solid var(--borda); border-radius:7px; background:var(--fundo); color:var(--texto); text-align:right; font:inherit; font-size:.82rem; font-variant-numeric:tabular-nums; }
     .custo-input:focus, .margem-desejada-input:focus { outline:2px solid rgba(23,143,160,.2); border-color:var(--dourado); }
     .margem-positiva { color:var(--verde); font-weight:700; }
@@ -3245,19 +3251,25 @@
       emp,
       // Alugado continua sendo produto à venda (investidor compra com o inquilino dentro).
       // Os box entram junto: sao venda separada, com valor e situacao proprios.
+      // Vendido tambem aparece, no fim da lista e em vermelho: o predio
+      // inteiro fica a vista, e o dono ve o custo do que ja saiu.
       itens: [...itensDoEmp(emp), ...boxesDoEmp(emp)]
-        .filter((item) => statusAtual(emp.id, item) !== "vendido"),
+        .sort((a, b) => (statusAtual(emp.id, a) === "vendido" ? 1 : 0) - (statusAtual(emp.id, b) === "vendido" ? 1 : 0)),
     })).filter(({ itens }) => itens.length);
 
-    // Quantos itens ja tem custo: e o numero que a linha de status mostra.
+    // Quantos itens A VENDA ja tem custo: e o numero que a linha de status
+    // mostra. O vendido nao entra na conta — nao ha mais o que precificar.
     financeiroCobertura = { comCusto: 0, total: 0 };
     grupos.forEach(({ emp, itens }) => itens.forEach((item) => {
+      if (statusAtual(emp.id, item) === "vendido") return;
       financeiroCobertura.total++;
       if (custoInterno(chaveDoItem(emp.id, item))) financeiroCobertura.comCusto++;
     }));
 
-    alvo.innerHTML = grupos.map(({ emp, itens }) => `<details class="financeiro-emp">
-      <summary>${escapeHtml(emp.nome)} <span class="contagem">${conta(itens.length, "item à venda", "itens à venda")}</span></summary>
+    alvo.innerHTML = grupos.map(({ emp, itens }) => {
+      const vendidos = itens.filter((item) => statusAtual(emp.id, item) === "vendido").length;
+      return `<details class="financeiro-emp">
+      <summary>${escapeHtml(emp.nome)} <span class="contagem">${conta(itens.length - vendidos, "item à venda", "itens à venda")}${vendidos ? ` · ${vendidos} vendido${vendidos === 1 ? "" : "s"}` : ""}</span></summary>
       <div class="financeiro-tabela"><table>
         <thead><tr><th>Unidade</th><th>Situação</th><th style="text-align:right">Custo</th><th style="text-align:right">Custo - 5%</th><th style="text-align:right">Custo - 10%</th><th style="text-align:right">Preço de venda atual</th><th style="text-align:right">Margem extra atual</th><th style="text-align:right">Margem extra desejada</th><th style="text-align:right">Venda desejada</th></tr></thead>
         <tbody>${itens.map((item) => {
@@ -3269,7 +3281,8 @@
           const classeMargem = margemAtual == null ? "" : margemAtual < 0 ? " margem-negativa" : " margem-positiva";
           const vendaDesejada = custo && margemDesejada != null ? custo + margemDesejada : null;
           const situacao = statusAtual(emp.id, item);
-          return `<tr data-financeiro-linha data-preco="${preco}" data-chave="${escapeHtml(chave)}">
+          const vendido = situacao === "vendido";
+          return `<tr data-financeiro-linha${vendido ? " class=\"linha-vendida\"" : ""} data-preco="${preco}" data-chave="${escapeHtml(chave)}">
             <td>${escapeHtml(item.rotulo)}${item.tipo === "box" ? ` <span class="box-tipo">${item.vagas > 1 ? "duplo" : "simples"}${item.pne ? " · PCD" : ""}</span>` : ""}</td>
             <td><span class="st-${situacao}"><span class="bolinha"></span>${escapeHtml(STATUS_LABEL[situacao] || situacao)}</span></td>
             <td class="num"><input class="custo-input" inputmode="decimal" data-custo-chave="${escapeHtml(chave)}" value="${custo ? escapeHtml(moedaFinanceira(custo)) : ""}" placeholder="Informe o custo" aria-label="Custo de ${escapeHtml(item.rotulo)}"></td>
@@ -3282,7 +3295,8 @@
           </tr>`;
         }).join("")}</tbody>
       </table></div>
-    </details>`).join("");
+    </details>`;
+    }).join("");
 
     alvo.querySelectorAll("input[data-custo-chave]").forEach((input) => {
       const linha = input.closest("tr[data-financeiro-linha]");
