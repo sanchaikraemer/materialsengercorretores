@@ -89,6 +89,11 @@ fica diferente do preço que está no ar, isso já entra na fila de publicação
 segundo botão**. As v200/v201 tinham um "mandar para o site" separado, que o dono
 leu, com razão, como dois botões para a mesma coisa.
 
+**Publicar já salva o que foi digitado (v203).** Não há ordem de botão para
+acertar: "Publicar no site" grava antes o custo e a margem no aparelho e no
+cofre, e só então mexe no site. "Salvar custos e margens" continua existindo
+para quem quer guardar só o que é interno, sem mudar preço nenhum.
+
 Acima da tabela financeira uma faixa avisa quantos itens estão diferentes. Ao
 clicar em "Publicar no site", o painel lista o que vai mudar (de → para) e só
 grava depois do "ok". **Descartar** também vale para o preço, senão ele voltaria

@@ -925,7 +925,7 @@
             <div class="faixa-precos" id="area-aplicar-precos" style="display:none">
               <div>
                 <strong id="aplicar-precos-status"></strong>
-                <span>O custo e a margem ficam só aqui dentro. A <strong>venda desejada</strong> é preço: ela vai junto quando você clicar em <strong>“Publicar no site”</strong>, que mostra a lista antes de gravar.</span>
+                <span>Clique em <strong>“Publicar no site”</strong>: ele mostra a lista antes de gravar e já guarda o custo e a margem junto. O <strong>“Salvar custos e margens”</strong> serve para guardar só o que é interno, sem mexer no site.</span>
               </div>
             </div>
             <div class="custos-acoes">
@@ -4203,6 +4203,10 @@
       const resto = precos.length > 6 ? `\n… e mais ${precos.length - 6}.` : "";
       if (!confirm(`${precos.length === 1 ? "1 preço vai mudar" : `${precos.length} preços vão mudar`} no site:\n\n${amostra}${resto}\n\nPublicar agora?`)) return;
     }
+    // Publicar guarda antes o custo e a margem digitados. Sem isso o dono
+    // teria de acertar a ordem dos botoes, e um esquecimento apagaria o que
+    // ele acabou de digitar.
+    if (financeiroSujo) await salvarFinanceiroInterno();
     botao.disabled = true;
     botao.textContent = "Publicando…";
     try {
