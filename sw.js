@@ -1,5 +1,5 @@
-const CACHE = "senger-portfolio-v178-20260908-importar-reconhece-unidade";
-const CORE = ["./", "./index.html", "./styles.css?v=178", "./data.js?v=178", "./app.js?v=178", "./manifest.json"];
+const CACHE = "senger-portfolio-v179-20260908-conserta-painel";
+const CORE = ["./", "./index.html", "./styles.css?v=179", "./data.js?v=179", "./app.js?v=179", "./manifest.json"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
