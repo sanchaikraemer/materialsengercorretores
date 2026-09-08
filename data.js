@@ -99,9 +99,9 @@ const EMPREENDIMENTOS = [
         garagem: "Box opcional (consultar)",
         obs: "Plantas exclusivas — pavimentos 4 e 13. Valor sem box de garagem.",
         unidades: [
-          { apto: "401", preco: 1502700, status: "disponivel", areaUnit: "358 m² global · 258 m² privativo", planta: "ren-planta-401", estoque: "3 suítes — frente" },
-          { apto: "402", preco: 1502700, status: "disponivel", areaUnit: "385 m² global · 280 m² privativo", planta: "ren-planta-402", estoque: "3 suítes — frente" },
-          { apto: "1301", preco: 1603600, status: "disponivel", areaUnit: "306 m² global · 208 m² privativo", planta: "ren-planta-1301", estoque: "3 suítes — superiores" },
+          { apto: "401", preco: 1600000, status: "disponivel", areaUnit: "358 m² global · 258 m² privativo", planta: "ren-planta-401", estoque: "3 suítes — frente" },
+          { apto: "402", preco: 1600000, status: "disponivel", areaUnit: "385 m² global · 280 m² privativo", planta: "ren-planta-402", estoque: "3 suítes — frente" },
+          { apto: "1301", preco: 1750000, status: "disponivel", areaUnit: "306 m² global · 208 m² privativo", planta: "ren-planta-1301", estoque: "3 suítes — superiores" },
           { apto: "1302", preco: 1603600, status: "disponivel", areaUnit: "306 m² global · 208 m² privativo", planta: "ren-planta-1302", estoque: "3 suítes — superiores" },
         ],
       },
