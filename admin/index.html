@@ -3642,13 +3642,26 @@
     return pct;
   }
 
+  // O caminho contrario: o dono digita a variacao do mes e o novo INCC sai
+  // sozinho, sobre o INCC anterior. Os dois campos conversam.
+  function calcularNovoInccPelaVariacao() {
+    const anterior = inccAnteriorNumero();
+    const bruto = $("incc-variacao").value.trim();
+    const pct = lerVariacao();
+    if (!bruto) { $("incc-valor").value = ""; return null; }
+    if (!anterior || pct === null) return null;
+    const novo = Math.round(anterior * (1 + pct / 100) * 100) / 100;
+    $("incc-valor").value = moedaFinanceira(novo);
+    return novo;
+  }
+
   function prepararCamposIncc() {
     if (!estado.dados) return;
     const meta = estado.dados.META || {};
     const atual = meta.incc?.valor || "";
     const variacaoAtual = meta.incc?.variacao || "Não informada";
     if ($("incc-valor-ajuda")) $("incc-valor-ajuda").textContent = `INCC atual: ${atual || "Não informado"}. Ao informar o novo valor, a variação é calculada automaticamente.`;
-    if ($("incc-variacao-ajuda")) $("incc-variacao-ajuda").textContent = `Variação atual: ${variacaoAtual}. A nova variação é calculada sobre o INCC anterior; você ainda pode ajustar manualmente se precisar.`;
+    if ($("incc-variacao-ajuda")) $("incc-variacao-ajuda").textContent = `Variação atual: ${variacaoAtual}. Informe a variação e o novo INCC sai sozinho — ou informe o novo INCC e a variação sai sozinha.`;
     if ($("incc-data-ajuda")) $("incc-data-ajuda").textContent = `Data atual da tabela: ${meta.dataTabela || "Não informada"}. Use o calendário para escolher a nova data.`;
     $("incc-valor").placeholder = atual ? `Atual: ${atual}` : "Informe o novo índice";
     $("incc-mes").placeholder = meta.mesTabela ? `Atual: ${meta.mesTabela}` : "Setembro / 2026";
@@ -3689,6 +3702,15 @@
     }
     calcularVariacaoPeloNovoIncc();
     formatarCampoIncc();
+  });
+
+  $("incc-variacao")?.addEventListener("input", calcularNovoInccPelaVariacao);
+  $("incc-variacao")?.addEventListener("blur", () => {
+    if ($("incc-variacao").value.trim() && lerVariacao() === null) {
+      aviso("Variação inválida. Informe em por cento (ex.: 0,85).", "falha");
+      return;
+    }
+    calcularNovoInccPelaVariacao();
   });
 
   function lerVariacao() {
