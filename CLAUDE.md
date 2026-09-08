@@ -70,7 +70,7 @@ A tela de INCC também possui uma tabela interna dos itens à venda com `Custo`,
 2. `senger-admin-financeiro-v2` — a cópia salva naquele aparelho (`senger-admin-custos-v1` continua sendo escrita, para os backups v171).
 3. **Cofre privado**: o repositório **`sanchaikraemer/senger-financeiro`** (privado), arquivo `financeiro.json`, alcançado com a mesma chave do GitHub do painel. É o que faz o mesmo custo aparecer no celular e em qualquer computador. O painel lê o cofre ao abrir e grava nele ao salvar; se o repositório não existir, ele é criado sozinho como privado. Custo continua **fora** do repositório do site, que é público.
 
-Quem foi salvo por último ganha (`salvoEm`), e digitação em andamento nunca é atropelada pelo cofre. Se a chave não tiver permissão para o repositório privado, nada quebra: os custos ficam no aparelho e a tela explica, apontando o **Exportar/Importar backup**.
+**Os dois lados se juntam, nunca se apagam (v190).** Ao abrir, o painel funde o cofre com o que está no aparelho: custo lançado aqui e custo lançado lá somam, e quando o mesmo item tem valor dos dois lados vale o do pacote com `salvoEm` mais recente. Se o aparelho tinha algo que faltava no cofre, ele devolve para o cofre na hora. Isso evita o acidente clássico: abrir num computador com poucos custos e apagar os de todos os outros. Digitação em andamento nunca é atropelada pelo cofre. Se a chave não tiver permissão para o repositório privado, nada quebra: os custos ficam no aparelho e a tela explica, apontando o **Exportar/Importar backup**.
 
 A linha de status diz a verdade — `X de Y itens com custo ✓ · salvo em dd/mm/aaaa`, ou "Nenhum custo guardado neste aparelho". O antigo "Dados salvos neste computador ✓" aparecia mesmo com a tabela vazia.
 
