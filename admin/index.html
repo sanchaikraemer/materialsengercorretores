@@ -84,7 +84,10 @@
       box-shadow: 0 10px 24px rgba(23, 143, 160, .24);
     }
     .botao:hover { background: var(--dourado-escuro); }
-    .botao.secundario { background: transparent; border: 1px solid var(--borda); color: var(--texto-suave); }
+    /* O secundario tem de parecer clicavel: com a cor apagada ele era lido
+       como botao desligado, do lado do "Publicar" que fica mesmo desligado. */
+    .botao.secundario { background: #fff; border: 1px solid var(--dourado); color: var(--dourado); font-weight: 700; }
+    .botao.secundario:hover { background: rgba(23,143,160,.08); }
     .botao.perigo { background: var(--vermelho); color: #fff; }
     .botao:disabled { opacity: .5; cursor: not-allowed; }
     .erro { color: var(--vermelho); font-size: .85rem; margin-top: 10px; display: none; }
