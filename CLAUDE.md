@@ -252,6 +252,9 @@ painel.
 
 
 ### INCC e histórico (v173)
+- O arredondamento de preços já vem em **R$ 100 mais próximo** (v199) e o painel
+  lembra a escolha do aparelho: antes voltava sozinho para R$ 1.000 a cada
+  abertura, mesmo depois do dono ter escolhido outro.
 - O campo de novo INCC usa formatação monetária brasileira com duas casas decimais.
 - A variação mensal é calculada automaticamente e o painel mostra também a variação anterior.
 - A data da tabela usa input de data real; ao publicar, grava dd/mm/aaaa.
