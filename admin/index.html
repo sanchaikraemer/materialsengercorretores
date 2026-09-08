@@ -3236,12 +3236,17 @@
   // ---------------- custos e margens (interno, somente neste navegador) ----------------
 
   function numeroDeMoeda(valor) {
-    let t = String(valor || "").trim().replace(/R\$/gi, "").replace(/\s/g, "");
+    let t = String(valor || "").trim().replace(/R\$/gi, "").replace(/\s/g, "").replace(/−/g, "-");
     if (!t) return null;
+    // Margem pode ser negativa (venda desejada abaixo do custo); o custo tem a
+    // sua propria conferencia de "maior que zero".
+    const negativo = t.startsWith("-");
+    if (negativo) t = t.slice(1);
     if (t.includes(",")) t = t.replace(/\./g, "").replace(",", ".");
     else if (/^\d{1,3}(?:\.\d{3})+$/.test(t)) t = t.replace(/\./g, "");
     const n = Number(t);
-    return Number.isFinite(n) && n >= 0 ? n : null;
+    if (!Number.isFinite(n) || n < 0) return null;
+    return negativo ? -n : n;
   }
 
   function custoInterno(chave) {
@@ -3252,7 +3257,7 @@
   function margemDesejadaInterna(chave) {
     if (!Object.prototype.hasOwnProperty.call(margensDesejadas, chave)) return null;
     const n = Number(margensDesejadas[chave]);
-    return Number.isFinite(n) && n >= 0 ? n : null;
+    return Number.isFinite(n) ? n : null;
   }
 
   function moedaFinanceira(n) {
@@ -3282,7 +3287,10 @@
     cel.classList.toggle("margem-positiva", margemAtual != null && margemAtual >= 0);
     cel.classList.toggle("margem-negativa", margemAtual != null && margemAtual < 0);
     const vendaDesejada = custo && margemDesejada != null ? custo + margemDesejada : null;
-    linha.querySelector("[data-venda-desejada]").textContent = vendaDesejada == null ? "—" : valorFinanceiro(vendaDesejada, true);
+    const campoVenda = linha.querySelector("input[data-venda-chave]");
+    if (campoVenda && document.activeElement !== campoVenda) {
+      campoVenda.value = vendaDesejada == null ? "" : moedaFinanceira(vendaDesejada);
+    }
   }
 
   function renderCustosMargens() {
@@ -3351,8 +3359,8 @@
             <td class="num" data-custo-10>${custo ? valorFinanceiro(custo * .90) : "—"}</td>
             <td class="num">${item.semValor ? `<span class="box-incluso">no preço do apto</span>` : `<strong>${valorFinanceiro(preco)}</strong>`}</td>
             <td class="num${classeMargem}" data-margem>${textoMargem(margemAtual)}</td>
-            <td class="num"><input class="margem-desejada-input" inputmode="decimal" data-margem-chave="${escapeHtml(chave)}" value="${margemDesejada != null ? escapeHtml(valorFinanceiro(margemDesejada, true)) : ""}" placeholder="Informe a margem" aria-label="Margem extra desejada de ${escapeHtml(item.rotulo)}"></td>
-            <td class="num" data-venda-desejada>${vendaDesejada == null ? "—" : valorFinanceiro(vendaDesejada, true)}</td>
+            <td class="num"><input class="margem-desejada-input" inputmode="decimal" data-margem-chave="${escapeHtml(chave)}" value="${margemDesejada != null ? escapeHtml(moedaFinanceira(margemDesejada)) : ""}" placeholder="Informe a margem" aria-label="Margem extra desejada de ${escapeHtml(item.rotulo)}"></td>
+            <td class="num"><input class="margem-desejada-input" inputmode="decimal" data-venda-chave="${escapeHtml(chave)}" value="${vendaDesejada == null ? "" : escapeHtml(moedaFinanceira(vendaDesejada))}" placeholder="Informe a venda" aria-label="Venda desejada de ${escapeHtml(item.rotulo)}"></td>
           </tr>`;
         }).join("")}</tbody>
       </table></div>
@@ -3407,23 +3415,23 @@
         const valor = numeroDeMoeda(bruto);
         atualizarLinhaFinanceira(linha, numeroDeMoeda(custoInput.value), valor);
         if (!bruto) { delete margensDesejadas[chave]; atualizarEstadoFinanceiro(true); }
-        else if (valor != null && valor >= 0) { margensDesejadas[chave] = valor; atualizarEstadoFinanceiro(true); }
+        else if (valor != null) { margensDesejadas[chave] = valor; atualizarEstadoFinanceiro(true); }
       });
       input.addEventListener("change", () => {
         const chave = input.dataset.margemChave;
         const bruto = input.value.trim();
         const valor = numeroDeMoeda(bruto);
-        if (bruto && (valor == null || valor < 0)) {
-          aviso("Margem desejada inválida. Informe zero ou um valor positivo.", "falha");
+        if (bruto && valor == null) {
+          aviso("Margem desejada inválida. Informe um valor em reais.", "falha");
           const anterior = margemDesejadaInterna(chave);
-          input.value = anterior != null ? valorFinanceiro(anterior, true) : "";
+          input.value = anterior != null ? moedaFinanceira(anterior) : "";
           atualizarLinhaFinanceira(linha, custoInterno(chave), anterior);
           return;
         }
         if (!bruto) delete margensDesejadas[chave];
         else margensDesejadas[chave] = valor;
         atualizarEstadoFinanceiro(true);
-        input.value = valor != null ? valorFinanceiro(valor, true) : "";
+        input.value = valor != null ? moedaFinanceira(valor) : "";
         atualizarLinhaFinanceira(linha, numeroDeMoeda(custoInput.value), valor);
       });
       input.addEventListener("focus", () => {
@@ -3433,7 +3441,58 @@
       });
       input.addEventListener("blur", () => {
         const valor = margemDesejadaInterna(input.dataset.margemChave);
-        input.value = valor != null ? valorFinanceiro(valor, true) : "";
+        input.value = valor != null ? moedaFinanceira(valor) : "";
+      });
+    });
+
+    // Venda desejada: o dono digita o preco que quer praticar e a margem sai
+    // sozinha (venda − custo). Os dois campos falam um com o outro.
+    alvo.querySelectorAll("input[data-venda-chave]").forEach((input) => {
+      const linha = input.closest("tr[data-financeiro-linha]");
+      const custoInput = linha.querySelector("input[data-custo-chave]");
+      const margemInput = linha.querySelector("input[data-margem-chave]");
+      const custoDaLinha = () => numeroDeMoeda(custoInput.value) ?? custoInterno(input.dataset.vendaChave);
+      const aplicar = (avisar) => {
+        const chave = input.dataset.vendaChave;
+        const bruto = input.value.trim();
+        const venda = numeroDeMoeda(bruto);
+        if (!bruto) {
+          delete margensDesejadas[chave];
+          margemInput.value = "";
+          atualizarEstadoFinanceiro(true);
+          return;
+        }
+        if (venda == null || venda <= 0) {
+          if (avisar) aviso("Venda desejada inválida. Informe um valor maior que zero.", "falha");
+          return;
+        }
+        const custo = custoDaLinha();
+        if (!custo) {
+          if (avisar) aviso("Informe primeiro o custo desta linha para calcular a margem.", "falha");
+          return;
+        }
+        const margem = Math.round((venda - custo) * 100) / 100;
+        margensDesejadas[chave] = margem;
+        margemInput.value = moedaFinanceira(margem);
+        atualizarEstadoFinanceiro(true);
+      };
+      input.addEventListener("input", () => aplicar(false));
+      input.addEventListener("change", () => {
+        aplicar(true);
+        const custo = custoDaLinha();
+        const margem = margemDesejadaInterna(input.dataset.vendaChave);
+        input.value = custo && margem != null ? moedaFinanceira(custo + margem) : input.value.trim() ? input.value : "";
+      });
+      input.addEventListener("focus", () => {
+        const custo = custoDaLinha();
+        const margem = margemDesejadaInterna(input.dataset.vendaChave);
+        if (custo && margem != null) input.value = (custo + margem).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        input.select();
+      });
+      input.addEventListener("blur", () => {
+        const custo = custoDaLinha();
+        const margem = margemDesejadaInterna(input.dataset.vendaChave);
+        input.value = custo && margem != null ? moedaFinanceira(custo + margem) : "";
       });
     });
     atualizarEstadoFinanceiro(financeiroSujo);
