@@ -62,7 +62,17 @@ até alguém informar o novo valor.
 
 ### Custos e margem (somente painel)
 
-A tela de INCC também possui uma tabela interna dos itens à venda com `Custo`, `Custo - 5%`, `Custo - 10%`, `Preço de venda atual` e `Margem extra` (`preço - custo`). **Nunca grave custo no `data.js` ou em outro arquivo público do repositório.** Os custos ficam em `localStorage` na chave `senger-admin-custos-v1`, somente no navegador do administrador. O painel permite importar/exportar um JSON de backup para transferir os custos entre aparelhos sem publicá-los.
+A tela de INCC também possui uma tabela interna dos itens à venda com `Custo`, `Custo - 5%`, `Custo - 10%`, `Preço de venda atual` e `Margem extra` (`preço - custo`). **Nunca grave custo no `data.js` ou em outro arquivo público do repositório.** O painel permite importar/exportar um JSON de backup.
+
+**Onde o custo mora (v176).** Em três lugares, nesta ordem:
+
+1. `senger-admin-financeiro-rascunho` — o que está sendo digitado e ainda não foi salvo. Existe porque fechar a aba sem salvar apagava tudo em silêncio; ao reabrir, o painel recupera o rascunho e continua marcando **Alterações não salvas**.
+2. `senger-admin-financeiro-v2` — a cópia salva naquele aparelho (`senger-admin-custos-v1` continua sendo escrita, para os backups v171).
+3. **Cofre privado**: o repositório **`sanchaikraemer/senger-financeiro`** (privado), arquivo `financeiro.json`, alcançado com a mesma chave do GitHub do painel. É o que faz o mesmo custo aparecer no celular e em qualquer computador. O painel lê o cofre ao abrir e grava nele ao salvar; se o repositório não existir, ele é criado sozinho como privado. Custo continua **fora** do repositório do site, que é público.
+
+Quem foi salvo por último ganha (`salvoEm`), e digitação em andamento nunca é atropelada pelo cofre. Se a chave não tiver permissão para o repositório privado, nada quebra: os custos ficam no aparelho e a tela explica, apontando o **Exportar/Importar backup**.
+
+A linha de status diz a verdade — `X de Y itens com custo ✓ · salvo em dd/mm/aaaa`, ou "Nenhum custo guardado neste aparelho". O antigo "Dados salvos neste computador ✓" aparecia mesmo com a tabela vazia.
 
 ## Materiais obrigatórios por empreendimento
 

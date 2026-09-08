@@ -388,6 +388,11 @@
     .financeiro-status { font-size:.74rem; color:var(--texto-suave); }
     .financeiro-status.sujo { color:#a86612; font-weight:700; }
     .financeiro-status.salvo { color:var(--verde); font-weight:700; }
+    .financeiro-status.alerta { color:#a86612; font-weight:700; }
+    .financeiro-cofre { font-size:.74rem; color:var(--texto-suave); line-height:1.5; margin:-6px 0 12px; }
+    .financeiro-cofre.ok { color:var(--verde); }
+    .financeiro-cofre.alerta { color:#a86612; font-weight:600; }
+    .financeiro-vazio { font-size:.78rem; color:var(--texto-suave); line-height:1.55; border:1px solid var(--borda); border-radius:10px; background:var(--fundo); padding:12px 14px; margin:0 0 14px; }
     .incc-ajuda { display:block; margin-top:5px; color:var(--texto-suave); font-size:.7rem; line-height:1.35; }
     .incc-historico { margin-top:16px; border:1px solid var(--borda); border-radius:10px; background:var(--fundo); overflow:hidden; }
     .incc-historico > summary { cursor:pointer; list-style:none; padding:12px 14px; display:flex; gap:10px; align-items:center; font-weight:750; font-size:.86rem; }
@@ -885,8 +890,10 @@
               <input class="arquivo-input" type="file" id="arquivo-importar-custos" accept="application/json,.json">
               <button type="button" class="botao" id="botao-salvar-financeiro" style="margin-top:0" disabled>Salvar custos e margens</button>
               <button type="button" class="botao secundario" id="botao-exportar-custos" style="margin-top:0">Exportar backup</button>
-              <span class="financeiro-status salvo" id="financeiro-status">Dados salvos neste computador ✓</span>
+              <span class="financeiro-status salvo" id="financeiro-status">Dados salvos neste aparelho ✓</span>
             </div>
+            <p class="financeiro-cofre" id="financeiro-cofre"></p>
+            <p class="financeiro-vazio" id="financeiro-vazio" style="display:none">Nenhum custo aparece aqui neste aparelho. Os custos são guardados na sua conta do GitHub, em repositório privado, e descem sozinhos quando o painel abre. Se a mensagem acima disser que não deu para alcançar a conta, use <strong>Importar backup</strong> com o arquivo que você exportou.</p>
             <div id="custos-venda"></div>
           </div>
         </section>
@@ -937,6 +944,12 @@
   const REPO = "sanchaikraemer/materialsengercorretores";
   const BRANCH = "main";
   const API = `https://api.github.com/repos/${REPO}/contents/`;
+  // Cofre dos custos: um repositorio PRIVADO da mesma conta. Custo nao pode
+  // ficar no repositorio do site, que e publico, mas precisa estar em qualquer
+  // aparelho: celular na rua, computador de casa, computador do escritorio.
+  const COFRE_REPO = REPO.split("/")[0] + "/senger-financeiro";
+  const COFRE_ARQUIVO = "financeiro.json";
+  const COFRE_API = `https://api.github.com/repos/${COFRE_REPO}/contents/${COFRE_ARQUIVO}`;
   // Senha de acesso ao painel (guardada como hash SHA-256, nunca em texto puro).
   const SENHA_HASH = "c03a8ce2924c14ff8b026f6f5a6ac792980d0b7bc66e317495d3ae06ed7bd874";
 
@@ -973,54 +986,144 @@
   };
 
   // Custos e margens desejadas são informação interna. O site é público,
-  // portanto estes valores NÃO entram no data.js nem no GitHub. O usuário
-  // edita um rascunho e confirma no botão "Salvar custos e margens".
+  // portanto estes valores NÃO entram no data.js nem no repositório do site.
+  // Eles vivem em três lugares, nesta ordem: o rascunho do que está sendo
+  // digitado, a cópia salva neste aparelho e o cofre privado da conta no
+  // GitHub — é o cofre que faz o mesmo custo aparecer no celular e em
+  // qualquer computador.
   const CUSTOS_ITEM = "senger-admin-custos-v1"; // legado v171
   const FINANCEIRO_ITEM = "senger-admin-financeiro-v2";
-  function lerFinanceiroInterno() {
-    try {
-      const atual = JSON.parse(localStorage.getItem(FINANCEIRO_ITEM) || "null");
-      if (atual && typeof atual === "object") {
-        return {
-          custos: atual.custos && typeof atual.custos === "object" ? atual.custos : {},
-          margensDesejadas: atual.margensDesejadas && typeof atual.margensDesejadas === "object" ? atual.margensDesejadas : {},
-        };
-      }
-      // Migra automaticamente os custos já digitados na v171.
-      const legado = JSON.parse(localStorage.getItem(CUSTOS_ITEM) || "{}");
-      return { custos: legado && typeof legado === "object" ? legado : {}, margensDesejadas: {} };
-    } catch (e) { return { custos: {}, margensDesejadas: {} }; }
+  // Rascunho do que foi digitado e ainda nao foi salvo. Sem ele, fechar a aba
+  // sem clicar em "Salvar" apagava tudo em silencio.
+  const FINANCEIRO_RASCUNHO = "senger-admin-financeiro-rascunho";
+
+  function mapaDeNumeros(m) {
+    return m && typeof m === "object" && !Array.isArray(m) ? m : {};
   }
+
+  function lerPacoteFinanceiro(item) {
+    try {
+      const bruto = JSON.parse(localStorage.getItem(item) || "null");
+      if (!bruto || typeof bruto !== "object") return null;
+      return {
+        custos: mapaDeNumeros(bruto.custos),
+        margensDesejadas: mapaDeNumeros(bruto.margensDesejadas),
+        salvoEm: bruto.salvoEm || "",
+      };
+    } catch (e) { return null; }
+  }
+
+  function lerFinanceiroInterno() {
+    let salvo = lerPacoteFinanceiro(FINANCEIRO_ITEM);
+    if (!salvo) {
+      // Migra automaticamente os custos já digitados na v171.
+      let legado = {};
+      try { legado = mapaDeNumeros(JSON.parse(localStorage.getItem(CUSTOS_ITEM) || "{}")); } catch (e) { legado = {}; }
+      salvo = { custos: legado, margensDesejadas: {}, salvoEm: "" };
+    }
+    const rascunho = lerPacoteFinanceiro(FINANCEIRO_RASCUNHO);
+    const mudou = rascunho && JSON.stringify([rascunho.custos, rascunho.margensDesejadas])
+      !== JSON.stringify([salvo.custos, salvo.margensDesejadas]);
+    return {
+      custos: mudou ? rascunho.custos : salvo.custos,
+      margensDesejadas: mudou ? rascunho.margensDesejadas : salvo.margensDesejadas,
+      salvoEm: salvo.salvoEm,
+      recuperado: !!mudou,
+    };
+  }
+
   const financeiroInicial = lerFinanceiroInterno();
   let custosInternos = { ...financeiroInicial.custos };
   let margensDesejadas = { ...financeiroInicial.margensDesejadas };
-  let financeiroSujo = false;
+  let financeiroSalvoEm = financeiroInicial.salvoEm;
+  let financeiroSujo = financeiroInicial.recuperado;
+  // Quantos itens da tabela ja tem custo. E o que responde na tela a pergunta
+  // "cade meus custos?" sem o dono precisar rolar a tabela inteira.
+  let financeiroCobertura = { comCusto: 0, total: 0 };
+  let cofreEstado = "";
+
+  function dataCurta(iso) {
+    const d = new Date(iso || "");
+    return Number.isFinite(d.getTime()) ? d.toLocaleDateString("pt-BR") : "";
+  }
+
+  function guardarRascunhoFinanceiro() {
+    try {
+      localStorage.setItem(FINANCEIRO_RASCUNHO, JSON.stringify({
+        versao: 2, salvoEm: new Date().toISOString(), custos: custosInternos, margensDesejadas,
+      }));
+    } catch (e) { /* modo privado */ }
+  }
+
+  function gravarFinanceiroLocal() {
+    try {
+      localStorage.setItem(FINANCEIRO_ITEM, JSON.stringify({
+        versao: 2, salvoEm: financeiroSalvoEm, custos: custosInternos, margensDesejadas,
+      }));
+      // Mantém o mapa antigo atualizado para não perder compatibilidade com backups v171.
+      localStorage.setItem(CUSTOS_ITEM, JSON.stringify(custosInternos));
+      localStorage.removeItem(FINANCEIRO_RASCUNHO);
+      return true;
+    } catch (e) { return false; }
+  }
+
+  function textoFinanceiroStatus() {
+    if (financeiroSujo) return "Alterações não salvas — clique em “Salvar custos e margens”";
+    const guardados = Object.keys(custosInternos).length;
+    const quando = financeiroSalvoEm ? " · salvo em " + dataCurta(financeiroSalvoEm) : "";
+    if (!guardados) return "Nenhum custo guardado neste aparelho";
+    if (financeiroCobertura.total && !financeiroCobertura.comCusto) {
+      return `${guardados} custos guardados, mas nenhum é dos itens à venda de hoje`;
+    }
+    return `${financeiroCobertura.comCusto} de ${financeiroCobertura.total} itens com custo ✓${quando}`;
+  }
+
+  const COFRE_TEXTO = {
+    "": "",
+    procurando: "Procurando os custos guardados na sua conta…",
+    enviando: "Guardando os custos na sua conta…",
+    ok: "Guardado na sua conta, em repositório privado — os mesmos custos aparecem no celular e em qualquer computador.",
+    vazio: "Ainda não há custos guardados na sua conta. Clique em “Salvar custos e margens” para levá-los aos outros aparelhos.",
+    conflito: "Há alterações não salvas aqui. Salve para enviá-las aos outros aparelhos.",
+    "sem-permissao": "Não consegui guardar na sua conta: a chave do GitHub não tem permissão para o repositório privado senger-financeiro. Por enquanto os custos ficam só neste aparelho — use “Exportar backup”.",
+    offline: "Sem conexão com o GitHub agora: os custos estão salvos neste aparelho e sobem na próxima vez.",
+  };
+
+  function definirCofre(estadoCofre) {
+    cofreEstado = estadoCofre;
+    const el = $("financeiro-cofre");
+    if (!el) return;
+    el.textContent = COFRE_TEXTO[estadoCofre] || "";
+    el.classList.toggle("ok", estadoCofre === "ok");
+    el.classList.toggle("alerta", estadoCofre === "sem-permissao" || estadoCofre === "conflito");
+  }
 
   function atualizarEstadoFinanceiro(sujo = financeiroSujo) {
     financeiroSujo = !!sujo;
     const botao = $("botao-salvar-financeiro");
     const status = $("financeiro-status");
     if (botao) botao.disabled = !financeiroSujo;
+    if (financeiroSujo) guardarRascunhoFinanceiro();
     if (status) {
-      status.textContent = financeiroSujo ? "Alterações não salvas" : "Dados salvos neste computador ✓";
+      status.textContent = textoFinanceiroStatus();
       status.classList.toggle("sujo", financeiroSujo);
-      status.classList.toggle("salvo", !financeiroSujo);
+      status.classList.toggle("salvo", !financeiroSujo && financeiroCobertura.comCusto > 0);
+      status.classList.toggle("alerta", !financeiroSujo && financeiroCobertura.comCusto === 0);
     }
+    const vazio = $("financeiro-vazio");
+    if (vazio) vazio.style.display = !financeiroSujo && financeiroCobertura.comCusto === 0 ? "block" : "none";
   }
 
-  function salvarFinanceiroInterno() {
-    try {
-      const pacote = { versao: 2, salvoEm: new Date().toISOString(), custos: custosInternos, margensDesejadas };
-      localStorage.setItem(FINANCEIRO_ITEM, JSON.stringify(pacote));
-      // Mantém o mapa antigo atualizado para não perder compatibilidade com backups v171.
-      localStorage.setItem(CUSTOS_ITEM, JSON.stringify(custosInternos));
-      atualizarEstadoFinanceiro(false);
-      aviso("Custos e margens desejadas salvos neste computador.", "ok");
-      return true;
-    } catch (e) {
+  async function salvarFinanceiroInterno() {
+    financeiroSalvoEm = new Date().toISOString();
+    if (!gravarFinanceiroLocal()) {
       aviso("Não consegui salvar os custos e margens neste navegador.", "falha");
       return false;
     }
+    atualizarEstadoFinanceiro(false);
+    aviso("Custos e margens salvos. Guardando também na sua conta…", "ok");
+    await enviarAoCofre();
+    return true;
   }
 
   const $ = (id) => document.getElementById(id);
@@ -1373,6 +1476,101 @@
     return (await resp.json()).content.sha;
   }
 
+  // ---------------- cofre privado dos custos ----------------
+  // O custo nao pode entrar no repositorio do site (publico), mas o dono
+  // precisa dele em qualquer aparelho. Entao ele fica num repositorio
+  // PRIVADO da mesma conta, alcancado com a mesma chave do GitHub que o
+  // painel ja usa. Se a chave nao tiver permissao, nada quebra: os custos
+  // continuam neste aparelho e a tela diz o que aconteceu.
+
+  function cofreCabecalho() {
+    return { Authorization: "Bearer " + estado.token, Accept: "application/vnd.github+json" };
+  }
+
+  function erroHttp(resp) {
+    const e = new Error("HTTP " + resp.status);
+    e.status = resp.status;
+    return e;
+  }
+
+  async function cofreLer() {
+    const resp = await fetch(COFRE_API, { headers: cofreCabecalho(), cache: "no-store" });
+    if (resp.status === 404) return null; // repositorio ou arquivo ainda nao existe
+    if (!resp.ok) throw erroHttp(resp);
+    const json = await resp.json();
+    try {
+      return { pacote: JSON.parse(base64ParaTexto(json.content)), sha: json.sha };
+    } catch (e) { return null; }
+  }
+
+  async function cofreCriarRepositorio() {
+    const resp = await fetch("https://api.github.com/user/repos", {
+      method: "POST",
+      headers: cofreCabecalho(),
+      body: JSON.stringify({
+        name: COFRE_REPO.split("/")[1],
+        private: true,
+        auto_init: true,
+        description: "Custos e margens do Painel Senger — privado, nunca vai para o site.",
+      }),
+    });
+    // 422 = ja existe, o que para o nosso caso serve igual.
+    if (!resp.ok && resp.status !== 422) throw erroHttp(resp);
+  }
+
+  async function cofreEnviar(pacote) {
+    const texto = JSON.stringify(pacote, null, 2);
+    let sha = null;
+    try { sha = (await cofreLer())?.sha || null; } catch (e) { if (e.status !== 404) throw e; }
+    const put = async (shaAtual) => {
+      const corpo = { message: "Atualiza custos e margens (privado)", content: textoParaBase64(texto) };
+      if (shaAtual) corpo.sha = shaAtual;
+      return fetch(COFRE_API, { method: "PUT", headers: cofreCabecalho(), body: JSON.stringify(corpo) });
+    };
+    let resp = await put(sha);
+    if (resp.status === 404) { // repositorio ainda nao existe: cria e tenta de novo
+      await cofreCriarRepositorio();
+      resp = await put(null);
+    }
+    if (!resp.ok) throw erroHttp(resp);
+  }
+
+  async function enviarAoCofre() {
+    if (!estado.token) { definirCofre("sem-permissao"); return; }
+    definirCofre("enviando");
+    try {
+      await cofreEnviar({ versao: 2, salvoEm: financeiroSalvoEm, custos: custosInternos, margensDesejadas });
+      definirCofre("ok");
+    } catch (e) {
+      definirCofre(e.status ? "sem-permissao" : "offline");
+    }
+  }
+
+  async function carregarDoCofre() {
+    if (!estado.token) return;
+    definirCofre("procurando");
+    let remoto = null;
+    try { remoto = await cofreLer(); }
+    catch (e) { definirCofre(e.status ? "sem-permissao" : "offline"); return; }
+    if (!remoto) { definirCofre("vazio"); return; }
+    // Digitacao em andamento neste aparelho nunca e atropelada pelo cofre.
+    if (financeiroSujo) { definirCofre("conflito"); return; }
+    const pacote = remoto.pacote || {};
+    const quandoRemoto = Date.parse(pacote.salvoEm || "") || 0;
+    const quandoLocal = Date.parse(financeiroSalvoEm || "") || 0;
+    if (quandoRemoto >= quandoLocal) {
+      custosInternos = { ...mapaDeNumeros(pacote.custos) };
+      margensDesejadas = { ...mapaDeNumeros(pacote.margensDesejadas) };
+      financeiroSalvoEm = pacote.salvoEm || new Date().toISOString();
+      gravarFinanceiroLocal();
+      renderCustosMargens();
+      definirCofre("ok");
+    } else {
+      // Este aparelho tem coisa mais nova: manda para o cofre.
+      await enviarAoCofre();
+    }
+  }
+
   async function arquivoParaBase64(arquivo) {
     return await new Promise((resolve, reject) => {
       const leitor = new FileReader();
@@ -1442,6 +1640,9 @@
     renderTudo();
     $("carregando").style.display = "none";
     $("conteudo").style.display = "block";
+    // Busca os custos guardados na conta sem segurar a tela: eles aparecem
+    // assim que chegam.
+    carregarDoCofre();
   }
 
   // Predio comercial nao tem apartamento: no Premium Office as unidades sao
@@ -3041,6 +3242,13 @@
       itens: itensDoEmp(emp).filter((item) => statusAtual(emp.id, item) !== "vendido"),
     })).filter(({ itens }) => itens.length);
 
+    // Quantos itens ja tem custo: e o numero que a linha de status mostra.
+    financeiroCobertura = { comCusto: 0, total: 0 };
+    grupos.forEach(({ emp, itens }) => itens.forEach((item) => {
+      financeiroCobertura.total++;
+      if (custoInterno(chaveDoItem(emp.id, item))) financeiroCobertura.comCusto++;
+    }));
+
     alvo.innerHTML = grupos.map(({ emp, itens }) => `<details class="financeiro-emp">
       <summary>${escapeHtml(emp.nome)} <span class="contagem">${conta(itens.length, "item à venda", "itens à venda")}</span></summary>
       <div class="financeiro-tabela"><table>
@@ -3085,14 +3293,14 @@
         if (bruto && (valor == null || valor <= 0)) {
           aviso("Custo inválido. Informe um valor maior que zero.", "falha");
           const anterior = custoInterno(chave);
-          input.value = anterior ? moeda(anterior) : "";
+          input.value = anterior ? moedaFinanceira(anterior) : "";
           atualizarLinhaFinanceira(linha, anterior, margemDesejadaInterna(chave));
           return;
         }
         if (!bruto) delete custosInternos[chave];
         else custosInternos[chave] = valor;
         atualizarEstadoFinanceiro(true);
-        input.value = valor && valor > 0 ? moeda(valor) : "";
+        input.value = valor && valor > 0 ? moedaFinanceira(valor) : "";
         atualizarLinhaFinanceira(linha, valor && valor > 0 ? valor : null, numeroDeMoeda(margemInput.value));
       });
       input.addEventListener("focus", () => {
