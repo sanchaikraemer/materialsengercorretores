@@ -374,17 +374,20 @@
     .financeiro-emp > summary::-webkit-details-marker { display:none; }
     .financeiro-emp > summary .contagem { margin-left:auto; color:var(--texto-suave); font-size:.74rem; font-weight:500; }
     .financeiro-tabela { overflow-x:auto; overflow-y:visible; max-width:100%; border-top:1px solid var(--borda); background:var(--cartao); scrollbar-gutter:stable both-edges; }
-    .financeiro-tabela table { min-width:1650px; width:max-content; }
-    .financeiro-tabela th, .financeiro-tabela td { white-space:nowrap; }
-    .financeiro-tabela th:nth-child(1), .financeiro-tabela td:nth-child(1) { min-width:170px; }
-    .financeiro-tabela th:nth-child(2), .financeiro-tabela td:nth-child(2) { min-width:125px; }
-    .financeiro-tabela th:nth-child(3), .financeiro-tabela td:nth-child(3) { min-width:165px; }
+    /* As nove colunas cabem numa tela de notebook: com as larguras antigas as
+       duas ultimas (margem desejada e venda desejada) so apareciam rolando. */
+    .financeiro-tabela table { min-width:1010px; width:100%; }
+    .financeiro-tabela th, .financeiro-tabela td { white-space:nowrap; padding-left:6px; padding-right:6px; font-size:.78rem; }
+    .financeiro-tabela th { font-size:.67rem; letter-spacing:.02em; white-space:normal; line-height:1.25; }
+    .financeiro-tabela th:nth-child(1), .financeiro-tabela td:nth-child(1) { min-width:118px; }
+    .financeiro-tabela th:nth-child(2), .financeiro-tabela td:nth-child(2) { min-width:92px; }
+    .financeiro-tabela th:nth-child(3), .financeiro-tabela td:nth-child(3) { min-width:112px; }
     .financeiro-tabela th:nth-child(4), .financeiro-tabela td:nth-child(4),
-    .financeiro-tabela th:nth-child(5), .financeiro-tabela td:nth-child(5) { min-width:145px; }
-    .financeiro-tabela th:nth-child(6), .financeiro-tabela td:nth-child(6) { min-width:185px; }
-    .financeiro-tabela th:nth-child(7), .financeiro-tabela td:nth-child(7) { min-width:175px; }
-    .financeiro-tabela th:nth-child(8), .financeiro-tabela td:nth-child(8) { min-width:200px; }
-    .financeiro-tabela th:nth-child(9), .financeiro-tabela td:nth-child(9) { min-width:185px; padding-right:18px; }
+    .financeiro-tabela th:nth-child(5), .financeiro-tabela td:nth-child(5) { min-width:100px; }
+    .financeiro-tabela th:nth-child(6), .financeiro-tabela td:nth-child(6) { min-width:112px; }
+    .financeiro-tabela th:nth-child(7), .financeiro-tabela td:nth-child(7) { min-width:110px; }
+    .financeiro-tabela th:nth-child(8), .financeiro-tabela td:nth-child(8) { min-width:122px; }
+    .financeiro-tabela th:nth-child(9), .financeiro-tabela td:nth-child(9) { min-width:112px; padding-right:10px; }
     .box-tipo { color:var(--texto-suave); font-size:.72rem; font-weight:500; }
     /* Vendido continua na tabela, mas em vermelho: e passado, nao oferta. */
     .financeiro-tabela tr.linha-vendida td { color:var(--vermelho); background:rgba(198,40,40,.045); }
@@ -392,7 +395,7 @@
     .financeiro-tabela tr.linha-vendida .box-tipo { color:var(--vermelho); opacity:.8; }
     .financeiro-tabela tr.linha-vendida .custo-input,
     .financeiro-tabela tr.linha-vendida .margem-desejada-input { color:var(--vermelho); border-color:rgba(198,40,40,.35); }
-    .custo-input, .margem-desejada-input { width:150px; padding:7px 8px; border:1px solid var(--borda); border-radius:7px; background:var(--fundo); color:var(--texto); text-align:right; font:inherit; font-size:.82rem; font-variant-numeric:tabular-nums; }
+    .custo-input, .margem-desejada-input { width:104px; padding:6px 6px; border:1px solid var(--borda); border-radius:7px; background:var(--fundo); color:var(--texto); text-align:right; font:inherit; font-size:.76rem; font-variant-numeric:tabular-nums; }
     .custo-input:focus, .margem-desejada-input:focus { outline:2px solid rgba(23,143,160,.2); border-color:var(--dourado); }
     .margem-positiva { color:var(--verde); font-weight:700; }
     .margem-negativa { color:var(--vermelho); font-weight:700; }
@@ -3283,7 +3286,7 @@
       return `<details class="financeiro-emp">
       <summary>${escapeHtml(emp.nome)} <span class="contagem">${conta(itens.length - vendidos, "item à venda", "itens à venda")}${vendidos ? ` · ${vendidos} vendido${vendidos === 1 ? "" : "s"}` : ""}</span></summary>
       <div class="financeiro-tabela"><table>
-        <thead><tr><th>Unidade</th><th>Situação</th><th style="text-align:right">Custo</th><th style="text-align:right">Custo - 5%</th><th style="text-align:right">Custo - 10%</th><th style="text-align:right">Preço de venda atual</th><th style="text-align:right">Margem extra atual</th><th style="text-align:right">Margem extra desejada</th><th style="text-align:right">Venda desejada</th></tr></thead>
+        <thead><tr><th>Unidade</th><th>Situação</th><th style="text-align:right">Custo</th><th style="text-align:right">Custo - 5%</th><th style="text-align:right">Custo - 10%</th><th style="text-align:right">Preço atual</th><th style="text-align:right">Margem atual</th><th style="text-align:right">Margem desejada</th><th style="text-align:right">Venda desejada</th></tr></thead>
         <tbody>${itens.map((item) => {
           const chave = chaveDoItem(emp.id, item);
           const custo = custoInterno(chave);
