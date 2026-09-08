@@ -279,9 +279,13 @@ painel.
 
 
 ### INCC e histórico (v173)
-- O arredondamento de preços já vem em **R$ 100 mais próximo** (v199) e o painel
-  lembra a escolha do aparelho: antes voltava sozinho para R$ 1.000 a cada
-  abertura, mesmo depois do dono ter escolhido outro.
+- **O arredondamento é sempre para cima (v207)**, em R$ 100 (o padrão) ou R$ 1.000.
+  Arredondar para o "mais próximo" jogava o preço para baixo do valor corrigido —
+  o custo sobe pelo INCC sem arredondar, então 43 unidades ficaram de R$ 5 a R$ 30
+  **abaixo do custo** depois da correção de setembro, e a margem apareceu
+  negativa. A correção do mês nunca pode diminuir a margem.
+- O painel lembra a escolha do aparelho: antes voltava sozinho para R$ 1.000 a
+  cada abertura, mesmo depois do dono ter escolhido outro (v199).
 - O campo de novo INCC usa formatação monetária brasileira com duas casas decimais.
 - A variação mensal é calculada automaticamente e o painel mostra também a variação anterior.
 - A data da tabela usa input de data real; ao publicar, grava dd/mm/aaaa.
