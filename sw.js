@@ -1,5 +1,5 @@
-const CACHE = "senger-portfolio-v177-20260908-importar-salva-sozinho";
-const CORE = ["./", "./index.html", "./styles.css?v=177", "./data.js?v=177", "./app.js?v=177", "./manifest.json"];
+const CACHE = "senger-portfolio-v178-20260908-importar-reconhece-unidade";
+const CORE = ["./", "./index.html", "./styles.css?v=178", "./data.js?v=178", "./app.js?v=178", "./manifest.json"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

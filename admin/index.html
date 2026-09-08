@@ -893,6 +893,7 @@
               <span class="financeiro-status salvo" id="financeiro-status">Dados salvos neste aparelho ✓</span>
             </div>
             <p class="financeiro-cofre" id="financeiro-cofre"></p>
+            <p class="financeiro-cofre" id="financeiro-import" style="display:none"></p>
             <p class="financeiro-vazio" id="financeiro-vazio" style="display:none">Nenhum custo aparece aqui neste aparelho. Os custos são guardados na sua conta do GitHub, em repositório privado, e descem sozinhos quando o painel abre. Se a mensagem acima disser que não deu para alcançar a conta, use <strong>Importar backup</strong> com o arquivo que você exportou.</p>
             <div id="custos-venda"></div>
           </div>
@@ -3357,6 +3358,52 @@
 
   $("botao-salvar-financeiro")?.addEventListener("click", salvarFinanceiroInterno);
 
+  // Um backup pode vir de outra epoca do cadastro, com o codigo interno da
+  // unidade diferente. Entao alem do codigo, o painel reconhece a unidade pelo
+  // nome ("Apto 401", "Quadra 3 · Lote 12", "Sala 04"): e o que o dono le na
+  // tabela, e e o que nao muda.
+  function indiceDeItens() {
+    const porChave = new Map();
+    const porNome = new Map();
+    const limpo = (t) => String(t || "").toLowerCase().replace(/[^a-z0-9]+/g, "");
+    (estado.dados?.EMPREENDIMENTOS || []).forEach((emp) => {
+      itensDoEmp(emp).forEach((item) => {
+        const chave = chaveDoItem(emp.id, item);
+        porChave.set(chave, chave);
+        [item.apto, item.numero, item.nome, item.rotulo].forEach((nome) => {
+          if (nome == null || nome === "") return;
+          const id = emp.id + "|" + limpo(nome);
+          if (!porNome.has(id)) porNome.set(id, chave);
+        });
+      });
+    });
+    return { porChave, porNome, limpo };
+  }
+
+  // Traduz a chave do arquivo para a chave do cadastro de hoje.
+  function chaveEquivalente(chaveArquivo, indice) {
+    if (indice.porChave.has(chaveArquivo)) return chaveArquivo;
+    const partes = String(chaveArquivo).split(":");
+    if (partes.length < 3) return null;
+    const empId = partes[0];
+    // Ultimo pedaco pode ser a ocorrencia (0, 1...) — o nome vem antes.
+    const candidatos = [partes.slice(2).join(" "), partes[2], partes[partes.length - 1]];
+    for (const nome of candidatos) {
+      const achou = indice.porNome.get(empId + "|" + indice.limpo(nome));
+      if (achou) return achou;
+    }
+    return null;
+  }
+
+  function mostrarResultadoImportacao(texto, tipo) {
+    const el = $("financeiro-import");
+    if (!el) return;
+    el.textContent = texto;
+    el.classList.toggle("alerta", tipo === "falha");
+    el.classList.toggle("ok", tipo === "ok");
+    el.style.display = texto ? "block" : "none";
+  }
+
   $("arquivo-importar-custos")?.addEventListener("change", async (e) => {
     const arquivo = e.target.files?.[0];
     if (!arquivo) return;
@@ -3365,26 +3412,38 @@
       const mapaCustos = bruto && typeof bruto === "object" && bruto.custos && typeof bruto.custos === "object" ? bruto.custos : bruto;
       const mapaMargens = bruto && typeof bruto === "object" && bruto.margensDesejadas && typeof bruto.margensDesejadas === "object" ? bruto.margensDesejadas : {};
       if (!mapaCustos || typeof mapaCustos !== "object" || Array.isArray(mapaCustos)) throw new Error("formato inválido");
+      const indice = indiceDeItens();
       const custosValidos = {};
+      let semCorrespondencia = 0;
       Object.entries(mapaCustos).forEach(([chave, valor]) => {
         const n = Number(valor);
-        if (chave && Number.isFinite(n) && n > 0) custosValidos[chave] = n;
+        if (!chave || !Number.isFinite(n) || n <= 0) return;
+        const alvo = chaveEquivalente(chave, indice);
+        if (alvo) custosValidos[alvo] = n; else semCorrespondencia++;
       });
       const margensValidas = {};
       Object.entries(mapaMargens).forEach(([chave, valor]) => {
         const n = Number(valor);
-        if (chave && Number.isFinite(n) && n >= 0) margensValidas[chave] = n;
+        if (!chave || !Number.isFinite(n) || n < 0) return;
+        const alvo = chaveEquivalente(chave, indice);
+        if (alvo) margensValidas[alvo] = n;
       });
-      if (!Object.keys(custosValidos).length && !Object.keys(margensValidas).length) throw new Error("nenhum custo ou margem válido encontrado");
+      if (!Object.keys(custosValidos).length && !Object.keys(margensValidas).length) {
+        throw new Error(`o arquivo tem ${Object.keys(mapaCustos).length} linhas, mas nenhuma unidade dele existe no cadastro de hoje`);
+      }
       custosInternos = { ...custosInternos, ...custosValidos };
       margensDesejadas = { ...margensDesejadas, ...margensValidas };
-      financeiroSujo = true;
-      // Importar ja e a decisao do dono: salva na hora e manda para a conta,
-      // sem depender de um segundo clique que pode ficar pelo caminho.
-      try { renderCustosMargens(); } catch (erroTela) { /* a tabela se redesenha ao reabrir */ }
-      await salvarFinanceiroInterno();
-      aviso(`${Object.keys(custosValidos).length} custos importados · ${financeiroCobertura.comCusto} de ${financeiroCobertura.total} itens à venda ficaram com custo.`, "ok");
+      // Nada e salvo agora: o dono confere na tabela e decide no botao Salvar.
+      atualizarEstadoFinanceiro(true);
+      renderCustosMargens();
+      const quantos = Object.keys(custosValidos).length;
+      mostrarResultadoImportacao(
+        `Arquivo lido: ${quantos} custos entraram na tabela` +
+        (semCorrespondencia ? ` · ${semCorrespondencia} unidades do arquivo não existem mais no cadastro` : "") +
+        ". Confira na tabela e clique em “Salvar custos e margens”.", "ok");
+      aviso(`${quantos} custos na tabela. Confira e clique em “Salvar custos e margens”.`, "ok");
     } catch (err) {
+      mostrarResultadoImportacao(`Não consegui importar: ${err.message}.`, "falha");
       aviso(`Não consegui importar o backup: ${err.message}.`, "falha");
     } finally {
       e.target.value = "";
