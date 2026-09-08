@@ -927,6 +927,10 @@
             </div>
             <p class="financeiro-cofre" id="financeiro-cofre"></p>
             <button type="button" class="botao secundario" id="botao-chave-financeiro" style="display:none;margin:0 0 12px">Trocar a chave do GitHub</button>
+            <div class="custos-acoes" id="area-aplicar-precos" style="display:none">
+              <button type="button" class="botao" id="botao-aplicar-precos" style="margin-top:0">Usar as vendas desejadas como preço do site</button>
+              <span class="financeiro-status" id="aplicar-precos-status"></span>
+            </div>
             <p class="financeiro-cofre" id="financeiro-import" style="display:none"></p>
             <p class="financeiro-vazio" id="financeiro-vazio" style="display:none">Nenhum custo aparece aqui neste aparelho. Os custos são guardados na sua conta do GitHub, em repositório privado, e descem sozinhos quando o painel abre. Se a mensagem acima disser que não deu para alcançar a conta, use <strong>Importar backup</strong> com o arquivo que você exportou.</p>
             <div id="custos-venda"></div>
@@ -1155,6 +1159,7 @@
     }
     const vazio = $("financeiro-vazio");
     if (vazio) vazio.style.display = !financeiroSujo && financeiroCobertura.comCusto === 0 ? "block" : "none";
+    atualizarBotaoAplicarPrecos();
   }
 
   // O custo sai da tabela do mes. Quando a tabela e corrigida pelo INCC, custo
@@ -3239,6 +3244,45 @@
     });
   }
 
+  // A tabela financeira e interna: mexer em custo ou margem nunca acende o
+  // "Publicar no site". Mas a venda desejada e um preco de verdade — este
+  // botao leva as que estao diferentes do preco atual para a fila de
+  // publicacao, e so entao o dono publica. Vendido e box no preco do
+  // apartamento ficam de fora.
+  function precosDesejadosPendentes() {
+    if (!estado.dados) return [];
+    const lista = [];
+    estado.dados.EMPREENDIMENTOS.forEach((emp) => {
+      const itens = [...itensDoEmp(emp), ...boxesDoEmp(emp).map((b) => ({ ...b, semValor: !emp.boxSeparado }))];
+      itens.forEach((item) => {
+        if (item.semValor || statusAtual(emp.id, item) === "vendido") return;
+        const chave = chaveDoItem(emp.id, item);
+        const custo = custoInterno(chave);
+        const margem = margemDesejadaInterna(chave);
+        if (!custo || margem == null) return;
+        const novo = Math.round(custo + margem);
+        const atual = Number(item.preco || 0);
+        if (!atual || novo === atual || novo <= 0) return;
+        lista.push({ tipoOp: "preco", chave, empId: emp.id, rotulo: `${emp.nome} · ${item.rotulo}`, atual, novo });
+      });
+    });
+    return lista;
+  }
+
+  function atualizarBotaoAplicarPrecos() {
+    const area = $("area-aplicar-precos");
+    if (!area) return;
+    const naFila = estado.ops.filter((op) => op.tipoOp === "preco").length;
+    const pendentes = precosDesejadosPendentes().filter((p) => !estado.ops.some((op) => op.tipoOp === "preco" && op.chave === p.chave));
+    area.style.display = naFila || pendentes.length ? "flex" : "none";
+    $("botao-aplicar-precos").disabled = pendentes.length === 0;
+    const status = $("aplicar-precos-status");
+    status.className = "financeiro-status" + (naFila ? " sujo" : "");
+    status.textContent = naFila
+      ? `${naFila} ${naFila === 1 ? "preço está" : "preços estão"} na fila — falta clicar em “Publicar no site”.`
+      : `${pendentes.length} ${pendentes.length === 1 ? "item tem venda desejada diferente" : "itens têm venda desejada diferente"} do preço que está no site.`;
+  }
+
   function renderPendentes() {
     const mudancas = estado.ops.filter((op) => op.tipoOp !== "upload").length;
     const uploads = estado.ops.filter((op) => op.tipoOp === "upload").length;
@@ -3258,6 +3302,7 @@
         ? `<strong>${escapeHtml(partes.join(" · "))} pendente${n === 1 ? "" : "s"}.</strong><br>Revise os módulos necessários e publique quando estiver pronto.`
         : `<strong>Nenhuma alteração pendente.</strong><br>O site já está igual ao que aparece no painel.`;
     }
+    atualizarBotaoAplicarPrecos();
   }
 
   // ---------------- custos e margens (interno, somente neste navegador) ----------------
@@ -3623,6 +3668,19 @@
     }
   });
 
+  // A venda desejada e o preco que o dono quer no site. Aqui ela entra na fila
+  // de publicacao; nada muda no site enquanto ele nao clicar em "Publicar".
+  $("botao-aplicar-precos")?.addEventListener("click", () => {
+    const pendentes = precosDesejadosPendentes().filter((p) => !estado.ops.some((op) => op.tipoOp === "preco" && op.chave === p.chave));
+    if (!pendentes.length) return;
+    const amostra = pendentes.slice(0, 3).map((p) => `${p.rotulo}: ${moeda(p.atual)} → ${moeda(p.novo)}`).join("\n");
+    const resto = pendentes.length > 3 ? `\n… e mais ${pendentes.length - 3}.` : "";
+    if (!confirm(`Levar ${pendentes.length} ${pendentes.length === 1 ? "preço" : "preços"} para o site?\n\n${amostra}${resto}\n\nNada muda no site até você clicar em “Publicar no site”.`)) return;
+    pendentes.forEach((p) => estado.ops.push(p));
+    renderPendentes();
+    aviso(`${pendentes.length} ${pendentes.length === 1 ? "preço entrou" : "preços entraram"} na fila. Clique em “Publicar no site” para valer no site.`, "ok");
+  });
+
   $("botao-exportar-custos")?.addEventListener("click", () => {
     const blob = new Blob([JSON.stringify({ versao: 2, exportadoEm: new Date().toISOString(), custos: custosInternos, margensDesejadas }, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -3821,6 +3879,51 @@
   function trocarNoBloco(texto, empId, editar) {
     const { inicio, fim } = blocoDoEmp(texto, empId);
     return texto.slice(0, inicio) + editar(texto.slice(inicio, fim)) + texto.slice(fim);
+  }
+
+  // Troca o preco de um item no data.js, pela mesma chave usada no resto do
+  // painel. E edicao textual, como o status: preserva comentario e formatacao.
+  function aplicarPreco(texto, op) {
+    const partes = op.chave.split(":");
+    const empId = partes[0];
+    const trocar = (linha) => {
+      const nova = linha.replace(/preco:\s*-?\d+(?:\.\d+)?/, `preco: ${op.novo}`);
+      if (nova === linha) throw new Error(`Não achei o preço de ${op.rotulo} em ${empId}.`);
+      return nova;
+    };
+    return trocarNoBloco(texto, empId, (bloco) => {
+      if (partes[1] === "u") {
+        const apto = partes[2];
+        const ocorrencia = Number(partes[3]);
+        const re = new RegExp(`^.*apto:\\s*"${escapeRegex(apto)}".*$`, "gm");
+        const linhas = bloco.match(re) || [];
+        if (!linhas[ocorrencia]) throw new Error(`Apto ${apto} não encontrado em ${empId}.`);
+        const nova = trocar(linhas[ocorrencia]);
+        let vista = -1;
+        return bloco.replace(re, (m) => { vista += 1; return vista === ocorrencia ? nova : m; });
+      }
+      if (partes[1] === "t") {
+        const [quadra, numero] = [partes[2], partes[3]];
+        const re = new RegExp(`^.*quadra:\\s*"${escapeRegex(quadra)}",\\s*numero:\\s*"${escapeRegex(numero)}".*$`, "m");
+        const achou = bloco.match(re);
+        if (!achou) throw new Error(`Terreno ${quadra}/${numero} não encontrado em ${empId}.`);
+        return bloco.replace(re, trocar(achou[0]));
+      }
+      if (partes[1] === "b") {
+        const numero = partes[2];
+        const re = new RegExp(`^.*\\bbox:\\s*"${escapeRegex(numero)}".*$`, "m");
+        const achou = bloco.match(re);
+        if (!achou) throw new Error(`Box ${numero} não encontrado em ${empId}.`);
+        return bloco.replace(re, trocar(achou[0]));
+      }
+      const nome = partes.slice(2).join(":");
+      const posNome = bloco.search(new RegExp(`nome:\\s*"${escapeRegex(nome)}"`));
+      if (posNome === -1) throw new Error(`Imóvel "${nome}" não encontrado em ${empId}.`);
+      const depois = bloco.slice(posNome);
+      const limite = depois.search(/\n\s*\},/);
+      const trecho = depois.slice(0, limite === -1 ? undefined : limite);
+      return bloco.slice(0, posNome) + trocar(trecho) + bloco.slice(posNome + trecho.length);
+    });
   }
 
   function aplicarStatus(texto, op) {
@@ -4070,6 +4173,9 @@
     const status = estado.ops.filter((op) => op.tipoOp === "status");
     if (status.length === 1) partes.push(`${status[0].rotulo.trim()} → ${STATUS_LABEL[status[0].novoStatus].toLowerCase()}`);
     else if (status.length > 1) partes.push(`${status.length} unidades com status alterado`);
+    const precos = estado.ops.filter((op) => op.tipoOp === "preco");
+    if (precos.length === 1) partes.push(`${precos[0].rotulo.trim()} com preço novo`);
+    else if (precos.length > 1) partes.push(`${precos.length} preços atualizados`);
     const materiais = estado.ops.filter((op) => ["material", "galeria", "planta"].includes(op.tipoOp));
     const uploads = estado.ops.filter((op) => op.tipoOp === "upload");
     if (materiais.length === 1) partes.push("materiais de empreendimento atualizados");
@@ -4105,6 +4211,7 @@
       const incc = estado.ops.find((op) => op.tipoOp === "incc");
       if (incc) texto = aplicarIncc(texto, incc);
       estado.ops.filter((op) => op.tipoOp === "status").forEach((op) => { texto = aplicarStatus(texto, op); });
+      estado.ops.filter((op) => op.tipoOp === "preco").forEach((op) => { texto = aplicarPreco(texto, op); });
       estado.ops.filter((op) => op.tipoOp === "material").forEach((op) => { texto = aplicarMaterial(texto, op); });
       estado.ops.filter((op) => op.tipoOp === "galeria").forEach((op) => { texto = aplicarGaleria(texto, op); });
       estado.ops.filter((op) => op.tipoOp === "planta").forEach((op) => { texto = aplicarPlanta(texto, op); });
