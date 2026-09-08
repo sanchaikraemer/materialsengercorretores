@@ -2355,6 +2355,21 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
     const pages = [];
     for (let i = 0; i < rows.length; i += 3) pages.push(`<div class="ps-page">${rows.slice(i, i + 3).join("")}</div>`);
 
+    // Depois dos cartoes vem a lista inteira: cada empreendimento com todas as
+    // suas unidades, area, situacao e valor — nao so o "a partir de".
+    const listas = enterprises.map((emp) => {
+      const { groupTables, landTable, otherTable } = tabelasDeUnidades(emp);
+      if (!groupTables && !landTable && !otherTable) return "";
+      const prazo = semPonto(emp.entrega || emp.statusLabel || "");
+      return `
+        <div class="ps-page ps-lista">
+          <h2 class="ps-section">${escapeHtml(emp.nome)}</h2>
+          <p class="ps-group-note">${escapeHtml([emp.cidade, prazo, CATEGORY_LABELS[emp.categoria] || emp.categoria].filter(Boolean).join(" · "))}</p>
+          ${groupTables}${landTable}${otherTable}
+        </div>
+      `;
+    }).join("");
+
     setHtml("print-sheet", `
       <header class="ps-head">
         <img class="ps-logo" src="${escapeHtml(assetUrl("assets/senger-logo.webp"))}" alt="Construtora Senger">
@@ -2366,7 +2381,57 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
         </div>
       </header>
       ${pages.join("")}
+      ${listas}
     `);
+  }
+
+  // As tabelas de unidades de um empreendimento. Servem tanto para a folha do
+  // empreendimento quanto para o portfolio inteiro, que sai com a lista toda.
+  function tabelasDeUnidades(emp) {
+    const groupTables = (emp.grupos || []).map((group, groupIndex) => {
+      const units = (group.unidades || []).map((unit, unitIndex) => itemMap.get(`${emp.id}:unit:${groupIndex}:${unitIndex}`)).filter(Boolean);
+      if (!units.length) return "";
+      return `
+        <div class="ps-group">
+          <h3>${escapeHtml(group.tipo)}</h3>
+          <p class="ps-group-note">${escapeHtml([group.area, group.garagem, group.obs].filter(Boolean).join(" · "))}</p>
+          <table class="ps-table">
+            <thead><tr><th>Unidade</th><th>Área</th><th>Status</th><th>Valor</th></tr></thead>
+            <tbody>${units.map((item) => `
+              <tr><td>${escapeHtml(itemLabel(item))}${casaSuspensaTag(item) ? ` <b>· ${CASA_SUSPENSA}</b>` : ""}</td><td>${escapeHtml(item.area || "—")}</td><td>${escapeHtml(STATUS_LABELS[item.status] || item.status)}</td><td>${money(item.price)}</td></tr>
+            `).join("")}</tbody>
+          </table>
+        </div>
+      `;
+    }).join("");
+
+    const lotes = itemsFor(emp).filter((item) => item.kind === "land");
+    const landTable = lotes.length ? `
+      <div class="ps-group">
+        <h3>Lotes</h3>
+        <table class="ps-table">
+          <thead><tr><th>Quadra · Lote</th><th>Rua</th><th>Área</th><th>Valor</th></tr></thead>
+          <tbody>${lotes.map((item) => `
+            <tr><td>${escapeHtml(itemLabel(item))}</td><td>${escapeHtml(item.rua || "—")}</td><td>${escapeHtml(item.area || "—")}</td><td>${money(item.price)}</td></tr>
+          `).join("")}</tbody>
+        </table>
+      </div>
+    ` : "";
+
+    const outros = itemsFor(emp).filter((item) => item.kind === "other");
+    const otherTable = outros.length ? `
+      <div class="ps-group">
+        <h3>Imóveis</h3>
+        <table class="ps-table">
+          <thead><tr><th>Imóvel</th><th>Local</th><th>Área</th><th>Valor</th></tr></thead>
+          <tbody>${outros.map((item) => `
+            <tr><td>${escapeHtml(item.nome || itemLabel(item))}</td><td>${escapeHtml(item.local || "—")}</td><td>${escapeHtml(item.area || "—")}</td><td>${item.price ? `${escapeHtml(item.pricePrefix || "")}${money(item.price)}` : "Sob consulta"}</td></tr>
+          `).join("")}</tbody>
+        </table>
+      </div>
+    ` : "";
+
+    return { groupTables, landTable, otherTable };
   }
 
   // Folha A4 de um empreendimento: fotos lado a lado (2 por linha) e
@@ -2392,35 +2457,7 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
       <figure class="ps-plant"><img src="${escapeHtml(assetUrl(item.src))}" alt="">${item.legenda ? `<figcaption>${escapeHtml(item.legenda)}</figcaption>` : ""}</figure>
     `).join("");
 
-    const groupTables = (emp.grupos || []).map((group, groupIndex) => {
-      const units = (group.unidades || []).map((unit, unitIndex) => itemMap.get(`${emp.id}:unit:${groupIndex}:${unitIndex}`)).filter(Boolean);
-      if (!units.length) return "";
-      const showArea = true;
-      return `
-        <div class="ps-group">
-          <h3>${escapeHtml(group.tipo)}</h3>
-          <p class="ps-group-note">${escapeHtml([group.area, group.garagem, group.obs].filter(Boolean).join(" · "))}</p>
-          <table class="ps-table">
-            <thead><tr><th>Unidade</th>${showArea ? "<th>Área</th>" : ""}<th>Status</th><th>Valor</th></tr></thead>
-            <tbody>${units.map((item) => `
-              <tr><td>${escapeHtml(itemLabel(item))}${casaSuspensaTag(item) ? ` <b>· ${CASA_SUSPENSA}</b>` : ""}</td>${showArea ? `<td>${escapeHtml(item.area || "—")}</td>` : ""}<td>${escapeHtml(STATUS_LABELS[item.status] || item.status)}</td><td>${money(item.price)}</td></tr>
-            `).join("")}</tbody>
-          </table>
-        </div>
-      `;
-    }).join("");
-
-    const landTable = (emp.terrenos || []).length ? `
-      <div class="ps-group">
-        <h3>Lotes</h3>
-        <table class="ps-table">
-          <thead><tr><th>Quadra · Lote</th><th>Rua</th><th>Área</th><th>Valor</th></tr></thead>
-          <tbody>${itemsFor(emp).filter((item) => item.kind === "land").map((item) => `
-            <tr><td>${escapeHtml(itemLabel(item))}</td><td>${escapeHtml(item.rua || "—")}</td><td>${escapeHtml(item.area || "—")}</td><td>${money(item.price)}</td></tr>
-          `).join("")}</tbody>
-        </table>
-      </div>
-    ` : "";
+    const { groupTables, landTable, otherTable } = tabelasDeUnidades(emp);
 
     const diffs = (emp.diferenciais || []).map((d) => `
       <div class="ps-diff"><strong>${escapeHtml(d.titulo)}</strong><span>${escapeHtml(d.desc)}</span></div>
@@ -2439,7 +2476,7 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
       </header>
       ${emp.localizacao ? `<p class="ps-address">${escapeHtml(emp.localizacao)}</p>` : ""}
       ${diffs ? `<div class="ps-diffs">${diffs}</div>` : ""}
-      ${groupTables || landTable ? `<h2 class="ps-section">Unidades e valores</h2>${groupTables}${landTable}` : ""}
+      ${groupTables || landTable || otherTable ? `<h2 class="ps-section">Unidades e valores</h2>${groupTables}${landTable}${otherTable}` : ""}
       ${photoRows.length ? `<h2 class="ps-section">Imagens</h2>${photoRows.join("")}` : ""}
       ${plantBlocks ? `<h2 class="ps-section">Plantas</h2>${plantBlocks}` : ""}
     `);
