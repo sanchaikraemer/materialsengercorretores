@@ -1119,7 +1119,9 @@
     financeiroSujo = !!sujo;
     const botao = $("botao-salvar-financeiro");
     const status = $("financeiro-status");
-    if (botao) botao.disabled = !financeiroSujo;
+    // Sempre clicavel: mesmo sem mudanca nova, e por ele que o dono manda os
+    // custos para a conta depois de trocar a chave do GitHub.
+    if (botao) botao.disabled = false;
     if (financeiroSujo) guardarRascunhoFinanceiro();
     if (status) {
       status.textContent = textoFinanceiroStatus();
