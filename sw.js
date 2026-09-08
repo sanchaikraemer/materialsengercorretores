@@ -1,5 +1,5 @@
-const CACHE = "senger-portfolio-v183-20260908-botao-secundario-visivel";
-const CORE = ["./", "./index.html", "./styles.css?v=183", "./data.js?v=183", "./app.js?v=183", "./manifest.json"];
+const CACHE = "senger-portfolio-v184-20260908-salvar-sempre-clicavel";
+const CORE = ["./", "./index.html", "./styles.css?v=184", "./data.js?v=184", "./app.js?v=184", "./manifest.json"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
