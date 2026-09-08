@@ -1031,6 +1031,8 @@
   // Rascunho do que foi digitado e ainda nao foi salvo. Sem ele, fechar a aba
   // sem clicar em "Salvar" apagava tudo em silencio.
   const FINANCEIRO_RASCUNHO = "senger-admin-financeiro-rascunho";
+  // Como o dono gosta de arredondar os precos na correcao do INCC.
+  const ARREDONDAR_ITEM = "senger-admin-arredondar";
 
   function mapaDeNumeros(m) {
     return m && typeof m === "object" && !Array.isArray(m) ? m : {};
@@ -3688,6 +3690,10 @@
     if ($("incc-valor-ajuda")) $("incc-valor-ajuda").textContent = `INCC atual: ${atual || "Não informado"}. Ao informar o novo valor, a variação é calculada automaticamente.`;
     if ($("incc-variacao-ajuda")) $("incc-variacao-ajuda").textContent = `Variação atual: ${variacaoAtual}. Informe a variação e o novo INCC sai sozinho — ou informe o novo INCC e a variação sai sozinha.`;
     if ($("incc-data-ajuda")) $("incc-data-ajuda").textContent = `Data atual da tabela: ${meta.dataTabela || "Não informada"}. Use o calendário para escolher a nova data.`;
+    // O arredondamento e escolha do dono e nao muda todo mes: o painel lembra
+    // a ultima opcao usada neste aparelho em vez de voltar sozinho para R$ 1.000.
+    const guardado = (() => { try { return localStorage.getItem(ARREDONDAR_ITEM); } catch (e) { return null; } })();
+    if (guardado && $("incc-arredondar")?.querySelector(`option[value="${guardado}"]`)) $("incc-arredondar").value = guardado;
     $("incc-valor").placeholder = atual ? `Atual: ${atual}` : "Informe o novo índice";
     $("incc-mes").placeholder = meta.mesTabela ? `Atual: ${meta.mesTabela}` : "Setembro / 2026";
     $("incc-data").value = "";
@@ -3727,6 +3733,10 @@
     }
     calcularVariacaoPeloNovoIncc();
     formatarCampoIncc();
+  });
+
+  $("incc-arredondar")?.addEventListener("change", () => {
+    try { localStorage.setItem(ARREDONDAR_ITEM, $("incc-arredondar").value); } catch (e) { /* modo privado */ }
   });
 
   $("incc-variacao")?.addEventListener("input", calcularNovoInccPelaVariacao);
