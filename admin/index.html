@@ -1583,17 +1583,26 @@
     const pacote = remoto.pacote || {};
     const quandoRemoto = Date.parse(pacote.salvoEm || "") || 0;
     const quandoLocal = Date.parse(financeiroSalvoEm || "") || 0;
-    if (quandoRemoto >= quandoLocal) {
-      custosInternos = { ...mapaDeNumeros(pacote.custos) };
-      margensDesejadas = { ...mapaDeNumeros(pacote.margensDesejadas) };
-      financeiroSalvoEm = pacote.salvoEm || new Date().toISOString();
+    // Os dois lados se JUNTAM, nunca um apaga o outro: custo lancado num
+    // aparelho e custo lancado no outro somam. Quando o mesmo item tem valor
+    // dos dois lados, vale o do pacote salvo mais tarde.
+    const remotoCustos = mapaDeNumeros(pacote.custos);
+    const remotoMargens = mapaDeNumeros(pacote.margensDesejadas);
+    const remotoManda = quandoRemoto >= quandoLocal;
+    const antes = JSON.stringify([custosInternos, margensDesejadas]);
+    custosInternos = remotoManda ? { ...custosInternos, ...remotoCustos } : { ...remotoCustos, ...custosInternos };
+    margensDesejadas = remotoManda ? { ...margensDesejadas, ...remotoMargens } : { ...remotoMargens, ...margensDesejadas };
+    const mudou = JSON.stringify([custosInternos, margensDesejadas]) !== antes;
+    if (mudou) {
+      financeiroSalvoEm = new Date().toISOString();
       gravarFinanceiroLocal();
       renderCustosMargens();
-      definirCofre("ok");
-    } else {
-      // Este aparelho tem coisa mais nova: manda para o cofre.
-      await enviarAoCofre();
     }
+    // Se este aparelho tinha algo que o cofre nao tem, devolve para o cofre.
+    const faltaNoCofre = Object.keys(custosInternos).length > Object.keys(remotoCustos).length
+      || Object.keys(margensDesejadas).length > Object.keys(remotoMargens).length;
+    if (faltaNoCofre) await enviarAoCofre();
+    else definirCofre("ok");
   }
 
   async function arquivoParaBase64(arquivo) {
