@@ -3433,6 +3433,7 @@
       }
       custosInternos = { ...custosInternos, ...custosValidos };
       margensDesejadas = { ...margensDesejadas, ...margensValidas };
+<<<<<<< HEAD
       // Nada e salvo agora: o dono confere na tabela e decide no botao Salvar.
       atualizarEstadoFinanceiro(true);
       renderCustosMargens();
@@ -3442,6 +3443,14 @@
         (semCorrespondencia ? ` · ${semCorrespondencia} unidades do arquivo não existem mais no cadastro` : "") +
         ". Confira na tabela e clique em “Salvar custos e margens”.", "ok");
       aviso(`${quantos} custos na tabela. Confira e clique em “Salvar custos e margens”.`, "ok");
+=======
+      financeiroSujo = true;
+      // Importar ja e a decisao do dono: salva na hora e manda para a conta,
+      // sem depender de um segundo clique que pode ficar pelo caminho.
+      try { renderCustosMargens(); } catch (erroTela) { /* a tabela se redesenha ao reabrir */ }
+      await salvarFinanceiroInterno();
+      aviso(`${Object.keys(custosValidos).length} custos importados · ${financeiroCobertura.comCusto} de ${financeiroCobertura.total} itens à venda ficaram com custo.`, "ok");
+>>>>>>> origin/main
     } catch (err) {
       mostrarResultadoImportacao(`Não consegui importar: ${err.message}.`, "falha");
       aviso(`Não consegui importar o backup: ${err.message}.`, "falha");
