@@ -82,6 +82,16 @@ A linha de status diz a verdade — `X de Y itens com custo ✓ · salvo em dd/m
 
 **Importar backup** reconhece a linha pelo código interno e, se ele mudou, pelo nome da unidade — sempre **dentro do mesmo empreendimento e do mesmo tipo** (`u`, `b`, `t`, `o`), para o Box 101 nunca virar o Apto 101 nem o 401 de outro prédio. A importação só preenche a tela (fica "Alterações não salvas"); quem grava é o dono, no botão. Embaixo dos botões fica uma linha fixa dizendo quantos custos entraram, quantos não têm correspondência, ou o motivo da falha.
 
+**A venda desejada vira o preço do site (v200).** Custo e margem são internos e
+nunca acendem o "Publicar no site" — foi o que confundiu o dono, que ajustou os
+valores e viu o botão apagado. A **venda desejada**, porém, é preço de verdade:
+embaixo da tabela financeira há o botão **"Usar as vendas desejadas como preço
+do site"**, que mostra o que vai mudar (de → para), põe na fila de publicação
+como `tipoOp: "preco"` e só então acende o botão de publicar. Fica de fora o que
+está vendido, o box que já está no preço do apartamento e o item cuja venda
+desejada é igual ao preço atual. A gravação é textual (`aplicarPreco`), pela
+mesma chave do resto do painel, e mexe só na linha do item.
+
 ## Materiais obrigatórios por empreendimento
 
 O padrão comercial é o mesmo para todos os empreendimentos reais (o agrupador `outros` não entra nessa regra):
