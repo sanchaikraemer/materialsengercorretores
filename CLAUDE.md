@@ -74,6 +74,8 @@ Quem foi salvo por último ganha (`salvoEm`), e digitação em andamento nunca �
 
 A linha de status diz a verdade — `X de Y itens com custo ✓ · salvo em dd/mm/aaaa`, ou "Nenhum custo guardado neste aparelho". O antigo "Dados salvos neste computador ✓" aparecia mesmo com a tabela vazia.
 
+**O vendido continua na tabela (v181).** A tabela financeira mostra o prédio inteiro: os vendidos vão para o fim da lista, em vermelho e com a situação "Vendido". Eles ficam **fora** da conta `X de Y itens com custo` — não há mais o que precificar — e o cabeçalho do empreendimento diz "N itens à venda · M vendidos".
+
 **Os box entram na tabela financeira (v180).** Box é venda separada, com valor e situação próprios: a tabela lista unidades **e** box não vendidos, tem coluna **Situação**, e o box mostra se é simples ou duplo. Por isso o `data.js` agora guarda `preco` no box (continua interno — o site não lê `boxes`). Box sem valor de tabela fica sem `preco`.
 
 **Importar backup** reconhece a linha pelo código interno e, se ele mudou, pelo nome da unidade — sempre **dentro do mesmo empreendimento e do mesmo tipo** (`u`, `b`, `t`, `o`), para o Box 101 nunca virar o Apto 101 nem o 401 de outro prédio. A importação só preenche a tela (fica "Alterações não salvas"); quem grava é o dono, no botão. Embaixo dos botões fica uma linha fixa dizendo quantos custos entraram, quantos não têm correspondência, ou o motivo da falha.
