@@ -3441,7 +3441,12 @@
           const situacao = statusAtual(emp.id, item);
           const vendido = situacao === "vendido";
           const vinculo = vinculoDoItem(item);
-          const nome = `<td>${escapeHtml(item.rotulo)}${item.tipo === "box" ? ` <span class="box-tipo">${item.vagas > 1 ? "duplo" : "simples"}${item.pne ? " · PCD" : ""}</span>` : ""}${vinculo ? `<span class="vinculo-box">${escapeHtml(vinculo)}</span>` : ""}</td>`;
+          // Embaixo do nome: a tipologia (2 ou 3 dormitorios) e, quando ha, o
+          // box que foi junto. Sem a tipologia o dono nao sabe o que esta
+          // precificando so pelo numero do apartamento.
+          const tipologia = item.tipo === "box" ? "" : (item.estoque || item.grupo || "");
+          const detalhe = [tipologia, vinculo].filter(Boolean).join(" · ");
+          const nome = `<td>${escapeHtml(item.rotulo)}${item.tipo === "box" ? ` <span class="box-tipo">${item.vagas > 1 ? "duplo" : "simples"}${item.pne ? " · PCD" : ""}</span>` : ""}${detalhe ? `<span class="vinculo-box">${escapeHtml(detalhe)}</span>` : ""}</td>`;
           const situacaoCel = `<td><span class="st-${situacao}"><span class="bolinha"></span>${escapeHtml(STATUS_LABEL[situacao] || situacao)}</span></td>`;
           return `<tr data-financeiro-linha${vendido ? " class=\"linha-vendida\"" : ""} data-preco="${preco}" data-chave="${escapeHtml(chave)}">
             ${nome}
