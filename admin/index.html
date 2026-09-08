@@ -3260,10 +3260,12 @@
     const grupos = estado.dados.EMPREENDIMENTOS.map((emp) => ({
       emp,
       // Alugado continua sendo produto à venda (investidor compra com o inquilino dentro).
-      // Os box entram junto: sao venda separada, com valor e situacao proprios.
+      // O box so entra como item onde ele e venda separada (Renaissance). Nos
+      // demais o box ja esta dentro do preco do apartamento, entao cobrar
+      // custo dele de novo contaria a garagem duas vezes.
       // Vendido tambem aparece, no fim da lista e em vermelho: o predio
       // inteiro fica a vista, e o dono ve o custo do que ja saiu.
-      itens: [...itensDoEmp(emp), ...boxesDoEmp(emp)]
+      itens: [...itensDoEmp(emp), ...(emp.boxSeparado ? boxesDoEmp(emp) : [])]
         .sort((a, b) => (statusAtual(emp.id, a) === "vendido" ? 1 : 0) - (statusAtual(emp.id, b) === "vendido" ? 1 : 0)),
     })).filter(({ itens }) => itens.length);
 
@@ -3399,7 +3401,7 @@
     const porNome = new Map();
     const limpo = (t) => String(t || "").toLowerCase().replace(/[^a-z0-9]+/g, "");
     (estado.dados?.EMPREENDIMENTOS || []).forEach((emp) => {
-      [...itensDoEmp(emp), ...boxesDoEmp(emp)].forEach((item) => {
+      [...itensDoEmp(emp), ...(emp.boxSeparado ? boxesDoEmp(emp) : [])].forEach((item) => {
         const chave = chaveDoItem(emp.id, item);
         porChave.set(chave, chave);
         // O nome so vale dentro do mesmo empreendimento E do mesmo tipo: o

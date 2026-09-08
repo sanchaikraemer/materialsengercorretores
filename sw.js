@@ -1,5 +1,5 @@
-const CACHE = "senger-portfolio-v184-20260908-salvar-sempre-clicavel";
-const CORE = ["./", "./index.html", "./styles.css?v=184", "./data.js?v=184", "./app.js?v=184", "./manifest.json"];
+const CACHE = "senger-portfolio-v185-20260908-box-so-no-renaissance";
+const CORE = ["./", "./index.html", "./styles.css?v=185", "./data.js?v=185", "./app.js?v=185", "./manifest.json"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
