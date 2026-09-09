@@ -447,28 +447,21 @@
     .preco-item { display:flex; align-items:flex-start; gap:8px; min-width:0; }
     .preco-item .nome { font-weight:700; font-size:.84rem; }
     .preco-sub { display:block; color:var(--texto-suave); font-size:.7rem; font-weight:500; margin-top:2px; line-height:1.35; }
-    /* O simbolo sozinho nao bastava: o dono nao achou os descontos atras dele.
-       Agora o botao diz o que tem dentro. */
-    .preco-abrir { display:inline-block; margin-top:5px; padding:3px 9px; border:1px solid var(--borda); border-radius:999px; background:var(--cartao); color:var(--dourado); cursor:pointer; font:inherit; font-size:.68rem; font-weight:700; }
-    .preco-abrir:hover { border-color:var(--dourado); }
-    .preco-abrir[aria-expanded="true"] { background:var(--dourado); border-color:var(--dourado); color:#fff; }
     .preco-campo { min-width:0; text-align:right; font-variant-numeric:tabular-nums; font-size:.8rem; }
     .preco-campo .preco-rotulo { display:none; }
     .preco-campo input { width:100%; }
     .preco-campo .valor { font-weight:700; }
     .preco-nota { display:block; color:var(--texto-suave); font-size:.66rem; font-weight:500; margin-top:3px; line-height:1.3; }
     .preco-nota.destaque { color:#a86612; font-weight:700; }
-    .preco-gaveta { padding:0 14px 14px; display:flex; flex-wrap:wrap; gap:14px; align-items:flex-end; font-size:.78rem; }
-    .preco-gaveta[hidden] { display:none; }
-    .preco-gaveta .bloco-gaveta { min-width:150px; }
-    .preco-gaveta .titulo-gaveta { display:block; color:var(--texto-suave); font-size:.68rem; text-transform:uppercase; letter-spacing:.04em; margin-bottom:4px; }
-    .preco-gaveta .desconto { font-variant-numeric:tabular-nums; }
-    .preco-gaveta input { width:150px; }
-    .preco-gaveta .campo-pct input { width:88px; }
-    .botao-gaveta { border:1px solid var(--borda); background:var(--cartao); color:var(--texto); border-radius:8px; padding:8px 12px; font:inherit; font-size:.76rem; font-weight:600; cursor:pointer; }
-    .botao-gaveta:hover { border-color:var(--dourado); }
-    .preco-gaveta .botao-gaveta { background:var(--fundo); padding:8px 11px; }
-    .preco-sub .bolinha { display:inline-block; width:8px; height:8px; margin-right:4px; vertical-align:middle; }
+    /* O "desfazer" so aparece na linha que vai mudar de preco: e o antigo
+       "Deixar igual ao preco do site", agora na propria celula. */
+    .preco-desfazer { display:inline-block; margin-top:2px; padding:1px 7px; border:1px solid var(--borda);
+      border-radius:999px; background:var(--cartao); color:var(--texto-suave); cursor:pointer;
+      font:inherit; font-size:.63rem; font-weight:600; }
+    .preco-desfazer:hover { border-color:var(--dourado); color:var(--dourado); }
+    .preco-linha:not(.muda) .preco-desfazer { display:none; }
+    .precos-lista input.margem-positiva { color:var(--verde); font-weight:700; }
+    .precos-lista input.margem-negativa { color:var(--vermelho); font-weight:700; }
     .box-tipo { color:var(--texto-suave); font-size:.72rem; font-weight:500; }
     .box-incluso { color:var(--texto-suave); font-style:italic; font-size:.72rem; }
     /* Vendido continua na lista, mas em vermelho: e passado, nao oferta. */
@@ -484,9 +477,6 @@
       .preco-campo input { text-align:left; }
       .preco-campo .campo-pct { justify-content:flex-start; }
       .preco-campo .campo-pct input { width:88px; }
-      .preco-gaveta { padding-left:14px; }
-      .preco-gaveta .bloco-gaveta { flex:1 1 100%; }
-      .preco-gaveta input { width:100%; }
     }
     @media (max-width: 860px) {
       .precos-massa .titulo-massa { flex:1 1 100%; }
@@ -3536,7 +3526,7 @@
     const { valor: margem, sobreVenda } = margemDaLinha(custo, preco, vendaDesejada);
     const cel = linha.querySelector("[data-margem]");
     if (cel) {
-      cel.textContent = semMoeda(textoMargem(margem));
+      if (document.activeElement !== cel) cel.value = margem == null ? "" : semMoeda(textoMargem(margem));
       cel.classList.toggle("margem-positiva", margem != null && margem >= 0);
       cel.classList.toggle("margem-negativa", margem != null && margem < 0);
     }
@@ -3719,7 +3709,6 @@
               <div>
                 <span class="nome">${escapeHtml(item.rotulo)}</span>${marcaBox}
                 <span class="preco-sub"><span class="st-${situacao}"><span class="bolinha"></span>${escapeHtml(STATUS_LABEL[situacao] || situacao)}</span>${detalhe ? " · " + escapeHtml(detalhe) : ""}</span>
-                <button type="button" class="preco-abrir" data-abrir-gaveta aria-expanded="false" aria-label="Mais opções de ${escapeHtml(item.rotulo)}">▾ mais opções</button>
               </div>
             </div>
             <div class="preco-campo">
@@ -3746,6 +3735,7 @@
                 ? `<input class="margem-desejada-input" inputmode="decimal" data-venda-chave="${escapeHtml(chave)}" value="${vendaDesejada == null ? "" : escapeHtml(dinheiroDaLinha(vendaDesejada))}" placeholder="Informe a venda" aria-label="Venda desejada de ${escapeHtml(item.rotulo)}">`
                 : `<span class="valor">—</span>`}
               <span class="preco-nota${muda ? " destaque" : ""}" data-venda-nota>${muda ? "vai para o site" : ""}</span>
+              ${vendavel && preco > 0 ? `<button type="button" class="preco-desfazer" data-igualar-site title="Voltar a venda desejada para o preço que está no site">desfazer</button>` : ""}
             </div>
             <div class="preco-campo">
               <span class="preco-rotulo">Margem %</span>
@@ -3753,16 +3743,9 @@
             </div>
             <div class="preco-campo">
               <span class="preco-rotulo">Margem</span>
-              <span class="valor${margem == null ? "" : margem < 0 ? " margem-negativa" : " margem-positiva"}" data-margem>${escapeHtml(semMoeda(textoMargem(margem)))}</span>
+              <input class="margem-desejada-input${margem == null ? "" : margem < 0 ? " margem-negativa" : " margem-positiva"}" inputmode="decimal" data-margem-chave="${escapeHtml(chave)}" data-margem value="${escapeHtml(semMoeda(textoMargem(margem)) === "—" ? "" : semMoeda(textoMargem(margem)))}" placeholder="—" aria-label="Margem de ${escapeHtml(item.rotulo)}">
               <span class="preco-nota" data-margem-nota>${margem == null ? "" : sobreVenda ? "na venda desejada" : "no preço do site"}</span>
             </div>
-          </div>
-          <div class="preco-gaveta" hidden>
-            <div class="bloco-gaveta">
-              <span class="titulo-gaveta">Margem em reais</span>
-              <input class="margem-desejada-input" inputmode="decimal" data-margem-chave="${escapeHtml(chave)}" value="${margemDesejada != null ? escapeHtml(moedaFinanceira(margemDesejada)) : ""}" placeholder="Margem em R$" aria-label="Margem desejada de ${escapeHtml(item.rotulo)}">
-            </div>
-            ${vendavel && preco > 0 ? `<button type="button" class="botao-gaveta" data-igualar-site>Deixar igual ao preço do site</button>` : ""}
           </div>
         </div>`;
         }).join("")}
@@ -3778,18 +3761,6 @@
       det.addEventListener("toggle", () => {
         if (det.open) precosEmpsAbertos.add(det.dataset.precoEmp);
         else precosEmpsAbertos.delete(det.dataset.precoEmp);
-      });
-    });
-
-    // A gaveta guarda o que so serve na hora de uma proposta: os descontos
-    // sobre o custo e a margem em reais.
-    alvo.querySelectorAll("[data-abrir-gaveta]").forEach((botao) => {
-      botao.addEventListener("click", () => {
-        const linha = botao.closest("[data-financeiro-linha]");
-        const gaveta = linha.querySelector(".preco-gaveta");
-        const abrir = gaveta.hidden;
-        gaveta.hidden = !abrir;
-        botao.setAttribute("aria-expanded", String(abrir));
       });
     });
 
@@ -3815,7 +3786,7 @@
         const margem = Math.round((preco - custo) * 100) / 100;
         margensDesejadas[chave] = margem;
         const campoMargem = linha.querySelector("input[data-margem-chave]");
-        if (campoMargem) campoMargem.value = moedaFinanceira(margem);
+        if (campoMargem) campoMargem.value = dinheiroDaLinha(margem);
         atualizarLinhaFinanceira(linha, custo, margem);
         atualizarEstadoFinanceiro(true);
       });
@@ -3828,7 +3799,7 @@
         const chave = input.dataset.custoChave;
         const bruto = input.value.trim();
         const valor = numeroDeMoeda(bruto);
-        atualizarLinhaFinanceira(linha, valor, numeroDeMoeda(margemInput.value));
+        atualizarLinhaFinanceira(linha, valor, margemDesejadaInterna(chave));
         if (!bruto) { delete custosInternos[chave]; atualizarEstadoFinanceiro(true); }
         else if (valor != null && valor > 0) { custosInternos[chave] = valor; atualizarEstadoFinanceiro(true); }
       });
@@ -3847,7 +3818,7 @@
         else custosInternos[chave] = valor;
         atualizarEstadoFinanceiro(true);
         input.value = valor && valor > 0 ? dinheiroDaLinha(valor) : "";
-        atualizarLinhaFinanceira(linha, valor && valor > 0 ? valor : null, numeroDeMoeda(margemInput.value));
+        atualizarLinhaFinanceira(linha, valor && valor > 0 ? valor : null, margemDesejadaInterna(chave));
       });
       input.addEventListener("focus", () => {
         const valor = custoInterno(input.dataset.custoChave);
@@ -3885,7 +3856,7 @@
         if (!bruto) delete margensDesejadas[chave];
         else margensDesejadas[chave] = valor;
         atualizarEstadoFinanceiro(true);
-        input.value = valor != null ? moedaFinanceira(valor) : "";
+        input.value = valor != null ? dinheiroDaLinha(valor) : "";
         atualizarLinhaFinanceira(linha, numeroDeMoeda(custoInput.value), valor);
       });
       input.addEventListener("focus", () => {
@@ -3894,8 +3865,9 @@
         input.select();
       });
       input.addEventListener("blur", () => {
-        const valor = margemDesejadaInterna(input.dataset.margemChave);
-        input.value = valor != null ? moedaFinanceira(valor) : "";
+        // Sem margem desejada guardada, a coluna volta a mostrar a margem que o
+        // preço do site dá hoje — ela é informação, não pode sumir ao clicar.
+        atualizarLinhaFinanceira(linha, custoInterno(input.dataset.margemChave), margemDesejadaInterna(input.dataset.margemChave));
       });
     });
 
@@ -3930,7 +3902,7 @@
         }
         const margem = Math.round((venda - custo) * 100) / 100;
         margensDesejadas[chave] = margem;
-        margemInput.value = moedaFinanceira(margem);
+        margemInput.value = dinheiroDaLinha(margem);
         // A margem mostrada passa a ser a da venda desejada, e a linha ganha a
         // faixa de "vai para o site" na mesma tecla.
         atualizarLinhaFinanceira(linha, custo, margem);
@@ -3986,7 +3958,7 @@
         }
         const margem = margemDePct(custo, pct);
         margensDesejadas[chave] = margem;
-        if (margemInput) margemInput.value = moedaFinanceira(margem);
+        if (margemInput) margemInput.value = dinheiroDaLinha(margem);
         atualizarLinhaFinanceira(linha, custo, margem);
         atualizarEstadoFinanceiro(true);
       };
