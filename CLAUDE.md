@@ -24,7 +24,7 @@ um painel administrativo que o dono usa pelo celular.
   `EMPREENDIMENTOS`.
 - `admin/index.html` — o painel administrativo, uma página só, sem build. Lê e
   grava o `data.js` direto pela API do GitHub, na branch `main`.
-  A interface usa navegação lateral em acordeão/colapsável (v173), com módulos separados e a paleta original do painel. Configurações não é um módulo: a chave do GitHub fica recolhida em Publicação > Acesso técnico.
+  A interface usa navegação lateral em acordeão/colapsável (v173), com módulos separados e a paleta original do painel. Preços e margem é um módulo próprio desde a v210. Configurações não é um módulo: a chave do GitHub fica recolhida em Publicação > Acesso técnico.
 - `sw.js` — service worker. Navegação e arquivos do site são buscados da rede
   primeiro, então o painel nunca fica preso em cache.
 - `l/` — as **páginas-ponte**, geradas por `tools/gerar-pontes.js`. Uma por
@@ -62,7 +62,35 @@ até alguém informar o novo valor.
 
 ### Custos e margem (somente painel)
 
-A tela de INCC também possui uma tabela interna dos itens à venda com `Custo`, `Custo - 5%`, `Custo - 10%`, `Preço de venda atual` e `Margem extra` (`preço - custo`). **Nunca grave custo no `data.js` ou em outro arquivo público do repositório.** O painel permite importar/exportar um JSON de backup.
+**Preços e margem é uma tela própria (v210)**, no menu, ao lado da Correção pelo
+INCC. Antes era um apêndice da tela de INCC, com uma tabela de nove colunas que
+só cabia rolando para o lado; o dono disse, com razão, que ela estava confusa.
+Agora cada item é uma linha com **quatro números — custo, preço no site, venda
+desejada e margem** — e nada mais. **Nunca grave custo no `data.js` ou em outro
+arquivo público do repositório.** O painel permite importar/exportar um JSON de
+backup.
+
+**Uma margem só na tela (v210).** Enquanto a venda desejada está vazia, a margem
+mostrada é a do preço que está no site; assim que o dono informa a venda
+desejada, ela passa a ser a margem dessa venda, e a letra miúda embaixo diz
+sobre qual das duas ela é. Duas colunas de margem lado a lado era o que mais
+confundia.
+
+**Os descontos ficam na gaveta (v210).** `Custo - 5%` e `Custo - 10%` só servem
+na hora de uma proposta, então saíram da linha: abrem no `⌄` ao lado do nome,
+junto com o campo de margem em reais e o botão **"Deixar igual ao preço do
+site"**, que desfaz a mudança de preço daquele item. As contas continuam as
+mesmas (`custo × 0,95` e `custo × 0,90`).
+
+**Três filtros e uma busca (v210)**: `Falta custo`, `Vai mudar de preço` e
+`Abaixo do custo`, cada um com a contagem ao lado, refeita a cada tecla
+digitada. Com filtro ligado os empreendimentos abrem sozinhos. A linha que vai
+mudar de preço ganha faixa amarela na lateral e a marca "vai para o site" — é a
+mesma conta da fila de publicação, para a tela nunca dizer uma coisa e o botão
+"Publicar no site" outra.
+
+**No celular a linha vira cartão (v210)**, com o nome de cada valor em cima
+dele. Não há mais rolagem lateral em tela nenhuma.
 
 **Onde o custo mora (v176).** Em três lugares, nesta ordem:
 
@@ -296,4 +324,4 @@ painel.
 - A variação mensal é calculada automaticamente e o painel mostra também a variação anterior.
 - A data da tabela usa input de data real; ao publicar, grava dd/mm/aaaa.
 - META.historicoIncc guarda mês, data, valor e variação de cada correção publicada.
-- A tabela financeira usa rolagem horizontal e reserva largura para todas as colunas, inclusive Venda desejada.
+- A tela de Preços e margem não tem rolagem horizontal: no computador é uma grade de cinco colunas, no celular um cartão por item.
