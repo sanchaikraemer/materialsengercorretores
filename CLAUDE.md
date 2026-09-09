@@ -121,8 +121,25 @@ Então as oito ficam na linha em qualquer largura de computador, em **três faix
 de aperto** (`@container` sobre a `.precos-lista`): confortável acima de 1060 px,
 média acima de 860 e apertada abaixo disso. Só abaixo de **760 px** a linha vira
 cartão — e ali cada valor aparece com o nome em cima, então nenhuma coluna some
-nem no celular. A gaveta ficou só com a margem em reais e o "Deixar igual ao
-preço do site".
+nem no celular. (A gaveta que ainda restava foi removida na v216.)
+
+**Não existe mais gaveta na linha (v216).** O botão "▾ mais opções" foi
+removido: *"não pode aparecer 'mais opções' pra abrir"*. Tudo o que estava
+dentro dele saiu para a própria linha:
+
+- a **margem em reais** virou a coluna **Margem**, que agora é campo. Ela mostra
+  a margem calculada (verde ou vermelha) e aceita digitação — digitar ali é o
+  terceiro jeito de precificar, junto com a `Margem %` e a `Venda desejada`;
+- o "Deixar igual ao preço do site" virou um **"desfazer"** miúdo dentro da
+  célula da venda desejada, que só aparece na linha marcada "vai para o site".
+
+**Cuidado herdado disso:** a coluna Margem é display e campo ao mesmo tempo,
+então quem lê margem desejada tem de usar `margemDesejadaInterna(chave)`, nunca
+o que está escrito no campo. O handler do custo lia o campo e, só de digitar o
+custo, a margem que estava na tela virava margem desejada e disparava a venda.
+Pelo mesmo motivo o `blur` do campo de margem chama `atualizarLinhaFinanceira`
+em vez de esvaziar: sem margem desejada guardada, a coluna volta a mostrar a
+margem que o preço do site dá hoje.
 
 **O "R$" saiu das células da lista (v215).** É o que fez tudo caber: repetir
 "R$" em oito colunas custava ~22 px em cada uma. A tela inteira é dinheiro e o
