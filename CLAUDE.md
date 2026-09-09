@@ -113,20 +113,28 @@ ficavam encostadas na direita. Agora elas crescem juntas (`fr` com mínimo), e a
 lista mede a si mesma (`container-type: inline-size`), não a janela — o menu
 lateral entra na conta.
 
-**Os descontos nunca mais somem (v214).** A v212 mandava `Custo − 5%` e
-`Custo − 10%` de volta para a gaveta quando a lista era estreita, e num notebook
-de 1366 px (a tela do dono) eles sumiam — ele foi procurar e não achou. Agora:
+**As oito colunas aparecem sempre — elas se apertam, não somem (v215).** As
+v212/v214 escondiam `Custo − 5%` e `Custo − 10%` quando a lista era estreita
+(v212 mandava para a gaveta, v214 para uma linha miúda embaixo do nome). O dono
+foi claro: *"tem que ficar aparecendo todas as colunas, aperte elas pra caber"*.
+Então as oito ficam na linha em qualquer largura de computador, em **três faixas
+de aperto** (`@container` sobre a `.precos-lista`): confortável acima de 1060 px,
+média acima de 860 e apertada abaixo disso. Só abaixo de **760 px** a linha vira
+cartão — e ali cada valor aparece com o nome em cima, então nenhuma coluna some
+nem no celular. A gaveta ficou só com a margem em reais e o "Deixar igual ao
+preço do site".
 
-- a lista passa de **980 px** → eles são colunas, ao lado do custo;
-- abaixo disso → viram uma **linha miúda embaixo do nome do apartamento**
-  ("Custo − 5%: R$ … · Custo − 10%: R$ …"), inclusive no celular.
+**O "R$" saiu das células da lista (v215).** É o que fez tudo caber: repetir
+"R$" em oito colunas custava ~22 px em cada uma. A tela inteira é dinheiro e o
+cabeçalho nomeia cada coluna, então a célula mostra `1.502.665,00`. Vale para os
+campos digitáveis também (`dinheiroDaLinha`); `moedaFinanceira` continua com o
+"R$" em todo o resto do painel — avisos, confirmações, a gaveta e a tela de INCC.
 
-Em nenhuma largura eles ficam escondidos, e a gaveta não guarda mais desconto
-nenhum — só a margem em reais e o "Deixar igual ao preço do site". Nas colunas
-o valor sai **sem o "R$"** (o cabeçalho já diz que é dinheiro): eram os 22 px
-que faltavam para os números não encostarem uns nos outros. A regra base do
-`.preco-descontos-linha` vem **antes** da do `@container` de propósito — mesma
-força, quem vem depois ganha.
+**Cuidado com a ordem das regras.** As larguras e os corpos de letra de cada
+faixa usam o prefixo `.precos-lista` de propósito: sem ele, as declarações
+gerais de `.preco-campo` e `.valor-suave`, que vêm depois no arquivo, ganhavam
+por ordem e o texto não diminuía — as colunas então estouravam a própria
+largura.
 
 **Três filtros e uma busca (v210)**: `Falta custo`, `Vai mudar de preço` e
 `Abaixo do custo`, cada um com a contagem ao lado, refeita a cada tecla
@@ -393,4 +401,4 @@ painel.
 - A variação mensal é calculada automaticamente e o painel mostra também a variação anterior.
 - A data da tabela usa input de data real; ao publicar, grava dd/mm/aaaa.
 - META.historicoIncc guarda mês, data, valor e variação de cada correção publicada.
-- A tela de Preços e margem não tem rolagem horizontal: no computador é uma grade de seis colunas (oito, com os descontos, quando a lista passa de 980 px) e no celular um cartão por item.
+- A tela de Preços e margem não tem rolagem horizontal: no computador é uma grade de oito colunas em qualquer largura, e abaixo de 760 px um cartão por item.
