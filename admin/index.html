@@ -403,21 +403,32 @@
     .precos-emp-massa .campo-pct input { background:var(--cartao); }
     .precos-lista { border-top:1px solid var(--borda); background:var(--cartao); container-type:inline-size; }
     /* As colunas crescem junto com a lista, em vez de ficarem paradas na
-       direita com um vao no meio: era o vazio entre o nome e o custo. */
+       direita com um vao no meio: era o vazio entre o nome e o custo.
+       Num notebook comum a lista fica com ~1020 px, e e por isso que o corte
+       das colunas de desconto e em 980: abaixo disso elas nao cabem inteiras,
+       e um valor cortado e pior do que um valor em outro lugar. */
     .precos-cabecalho, .preco-linha-topo { display:grid; gap:12px; align-items:start; padding:9px 14px;
       grid-template-columns:minmax(0,1.5fr) minmax(106px,1fr) minmax(112px,1fr) minmax(120px,1.05fr) minmax(74px,.55fr) minmax(112px,1fr); }
-    /* Tela larga: cabem tambem os dois descontos, que so ficam na gaveta
-       quando nao ha espaco para eles. */
     .col-desconto { display:none; }
-    @container (min-width: 1120px) {
-      .precos-cabecalho, .preco-linha-topo {
-        grid-template-columns:minmax(190px,1.35fr) minmax(112px,.95fr) minmax(108px,.75fr) minmax(108px,.75fr) minmax(116px,.9fr) minmax(124px,1fr) minmax(76px,.5fr) minmax(114px,.9fr); }
+    /* Abaixo de 980 os descontos nao somem: viram uma linha miuda embaixo do
+       nome. Na v212 eles voltavam para a gaveta e o dono ficou procurando.
+       A regra base vem antes da do container de proposito: com a mesma forca,
+       quem vem depois ganha, e e a do container que precisa ganhar. */
+    .preco-descontos-linha { display:block; color:var(--texto-suave); font-size:.68rem; font-weight:600;
+      margin-top:3px; font-variant-numeric:tabular-nums; }
+    @container (min-width: 980px) {
+      .precos-cabecalho, .preco-linha-topo { gap:14px;
+        grid-template-columns:minmax(128px,1.2fr) minmax(104px,.86fr) minmax(92px,.68fr) minmax(92px,.68fr) minmax(124px,.92fr) minmax(114px,.92fr) minmax(68px,.44fr) minmax(112px,.86fr); }
       .col-desconto { display:block; }
-      .preco-gaveta .bloco-descontos { display:none; }
-      .preco-abrir .rot-estreito { display:none; }
+      .preco-descontos-linha { display:none; }
+      /* Oito colunas so cabem se cada numero for um pouco menor que a coluna
+         dele: com o corpo de antes eles encostavam um no outro. */
+      .precos-cabecalho { font-size:.6rem; }
+      .precos-cabecalho span { white-space:nowrap; }
+      .preco-campo { font-size:.75rem; }
+      .preco-campo input { font-size:.73rem; padding:6px 5px; }
+      .valor-suave { font-size:.69rem; }
     }
-    .preco-abrir .rot-largo { display:none; }
-    @container (min-width: 1120px) { .preco-abrir .rot-largo { display:inline; } }
     .valor-suave { font-weight:600; color:var(--texto-suave); font-size:.74rem; white-space:nowrap; }
     .preco-campo .valor { white-space:nowrap; }
     .preco-campo .campo-pct { display:flex; align-items:center; justify-content:flex-end; gap:5px; }
@@ -3471,6 +3482,13 @@
     return moedaFinanceira(valor);
   }
 
+  // Nas colunas estreitas de desconto o "R$" e redundante — o cabecalho ja diz
+  // que e dinheiro — e ele custa 22 px por valor, que e o que faltava para os
+  // numeros nao encostarem uns nos outros.
+  function semMoeda(texto) {
+    return String(texto).replace(/^R\$\s*/, "");
+  }
+
   function textoMargem(margem) {
     return margem == null ? "—" : (margem < 0 ? "−" + moedaFinanceira(Math.abs(margem)) : moedaFinanceira(margem));
   }
@@ -3499,8 +3517,11 @@
     const preco = Number(linha.dataset.preco || 0);
     // O desconto aparece na coluna (tela larga) e dentro da gaveta (tela
     // estreita): os dois recebem o mesmo valor.
-    linha.querySelectorAll("[data-custo-5]").forEach((el) => { el.textContent = custo ? valorFinanceiro(custo * .95) : "—"; });
-    linha.querySelectorAll("[data-custo-10]").forEach((el) => { el.textContent = custo ? valorFinanceiro(custo * .90) : "—"; });
+    const escrever = (el, valor) => {
+      el.textContent = valor ? (el.hasAttribute("data-sem-moeda") ? semMoeda(valorFinanceiro(valor)) : valorFinanceiro(valor)) : "—";
+    };
+    linha.querySelectorAll("[data-custo-5]").forEach((el) => escrever(el, custo ? custo * .95 : 0));
+    linha.querySelectorAll("[data-custo-10]").forEach((el) => escrever(el, custo ? custo * .90 : 0));
     const vendaDesejada = custo && margemDesejada != null ? custo + margemDesejada : null;
     const { valor: margem, sobreVenda } = margemDaLinha(custo, preco, vendaDesejada);
     const cel = linha.querySelector("[data-margem]");
@@ -3688,7 +3709,8 @@
               <div>
                 <span class="nome">${escapeHtml(item.rotulo)}</span>${marcaBox}
                 <span class="preco-sub"><span class="st-${situacao}"><span class="bolinha"></span>${escapeHtml(STATUS_LABEL[situacao] || situacao)}</span>${detalhe ? " · " + escapeHtml(detalhe) : ""}</span>
-                <button type="button" class="preco-abrir" data-abrir-gaveta aria-expanded="false" aria-label="Mais opções de ${escapeHtml(item.rotulo)}"><span class="rot-estreito">▾ margem em R$ e descontos</span><span class="rot-largo">▾ mais opções</span></button>
+                <span class="preco-descontos-linha">Custo − 5%: <span data-custo-5>${custo ? valorFinanceiro(custo * .95) : "—"}</span> · Custo − 10%: <span data-custo-10>${custo ? valorFinanceiro(custo * .90) : "—"}</span></span>
+                <button type="button" class="preco-abrir" data-abrir-gaveta aria-expanded="false" aria-label="Mais opções de ${escapeHtml(item.rotulo)}">▾ mais opções</button>
               </div>
             </div>
             <div class="preco-campo">
@@ -3697,11 +3719,11 @@
             </div>
             <div class="preco-campo col-desconto">
               <span class="preco-rotulo">Custo − 5%</span>
-              <span class="valor-suave" data-custo-5>${custo ? valorFinanceiro(custo * .95) : "—"}</span>
+              <span class="valor-suave" data-custo-5 data-sem-moeda>${custo ? escapeHtml(semMoeda(valorFinanceiro(custo * .95))) : "—"}</span>
             </div>
             <div class="preco-campo col-desconto">
               <span class="preco-rotulo">Custo − 10%</span>
-              <span class="valor-suave" data-custo-10>${custo ? valorFinanceiro(custo * .90) : "—"}</span>
+              <span class="valor-suave" data-custo-10 data-sem-moeda>${custo ? escapeHtml(semMoeda(valorFinanceiro(custo * .90))) : "—"}</span>
             </div>
             <div class="preco-campo">
               <span class="preco-rotulo">Preço no site</span>
@@ -3730,11 +3752,6 @@
             <div class="bloco-gaveta">
               <span class="titulo-gaveta">Margem em reais</span>
               <input class="margem-desejada-input" inputmode="decimal" data-margem-chave="${escapeHtml(chave)}" value="${margemDesejada != null ? escapeHtml(moedaFinanceira(margemDesejada)) : ""}" placeholder="Margem em R$" aria-label="Margem desejada de ${escapeHtml(item.rotulo)}">
-            </div>
-            <div class="bloco-gaveta bloco-descontos">
-              <span class="titulo-gaveta">Se o cliente pedir desconto</span>
-              <div class="desconto">Custo − 5%: <strong data-custo-5>${custo ? valorFinanceiro(custo * .95) : "—"}</strong></div>
-              <div class="desconto">Custo − 10%: <strong data-custo-10>${custo ? valorFinanceiro(custo * .90) : "—"}</strong></div>
             </div>
             ${vendavel && preco > 0 ? `<button type="button" class="botao-gaveta" data-igualar-site>Deixar igual ao preço do site</button>` : ""}
           </div>
