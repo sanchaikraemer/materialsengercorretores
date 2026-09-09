@@ -111,10 +111,22 @@ que se vê, de relance, se alguma unidade fugiu do padrão.
 o nome do apartamento e o custo: as colunas de número tinham largura fixa e
 ficavam encostadas na direita. Agora elas crescem juntas (`fr` com mínimo), e a
 lista mede a si mesma (`container-type: inline-size`), não a janela — o menu
-lateral entra na conta. Onde a lista passa de **1120 px** aparecem também
-**Custo − 5%, Custo − 10% e Margem %** como colunas; abaixo disso os descontos
-voltam sozinhos para a gaveta e a margem % continua na linha. O botão da gaveta
-troca de nome conforme o que sobrou dentro dela.
+lateral entra na conta.
+
+**Os descontos nunca mais somem (v214).** A v212 mandava `Custo − 5%` e
+`Custo − 10%` de volta para a gaveta quando a lista era estreita, e num notebook
+de 1366 px (a tela do dono) eles sumiam — ele foi procurar e não achou. Agora:
+
+- a lista passa de **980 px** → eles são colunas, ao lado do custo;
+- abaixo disso → viram uma **linha miúda embaixo do nome do apartamento**
+  ("Custo − 5%: R$ … · Custo − 10%: R$ …"), inclusive no celular.
+
+Em nenhuma largura eles ficam escondidos, e a gaveta não guarda mais desconto
+nenhum — só a margem em reais e o "Deixar igual ao preço do site". Nas colunas
+o valor sai **sem o "R$"** (o cabeçalho já diz que é dinheiro): eram os 22 px
+que faltavam para os números não encostarem uns nos outros. A regra base do
+`.preco-descontos-linha` vem **antes** da do `@container` de propósito — mesma
+força, quem vem depois ganha.
 
 **Três filtros e uma busca (v210)**: `Falta custo`, `Vai mudar de preço` e
 `Abaixo do custo`, cada um com a contagem ao lado, refeita a cada tecla
@@ -381,4 +393,4 @@ painel.
 - A variação mensal é calculada automaticamente e o painel mostra também a variação anterior.
 - A data da tabela usa input de data real; ao publicar, grava dd/mm/aaaa.
 - META.historicoIncc guarda mês, data, valor e variação de cada correção publicada.
-- A tela de Preços e margem não tem rolagem horizontal: no computador é uma grade de seis colunas (oito, com os descontos, quando a lista passa de 1120 px) e no celular um cartão por item.
+- A tela de Preços e margem não tem rolagem horizontal: no computador é uma grade de seis colunas (oito, com os descontos, quando a lista passa de 980 px) e no celular um cartão por item.
