@@ -383,6 +383,15 @@
     .preco-chip.vazio { opacity:.45; }
     .preco-busca { flex:1; min-width:160px; padding:9px 11px; border:1px solid var(--borda); border-radius:9px; background:var(--fundo); color:var(--texto); font:inherit; font-size:.8rem; }
     .preco-busca:focus { outline:2px solid rgba(23,143,160,.2); border-color:var(--dourado); }
+    .precos-massa { display:flex; flex-wrap:wrap; gap:10px; align-items:center; border:1px solid var(--borda); border-radius:10px; background:var(--fundo); padding:11px 13px; margin:0 0 14px; }
+    .precos-massa .titulo-massa { font-size:.78rem; font-weight:600; }
+    .precos-massa .preco-massa-status { font-size:.74rem; color:var(--texto-suave); flex:1 1 100%; }
+    .precos-massa .preco-massa-status.ok { color:var(--verde); font-weight:600; }
+    .precos-massa .preco-massa-status.falha { color:#a86612; font-weight:600; }
+    .campo-pct { display:inline-flex; align-items:center; gap:5px; }
+    .campo-pct input { width:78px; padding:7px 8px; border:1px solid var(--borda); border-radius:7px; background:var(--cartao); color:var(--texto); text-align:right; font:inherit; font-size:.8rem; font-variant-numeric:tabular-nums; }
+    .campo-pct input:focus { outline:2px solid rgba(23,143,160,.2); border-color:var(--dourado); }
+    .campo-pct span { color:var(--texto-suave); font-size:.8rem; font-weight:600; }
     .precos-lista { border-top:1px solid var(--borda); background:var(--cartao); }
     .precos-cabecalho, .preco-linha-topo { display:grid; grid-template-columns:minmax(0,1.7fr) 130px 140px 140px 130px; gap:12px; align-items:start; padding:9px 14px; }
     .precos-cabecalho { font-size:.66rem; text-transform:uppercase; letter-spacing:.04em; color:var(--texto-suave); font-weight:600; border-bottom:1px solid var(--borda); }
@@ -394,7 +403,10 @@
     .preco-item { display:flex; align-items:flex-start; gap:8px; min-width:0; }
     .preco-item .nome { font-weight:700; font-size:.84rem; }
     .preco-sub { display:block; color:var(--texto-suave); font-size:.7rem; font-weight:500; margin-top:2px; line-height:1.35; }
-    .preco-abrir { flex:none; width:24px; height:24px; border:1px solid var(--borda); border-radius:7px; background:var(--fundo); color:var(--texto-suave); cursor:pointer; font-size:.7rem; line-height:1; }
+    /* O simbolo sozinho nao bastava: o dono nao achou os descontos atras dele.
+       Agora o botao diz o que tem dentro. */
+    .preco-abrir { display:inline-block; margin-top:5px; padding:3px 9px; border:1px solid var(--borda); border-radius:999px; background:var(--cartao); color:var(--dourado); cursor:pointer; font:inherit; font-size:.68rem; font-weight:700; }
+    .preco-abrir:hover { border-color:var(--dourado); }
     .preco-abrir[aria-expanded="true"] { background:var(--dourado); border-color:var(--dourado); color:#fff; }
     .preco-campo { min-width:0; text-align:right; font-variant-numeric:tabular-nums; font-size:.8rem; }
     .preco-campo .preco-rotulo { display:none; }
@@ -402,12 +414,13 @@
     .preco-campo .valor { font-weight:700; }
     .preco-nota { display:block; color:var(--texto-suave); font-size:.66rem; font-weight:500; margin-top:3px; line-height:1.3; }
     .preco-nota.destaque { color:#a86612; font-weight:700; }
-    .preco-gaveta { padding:0 14px 14px 46px; display:flex; flex-wrap:wrap; gap:14px; align-items:flex-end; font-size:.78rem; }
+    .preco-gaveta { padding:0 14px 14px; display:flex; flex-wrap:wrap; gap:14px; align-items:flex-end; font-size:.78rem; }
     .preco-gaveta[hidden] { display:none; }
     .preco-gaveta .bloco-gaveta { min-width:150px; }
     .preco-gaveta .titulo-gaveta { display:block; color:var(--texto-suave); font-size:.68rem; text-transform:uppercase; letter-spacing:.04em; margin-bottom:4px; }
     .preco-gaveta .desconto { font-variant-numeric:tabular-nums; }
     .preco-gaveta input { width:150px; }
+    .preco-gaveta .campo-pct input { width:88px; }
     .preco-gaveta .botao-gaveta { border:1px solid var(--borda); background:var(--fundo); color:var(--texto); border-radius:8px; padding:8px 11px; font:inherit; font-size:.76rem; font-weight:600; cursor:pointer; }
     .preco-gaveta .botao-gaveta:hover { border-color:var(--dourado); }
     .preco-sub .bolinha { display:inline-block; width:8px; height:8px; margin-right:4px; vertical-align:middle; }
@@ -427,6 +440,8 @@
       .preco-gaveta { padding-left:14px; }
       .preco-gaveta .bloco-gaveta { flex:1 1 100%; }
       .preco-gaveta input { width:100%; }
+      .preco-gaveta .campo-pct { width:100%; }
+      .precos-massa .titulo-massa { flex:1 1 100%; }
     }
     .custo-input, .margem-desejada-input { width:104px; padding:6px 6px; border:1px solid var(--borda); border-radius:7px; background:var(--fundo); color:var(--texto); text-align:right; font:inherit; font-size:.76rem; font-variant-numeric:tabular-nums; }
     .custo-input:focus, .margem-desejada-input:focus { outline:2px solid rgba(23,143,160,.2); border-color:var(--dourado); }
@@ -972,6 +987,12 @@
             <button type="button" class="preco-chip" data-preco-filtro="muda">Vai mudar de preço</button>
             <button type="button" class="preco-chip" data-preco-filtro="negativa">Abaixo do custo</button>
             <input class="preco-busca" id="preco-busca" type="search" placeholder="Procurar apto, sala, lote, box…" autocomplete="off">
+          </div>
+          <div class="precos-massa">
+            <span class="titulo-massa">Margem sobre o custo em vários itens de uma vez:</span>
+            <div class="campo-pct"><input id="preco-pct-massa" inputmode="decimal" placeholder="ex.: 5" aria-label="Percentual de margem sobre o custo"><span>%</span></div>
+            <button type="button" class="botao secundario" id="botao-pct-massa" style="margin-top:0">Aplicar aos itens da lista</button>
+            <span class="preco-massa-status" id="preco-massa-status"></span>
           </div>
           <div id="custos-venda"></div>
         </section>
@@ -3376,6 +3397,23 @@
     return negativo ? -n : n;
   }
 
+  // A margem tambem se pensa em porcentagem sobre o custo ("quero 5% em cima
+  // do custo"). O que fica guardado continua sendo a margem em reais — cofre e
+  // backup nao mudam de formato; a porcentagem e so a maneira de digitar.
+  function numeroDePct(valor) {
+    return numeroDeMoeda(String(valor || "").replace(/%/g, ""));
+  }
+
+  function textoPct(n) {
+    const valor = Number(n);
+    if (!Number.isFinite(valor)) return "";
+    return valor.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
+  }
+
+  function margemDePct(custo, pct) {
+    return Math.round(custo * pct) / 100;
+  }
+
   function custoInterno(chave) {
     const n = Number(custosInternos[chave]);
     return Number.isFinite(n) && n > 0 ? n : null;
@@ -3450,6 +3488,10 @@
     const campoVenda = linha.querySelector("input[data-venda-chave]");
     if (campoVenda && document.activeElement !== campoVenda) {
       campoVenda.value = vendaDesejada == null ? "" : moedaFinanceira(vendaDesejada);
+    }
+    const campoPct = linha.querySelector("input[data-pct-chave]");
+    if (campoPct && document.activeElement !== campoPct) {
+      campoPct.value = custo && margemDesejada != null ? textoPct(margemDesejada / custo * 100) : "";
     }
   }
 
@@ -3572,7 +3614,7 @@
       return `<details class="financeiro-emp" data-preco-emp="${escapeHtml(emp.id)}"${aberto ? " open" : ""}>
       <summary>${escapeHtml(emp.nome)} <span class="contagem">${conta(daVenda.length - vendidos, "item à venda", "itens à venda")}${vendidos ? ` · ${vendidos} vendido${vendidos === 1 ? "" : "s"}` : ""}${boxInclusos ? ` · ${boxInclusos} box no preço` : ""}</span></summary>
       <div class="precos-lista">
-        <div class="precos-cabecalho"><span>Item <em>(toque no ⌄ para os descontos)</em></span><span>Custo</span><span>Preço no site</span><span>Venda desejada</span><span>Margem</span></div>
+        <div class="precos-cabecalho"><span>Item</span><span>Custo</span><span>Preço no site</span><span>Venda desejada</span><span>Margem</span></div>
         ${registros.map((reg) => {
           const { item, chave, custo, margemDesejada, preco, situacao, vendido, semValor, vendavel, vendaDesejada, margem, sobreVenda, detalhe, muda } = reg;
           // O campo de venda desejada some do vendido e do box que ja esta no
@@ -3587,10 +3629,10 @@
           return `<div class="${classes.join(" ")}" data-financeiro-linha data-preco="${preco}" data-chave="${escapeHtml(chave)}" data-vendavel="${vendavel ? 1 : 0}">
           <div class="preco-linha-topo">
             <div class="preco-item">
-              <button type="button" class="preco-abrir" data-abrir-gaveta aria-expanded="false" title="Ver descontos e margem" aria-label="Ver descontos e margem de ${escapeHtml(item.rotulo)}">⌄</button>
               <div>
                 <span class="nome">${escapeHtml(item.rotulo)}</span>${marcaBox}
                 <span class="preco-sub"><span class="st-${situacao}"><span class="bolinha"></span>${escapeHtml(STATUS_LABEL[situacao] || situacao)}</span>${detalhe ? " · " + escapeHtml(detalhe) : ""}</span>
+                <button type="button" class="preco-abrir" data-abrir-gaveta aria-expanded="false" aria-label="Margem em % e descontos de ${escapeHtml(item.rotulo)}">▾ margem % e descontos</button>
               </div>
             </div>
             <div class="preco-campo">
@@ -3618,13 +3660,17 @@
           </div>
           <div class="preco-gaveta" hidden>
             <div class="bloco-gaveta">
+              <span class="titulo-gaveta">Margem sobre o custo</span>
+              <div class="campo-pct"><input class="pct-input" inputmode="decimal" data-pct-chave="${escapeHtml(chave)}" value="${escapeHtml(textoPct(custo && margemDesejada != null ? margemDesejada / custo * 100 : null))}" placeholder="ex.: 5" aria-label="Margem em porcentagem de ${escapeHtml(item.rotulo)}"><span>%</span></div>
+            </div>
+            <div class="bloco-gaveta">
+              <span class="titulo-gaveta">Ou em reais</span>
+              <input class="margem-desejada-input" inputmode="decimal" data-margem-chave="${escapeHtml(chave)}" value="${margemDesejada != null ? escapeHtml(moedaFinanceira(margemDesejada)) : ""}" placeholder="Margem em R$" aria-label="Margem desejada de ${escapeHtml(item.rotulo)}">
+            </div>
+            <div class="bloco-gaveta">
               <span class="titulo-gaveta">Se o cliente pedir desconto</span>
               <div class="desconto">Custo − 5%: <strong data-custo-5>${custo ? valorFinanceiro(custo * .95) : "—"}</strong></div>
               <div class="desconto">Custo − 10%: <strong data-custo-10>${custo ? valorFinanceiro(custo * .90) : "—"}</strong></div>
-            </div>
-            <div class="bloco-gaveta">
-              <span class="titulo-gaveta">Quanto quero ganhar</span>
-              <input class="margem-desejada-input" inputmode="decimal" data-margem-chave="${escapeHtml(chave)}" value="${margemDesejada != null ? escapeHtml(moedaFinanceira(margemDesejada)) : ""}" placeholder="Margem em R$" aria-label="Margem desejada de ${escapeHtml(item.rotulo)}">
             </div>
             ${vendavel && preco > 0 ? `<button type="button" class="botao-gaveta" data-igualar-site>Deixar igual ao preço do site</button>` : ""}
           </div>
@@ -3809,8 +3855,96 @@
         input.value = custo && margem != null ? moedaFinanceira(custo + margem) : "";
       });
     });
+
+    // Porcentagem sobre o custo: o dono digita 5 e a venda desejada vira o
+    // custo mais 5%. Os tres campos — porcentagem, margem em reais e venda
+    // desejada — falam entre si; guardado mesmo fica sempre a margem em reais.
+    alvo.querySelectorAll("input[data-pct-chave]").forEach((input) => {
+      const linha = input.closest("[data-financeiro-linha]");
+      const custoInput = linha.querySelector("input[data-custo-chave]");
+      const margemInput = linha.querySelector("input[data-margem-chave]");
+      const custoDaLinha = () => numeroDeMoeda(custoInput.value) ?? custoInterno(input.dataset.pctChave);
+      const aplicar = (avisar) => {
+        const chave = input.dataset.pctChave;
+        const bruto = input.value.trim();
+        if (!bruto) {
+          delete margensDesejadas[chave];
+          if (margemInput) margemInput.value = "";
+          atualizarLinhaFinanceira(linha, custoDaLinha(), null);
+          atualizarEstadoFinanceiro(true);
+          return;
+        }
+        const pct = numeroDePct(bruto);
+        if (pct == null) {
+          if (avisar) aviso("Percentual inválido. Informe um número, como 5 ou 7,5.", "falha");
+          return;
+        }
+        const custo = custoDaLinha();
+        if (!custo) {
+          if (avisar) aviso("Informe primeiro o custo desta linha para calcular a margem.", "falha");
+          return;
+        }
+        const margem = margemDePct(custo, pct);
+        margensDesejadas[chave] = margem;
+        if (margemInput) margemInput.value = moedaFinanceira(margem);
+        atualizarLinhaFinanceira(linha, custo, margem);
+        atualizarEstadoFinanceiro(true);
+      };
+      input.addEventListener("input", () => aplicar(false));
+      input.addEventListener("change", () => aplicar(true));
+      input.addEventListener("focus", () => input.select());
+    });
+
     atualizarEstadoFinanceiro(financeiroSujo);
   }
+
+  // Colocar 5% de margem item a item em 245 itens ninguem faz. Este botao
+  // aplica a porcentagem de uma vez em tudo o que esta na lista naquele
+  // momento — o filtro e a busca decidem o alcance, e nada vai para o site
+  // antes do "Publicar no site".
+  function mostrarStatusMassa(texto, tipo) {
+    const el = $("preco-massa-status");
+    if (!el) return;
+    el.textContent = texto;
+    el.classList.toggle("ok", tipo === "ok");
+    el.classList.toggle("falha", tipo === "falha");
+  }
+
+  $("botao-pct-massa")?.addEventListener("click", () => {
+    const pct = numeroDePct($("preco-pct-massa")?.value);
+    if (pct == null) {
+      mostrarStatusMassa("Informe o percentual antes, como 5 ou 7,5.", "falha");
+      aviso("Informe o percentual, como 5 ou 7,5.", "falha");
+      return;
+    }
+    const alvos = [];
+    let semCusto = 0;
+    itensFinanceiros().forEach(({ emp, itens }) => {
+      const boxesDaqui = boxesDoEmp(emp);
+      const prefixo = nomes(emp).prefixo;
+      itens.forEach((item) => {
+        const reg = lerItemFinanceiro(emp, item, boxesDaqui, prefixo);
+        if (!reg.vendavel || !passaNoFiltroPreco(reg)) return;
+        if (!reg.custo) { semCusto++; return; }
+        alvos.push(reg);
+      });
+    });
+    if (!alvos.length) {
+      mostrarStatusMassa(semCusto
+        ? `Nenhum item desta lista tem custo lançado (${semCusto} sem custo). A margem sai do custo, então é ele que vem primeiro.`
+        : "Nenhum item à venda nesta lista.", "falha");
+      return;
+    }
+    const quantos = `${alvos.length} ${alvos.length === 1 ? "item" : "itens"}`;
+    if (!confirm(`Colocar ${textoPct(pct)}% de margem sobre o custo em ${quantos} desta lista?\n\nA venda desejada de cada um passa a ser o custo mais ${textoPct(pct)}%. Nada muda no site antes de você conferir e clicar em “Publicar no site”.`)) return;
+    alvos.forEach((reg) => { margensDesejadas[reg.chave] = margemDePct(reg.custo, pct); });
+    atualizarEstadoFinanceiro(true);
+    renderCustosMargens();
+    mostrarStatusMassa(`${textoPct(pct)}% aplicado em ${quantos}.`
+      + (semCusto ? ` ${semCusto} ${semCusto === 1 ? "ficou de fora por não ter" : "ficaram de fora por não ter"} custo lançado.` : "")
+      + " Confira a coluna Venda desejada e clique em “Publicar no site”.", "ok");
+    aviso(`${textoPct(pct)}% de margem em ${quantos}. Confira e publique.`, "ok");
+  });
 
   document.querySelectorAll("[data-preco-filtro]").forEach((botao) => {
     botao.addEventListener("click", () => {

@@ -76,11 +76,27 @@ desejada, ela passa a ser a margem dessa venda, e a letra miúda embaixo diz
 sobre qual das duas ela é. Duas colunas de margem lado a lado era o que mais
 confundia.
 
-**Os descontos ficam na gaveta (v210).** `Custo - 5%` e `Custo - 10%` só servem
-na hora de uma proposta, então saíram da linha: abrem no `⌄` ao lado do nome,
-junto com o campo de margem em reais e o botão **"Deixar igual ao preço do
-site"**, que desfaz a mudança de preço daquele item. As contas continuam as
-mesmas (`custo × 0,95` e `custo × 0,90`).
+**Os descontos ficam na gaveta (v210), atrás de um botão que diz o nome deles
+(v211).** `Custo - 5%` e `Custo - 10%` só servem na hora de uma proposta, então
+saíram da linha. Na v210 a gaveta abria num `⌄` sem legenda e **o dono não achou
+os descontos** — agora o botão embaixo do nome diz **"▾ margem % e descontos"**.
+Dentro dela ficam a margem em %, a margem em reais, os dois descontos e o botão
+**"Deixar igual ao preço do site"**, que desfaz a mudança de preço daquele item.
+As contas continuam as mesmas (`custo × 0,95` e `custo × 0,90`).
+
+**A margem também se digita em porcentagem (v211).** "Quero 5% em cima do
+custo" é como o dono pensa, então a gaveta tem o campo **Margem sobre o custo**
+em %: digitar 5 faz a venda desejada virar `custo × 1,05`. Os três campos —
+porcentagem, margem em reais e venda desejada — conversam entre si; **o que fica
+guardado continua sendo a margem em reais**, então cofre e backup não mudam de
+formato.
+
+**Aplicar a porcentagem em vários itens (v211).** Acima da lista há
+`[ 5 ] % · Aplicar aos itens da lista`: ele coloca a mesma margem em tudo o que
+o filtro e a busca estão mostrando naquele momento — item a item em 245 unidades
+ninguém faria. Pede confirmação dizendo quantos itens vão mudar, pula o que não
+tem custo lançado (e diz quantos foram), e nada vai para o site antes do
+"Publicar no site".
 
 **Três filtros e uma busca (v210)**: `Falta custo`, `Vai mudar de preço` e
 `Abaixo do custo`, cada um com a contagem ao lado, refeita a cada tecla
