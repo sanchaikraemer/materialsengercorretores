@@ -547,6 +547,7 @@ const EMPREENDIMENTOS = [
       },
       {
         tipo: "Salas comerciais",
+        sufixo: "2º pavimento",
         area: "Áreas variadas",
         garagem: "01 vaga de garagem por sala",
         estoque: "Sala 2º pavimento",
@@ -564,6 +565,7 @@ const EMPREENDIMENTOS = [
       // vendida) segue sem planta, e o painel cobra.
       {
         tipo: "Sala comercial",
+        sufixo: "final 01",
         area: "115 m² global · 65 m² privativo",
         garagem: "01 vaga de garagem",
         estoque: "Sala 115 m²",
@@ -579,6 +581,7 @@ const EMPREENDIMENTOS = [
       },
       {
         tipo: "Sala comercial",
+        sufixo: "final 02",
         area: "129 m² global · 73 m² privativo",
         garagem: "01 vaga de garagem",
         estoque: "Sala 122 a 129 m²",
@@ -589,6 +592,7 @@ const EMPREENDIMENTOS = [
       // 802 no estoque do painel e ja estao todas vendidas.
       {
         tipo: "Sala comercial",
+        sufixo: "final 02",
         area: "Áreas variadas",
         garagem: "01 vaga de garagem",
         estoque: "Sala 122 a 129 m²",
@@ -603,6 +607,7 @@ const EMPREENDIMENTOS = [
       },
       {
         tipo: "Sala comercial",
+        sufixo: "final 03",
         area: "54 m² global · 31 m² privativo",
         garagem: "01 vaga de garagem",
         estoque: "Sala 54 m²",
@@ -618,6 +623,7 @@ const EMPREENDIMENTOS = [
       },
       {
         tipo: "Sala comercial",
+        sufixo: "final 04",
         area: "72 m² global · 40 m² privativo",
         garagem: "01 vaga de garagem",
         estoque: "Sala 72 m²",
@@ -633,6 +639,7 @@ const EMPREENDIMENTOS = [
       },
       {
         tipo: "Sala comercial",
+        sufixo: "final 05",
         area: "76 m² global · 43 m² privativo",
         garagem: "01 vaga de garagem",
         estoque: "Sala 76 m²",

@@ -1351,15 +1351,60 @@
     return "";
   }
 
+  // v213 — duas tipologias iguais viravam dois quadros. No Evolutti a coluna do
+  // final 3 e a do final 4 estao em grupos separados no data.js, mas tem o mesmo
+  // tipo, a mesma metragem e a mesma garagem: o cliente via "2 dormitorios
+  // (1 suite)" duas vezes seguidas, com "a partir de" diferente, como se fossem
+  // produtos distintos. E a mesma planta — o que muda e so o numero do
+  // apartamento. Entao a vitrine junta as iguais num quadro so, e o "a partir
+  // de" passa a ser o menor preco entre todas elas.
+  //
+  // O data.js continua com os grupos separados de proposito: e por eles que o
+  // painel confere a garagem de cada coluna, e cada unidade guarda a sua propria
+  // planta e a sua propria area.
+  function assinaturaDeTipologia(group) {
+    return [group.tipo, group.sufixo, group.area, group.garagem, group.obs]
+      .map((parte) => normalizeText(parte || "")).join("|");
+  }
+
+  function numeroDoApto(item) {
+    const n = parseInt(String(item.code || "").replace(/\D+/g, ""), 10);
+    return Number.isFinite(n) ? n : Number.MAX_SAFE_INTEGER;
+  }
+
+  // filter(Boolean) tira as vendidas: elas ficam no data.js mas fora do itemMap.
+  function blocosDeTipologia(emp, focusKeys = null) {
+    const blocos = [];
+    const porAssinatura = new Map();
+    (emp.grupos || []).forEach((group, groupIndex) => {
+      let units = (group.unidades || [])
+        .map((unit, unitIndex) => itemMap.get(`${emp.id}:unit:${groupIndex}:${unitIndex}`))
+        .filter(Boolean);
+      if (focusKeys) units = units.filter((it) => focusKeys.has(it.key));
+      if (!units.length) return;
+      const assinatura = assinaturaDeTipologia(group);
+      const igual = porAssinatura.get(assinatura);
+      if (igual) {
+        igual.units = igual.units.concat(units);
+        igual.juntou = true;
+        return;
+      }
+      const bloco = { group, groupIndex, units, juntou: false };
+      porAssinatura.set(assinatura, bloco);
+      blocos.push(bloco);
+    });
+    // Só o quadro que juntou muda de ordem: nele o cliente lê 503, 504, 603, 604…
+    // em vez de uma coluna inteira depois da outra.
+    blocos.forEach((bloco) => {
+      if (bloco.juntou) bloco.units.sort((a, b) => numeroDoApto(a) - numeroDoApto(b));
+    });
+    return blocos;
+  }
+
   function renderUnitGroups(emp, focusItems = null) {
     const focusKeys = focusItems ? new Set(focusItems.map((f) => f.key)) : null;
 
-    // filter(Boolean) tira as vendidas: elas ficam no data.js mas fora do itemMap.
-    const blocos = (emp.grupos || []).map((group, groupIndex) => {
-      let units = (group.unidades || []).map((unit, unitIndex) => itemMap.get(`${emp.id}:unit:${groupIndex}:${unitIndex}`)).filter(Boolean);
-      if (focusKeys) units = units.filter((it) => focusKeys.has(it.key));
-      return units.length ? { group, groupIndex, units } : null;
-    }).filter(Boolean);
+    const blocos = blocosDeTipologia(emp, focusKeys);
 
     // v161 — cada tipologia vira uma gaveta que abre. O Renaissance tem sete
     // tipologias e 49 apartamentos: numa lista so, achar o que o cliente pediu
@@ -1417,7 +1462,7 @@
     return `
       <summary class="unit-group-header">
         <div class="unit-group-main">
-          <h3>${escapeHtml(group.tipo)}</h3>
+          <h3>${escapeHtml(group.tipo)}${group.sufixo ? ` <span class="unit-group-sufixo">${escapeHtml(group.sufixo)}</span>` : ""}</h3>
           ${chips.length ? `<div class="unit-group-chips">${chips.map((chip) => `<span>${escapeHtml(chip)}</span>`).join("")}</div>` : ""}
           ${group.obs ? `<p class="unit-group-obs">${escapeHtml(group.obs)}</p>` : ""}
         </div>
@@ -2356,12 +2401,10 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
   // As tabelas de unidades de um empreendimento. Servem tanto para a folha do
   // empreendimento quanto para o portfolio inteiro, que sai com a lista toda.
   function tabelasDeUnidades(emp) {
-    const groupTables = (emp.grupos || []).map((group, groupIndex) => {
-      const units = (group.unidades || []).map((unit, unitIndex) => itemMap.get(`${emp.id}:unit:${groupIndex}:${unitIndex}`)).filter(Boolean);
-      if (!units.length) return "";
+    const groupTables = blocosDeTipologia(emp).map(({ group, units }) => {
       return `
         <div class="ps-group">
-          <h3>${escapeHtml(group.tipo)}</h3>
+          <h3>${escapeHtml(group.tipo)}${group.sufixo ? ` — ${escapeHtml(group.sufixo)}` : ""}</h3>
           <p class="ps-group-note">${escapeHtml([group.area, group.garagem, group.obs].filter(Boolean).join(" · "))}</p>
           <table class="ps-table">
             <thead><tr><th>Unidade</th><th>Área</th><th>Status</th><th>Valor</th></tr></thead>

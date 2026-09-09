@@ -530,6 +530,11 @@ img { max-width: 100%; display: block; }
 .unit-group-toggle::after { content: ""; width: 8px; height: 8px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-2px) rotate(45deg); transition: transform .2s ease; }
 .unit-group[open] .unit-group-toggle::after { transform: translateY(1px) rotate(-135deg); }
 .unit-group-header h3 { margin: 0; font-size: 19px; line-height: 1.2; letter-spacing: -.01em; }
+/* v213 — o final (ou o pavimento) ao lado do nome da tipologia: no Premium
+   Office havia cinco "Sala comercial" seguidas, e so pela metragem o corretor
+   nao sabia de qual coluna do predio cada uma era. */
+.unit-group-sufixo { font-weight: 600; opacity: .78; font-size: .86em; white-space: nowrap; }
+.unit-group-sufixo::before { content: "· "; }
 .unit-group-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 11px; }
 .unit-group-chips span { padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,.2); font-size: 11.5px; font-weight: 600; }
 .unit-group-obs { margin: 10px 0 0; color: rgba(255,255,255,.86); font-size: 11.5px; line-height: 1.5; }

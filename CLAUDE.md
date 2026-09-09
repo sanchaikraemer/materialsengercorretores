@@ -230,6 +230,29 @@ preço, ainda que fossem unidades diferentes.
 No link do cliente a visão é sempre a de empreendimentos, do jeito que ele
 recebeu.
 
+## Tipologias iguais viram um quadro só (v213)
+
+Quando dois grupos do `data.js` têm **o mesmo tipo, a mesma metragem, a mesma
+garagem e a mesma observação**, a vitrine mostra **um quadro só**, com o "a
+partir de" sendo o menor preço entre todas as unidades dos dois. É o caso do
+**Evolutti**, onde a coluna do final 3 e a do final 4 são grupos separados mas o
+mesmo produto: o cliente via "2 dormitórios (1 suíte)" duas vezes seguidas, com
+preços diferentes, como se fossem apartamentos distintos.
+
+A junção é **só na hora de mostrar** (`blocosDeTipologia`, no `app.js`), e vale
+para a vitrine e para o PDF. O `data.js` continua com os grupos separados de
+propósito: é por eles que o painel confere a garagem de cada coluna, e cada
+unidade guarda a sua própria planta e a sua própria área. No quadro que juntou,
+as unidades saem em ordem de número (503, 504, 603, 604…) em vez de uma coluna
+inteira depois da outra; os quadros que não juntaram mantêm a ordem do cadastro.
+
+**O sufixo diz de qual final é a tipologia (v213).** O campo `sufixo` do grupo
+aparece ao lado do nome, em letra mais leve: "Sala comercial · final 01".
+No **Premium Office** havia cinco "Sala comercial" seguidas e só pela metragem
+não se sabia de qual coluna do prédio cada uma era; lá o segundo pavimento
+também é anunciado ("Salas comerciais · 2º pavimento"). O sufixo entra na
+assinatura da junção — duas tipologias com sufixos diferentes nunca se juntam.
+
 ## O quadro de unidades é uma gaveta
 
 Cada tipologia (e, no loteamento, cada quadra) é um `<details>` que abre ao
