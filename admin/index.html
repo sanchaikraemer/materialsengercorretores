@@ -363,8 +363,6 @@
     .previa.visivel { display: block; }
     .previa .resumo { font-size: .88rem; margin-bottom: 10px; color: var(--texto-suave); }
     .tabela-previa { max-height: 320px; overflow: auto; border: 1px solid var(--borda); border-radius: 8px; }
-    .custos-area { margin-top:22px; padding-top:20px; border-top:1px solid var(--borda); }
-    .custos-area h3 { font-size:.98rem; margin-bottom:5px; }
     .custos-nota { color:var(--texto-suave); font-size:.8rem; line-height:1.5; margin-bottom:12px; }
     .custos-nota strong { color:var(--texto); }
     .custos-acoes { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:0 0 14px; }
@@ -372,48 +370,64 @@
     .financeiro-emp { border:1px solid var(--borda); border-radius:10px; background:var(--fundo); margin-bottom:10px; overflow:hidden; }
     .financeiro-emp > summary { cursor:pointer; list-style:none; padding:12px 14px; display:flex; align-items:center; gap:10px; font-weight:750; font-size:.86rem; }
     .financeiro-emp > summary::-webkit-details-marker { display:none; }
-    .financeiro-emp > summary .contagem { margin-left:auto; color:var(--texto-suave); font-size:.74rem; font-weight:500; }
-    .financeiro-tabela { overflow-x:auto; overflow-y:visible; max-width:100%; border-top:1px solid var(--borda); background:var(--cartao); scrollbar-gutter:stable both-edges; }
-    /* As nove colunas cabem numa tela de notebook: com as larguras antigas as
-       duas ultimas (margem desejada e venda desejada) so apareciam rolando. */
-    .financeiro-tabela table { min-width:1010px; width:100%; }
-    .financeiro-tabela th, .financeiro-tabela td { white-space:nowrap; padding-left:6px; padding-right:6px; font-size:.78rem; }
-    .financeiro-tabela th { font-size:.67rem; letter-spacing:.02em; white-space:normal; line-height:1.25; }
-    .financeiro-tabela th:nth-child(1), .financeiro-tabela td:nth-child(1) { min-width:118px; }
-    .financeiro-tabela th:nth-child(2), .financeiro-tabela td:nth-child(2) { min-width:92px; }
-    .financeiro-tabela th:nth-child(3), .financeiro-tabela td:nth-child(3) { min-width:112px; }
-    .financeiro-tabela th:nth-child(4), .financeiro-tabela td:nth-child(4),
-    .financeiro-tabela th:nth-child(5), .financeiro-tabela td:nth-child(5) { min-width:100px; }
-    .financeiro-tabela th:nth-child(6), .financeiro-tabela td:nth-child(6) { min-width:112px; }
-    .financeiro-tabela th:nth-child(7), .financeiro-tabela td:nth-child(7) { min-width:110px; }
-    .financeiro-tabela th:nth-child(8), .financeiro-tabela td:nth-child(8) { min-width:122px; }
-    .financeiro-tabela th:nth-child(9), .financeiro-tabela td:nth-child(9) { min-width:112px; padding-right:10px; }
-    /* Notebook de 1366 px: as nove colunas ainda tem de caber inteiras. */
-    @media (max-width: 1500px) {
-      .financeiro-tabela table { min-width:880px; }
-      .financeiro-tabela th, .financeiro-tabela td { padding-left:4px; padding-right:4px; font-size:.72rem; }
-      .financeiro-tabela th { font-size:.62rem; }
-      .financeiro-tabela th:nth-child(1), .financeiro-tabela td:nth-child(1) { min-width:104px; }
-      .financeiro-tabela th:nth-child(2), .financeiro-tabela td:nth-child(2) { min-width:78px; }
-      .financeiro-tabela th:nth-child(3), .financeiro-tabela td:nth-child(3) { min-width:98px; }
-      .financeiro-tabela th:nth-child(4), .financeiro-tabela td:nth-child(4),
-      .financeiro-tabela th:nth-child(5), .financeiro-tabela td:nth-child(5) { min-width:88px; }
-      .financeiro-tabela th:nth-child(6), .financeiro-tabela td:nth-child(6) { min-width:98px; }
-      .financeiro-tabela th:nth-child(7), .financeiro-tabela td:nth-child(7) { min-width:94px; }
-      .financeiro-tabela th:nth-child(8), .financeiro-tabela td:nth-child(8) { min-width:104px; }
-      .financeiro-tabela th:nth-child(9), .financeiro-tabela td:nth-child(9) { min-width:96px; padding-right:8px; }
-      .custo-input, .margem-desejada-input { width:90px; padding:5px 5px; font-size:.7rem; }
-    }
+    .financeiro-emp > summary .contagem { margin-left:auto; color:var(--texto-suave); font-size:.74rem; font-weight:500; text-align:right; }
+    /* A tela de precos nao e mais uma planilha de nove colunas com rolagem
+       lateral: cada item e uma linha com os quatro numeros que o dono decide
+       (custo, o que esta no site, a venda desejada e a margem que ela da). Os
+       descontos de proposta moram na gaveta, que abre so quando ele precisa.
+       No celular a mesma linha vira cartao, sem rolagem para o lado. */
+    .precos-filtros { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:0 0 14px; }
+    .preco-chip { border:1px solid var(--borda); background:var(--fundo); color:var(--texto-suave); border-radius:999px; padding:7px 13px; font:inherit; font-size:.76rem; font-weight:600; cursor:pointer; }
+    .preco-chip:hover { border-color:var(--dourado); }
+    .preco-chip.ativo { background:var(--dourado); border-color:var(--dourado); color:#fff; }
+    .preco-chip.vazio { opacity:.45; }
+    .preco-busca { flex:1; min-width:160px; padding:9px 11px; border:1px solid var(--borda); border-radius:9px; background:var(--fundo); color:var(--texto); font:inherit; font-size:.8rem; }
+    .preco-busca:focus { outline:2px solid rgba(23,143,160,.2); border-color:var(--dourado); }
+    .precos-lista { border-top:1px solid var(--borda); background:var(--cartao); }
+    .precos-cabecalho, .preco-linha-topo { display:grid; grid-template-columns:minmax(0,1.7fr) 130px 140px 140px 130px; gap:12px; align-items:start; padding:9px 14px; }
+    .precos-cabecalho { font-size:.66rem; text-transform:uppercase; letter-spacing:.04em; color:var(--texto-suave); font-weight:600; border-bottom:1px solid var(--borda); }
+    .precos-cabecalho span + span { text-align:right; }
+    .precos-cabecalho em { font-style:normal; text-transform:none; letter-spacing:0; opacity:.75; }
+    .preco-linha { border-bottom:1px solid var(--borda); border-left:3px solid transparent; }
+    .preco-linha:last-child { border-bottom:none; }
+    .preco-linha.muda { border-left-color:#e0a437; background:rgba(224,164,55,.05); }
+    .preco-item { display:flex; align-items:flex-start; gap:8px; min-width:0; }
+    .preco-item .nome { font-weight:700; font-size:.84rem; }
+    .preco-sub { display:block; color:var(--texto-suave); font-size:.7rem; font-weight:500; margin-top:2px; line-height:1.35; }
+    .preco-abrir { flex:none; width:24px; height:24px; border:1px solid var(--borda); border-radius:7px; background:var(--fundo); color:var(--texto-suave); cursor:pointer; font-size:.7rem; line-height:1; }
+    .preco-abrir[aria-expanded="true"] { background:var(--dourado); border-color:var(--dourado); color:#fff; }
+    .preco-campo { min-width:0; text-align:right; font-variant-numeric:tabular-nums; font-size:.8rem; }
+    .preco-campo .preco-rotulo { display:none; }
+    .preco-campo input { width:100%; }
+    .preco-campo .valor { font-weight:700; }
+    .preco-nota { display:block; color:var(--texto-suave); font-size:.66rem; font-weight:500; margin-top:3px; line-height:1.3; }
+    .preco-nota.destaque { color:#a86612; font-weight:700; }
+    .preco-gaveta { padding:0 14px 14px 46px; display:flex; flex-wrap:wrap; gap:14px; align-items:flex-end; font-size:.78rem; }
+    .preco-gaveta[hidden] { display:none; }
+    .preco-gaveta .bloco-gaveta { min-width:150px; }
+    .preco-gaveta .titulo-gaveta { display:block; color:var(--texto-suave); font-size:.68rem; text-transform:uppercase; letter-spacing:.04em; margin-bottom:4px; }
+    .preco-gaveta .desconto { font-variant-numeric:tabular-nums; }
+    .preco-gaveta input { width:150px; }
+    .preco-gaveta .botao-gaveta { border:1px solid var(--borda); background:var(--fundo); color:var(--texto); border-radius:8px; padding:8px 11px; font:inherit; font-size:.76rem; font-weight:600; cursor:pointer; }
+    .preco-gaveta .botao-gaveta:hover { border-color:var(--dourado); }
+    .preco-sub .bolinha { display:inline-block; width:8px; height:8px; margin-right:4px; vertical-align:middle; }
     .box-tipo { color:var(--texto-suave); font-size:.72rem; font-weight:500; }
     .box-incluso { color:var(--texto-suave); font-style:italic; font-size:.72rem; }
-    .vinculo-box { display:block; color:var(--texto-suave); font-size:.68rem; font-weight:500; margin-top:2px; white-space:normal; line-height:1.3; }
-    .financeiro-tabela tr.linha-vendida .vinculo-box { color:var(--vermelho); opacity:.85; }
-    /* Vendido continua na tabela, mas em vermelho: e passado, nao oferta. */
-    .financeiro-tabela tr.linha-vendida td { color:var(--vermelho); background:rgba(198,40,40,.045); }
-    .financeiro-tabela tr.linha-vendida td:first-child { font-weight:700; }
-    .financeiro-tabela tr.linha-vendida .box-tipo { color:var(--vermelho); opacity:.8; }
-    .financeiro-tabela tr.linha-vendida .custo-input,
-    .financeiro-tabela tr.linha-vendida .margem-desejada-input { color:var(--vermelho); border-color:rgba(198,40,40,.35); }
+    /* Vendido continua na lista, mas em vermelho: e passado, nao oferta. */
+    .preco-linha.vendida { background:rgba(198,40,40,.045); }
+    .preco-linha.vendida .nome, .preco-linha.vendida .preco-campo, .preco-linha.vendida .preco-sub { color:var(--vermelho); }
+    .preco-linha.vendida .custo-input { color:var(--vermelho); border-color:rgba(198,40,40,.35); }
+    @media (max-width: 860px) {
+      .precos-cabecalho { display:none; }
+      .preco-linha-topo { grid-template-columns:1fr 1fr; gap:10px 12px; padding:12px 14px; }
+      .preco-item { grid-column:1 / -1; }
+      .preco-campo { text-align:left; }
+      .preco-campo .preco-rotulo { display:block; color:var(--texto-suave); font-size:.66rem; text-transform:uppercase; letter-spacing:.04em; margin-bottom:4px; }
+      .preco-campo input { text-align:left; }
+      .preco-gaveta { padding-left:14px; }
+      .preco-gaveta .bloco-gaveta { flex:1 1 100%; }
+      .preco-gaveta input { width:100%; }
+    }
     .custo-input, .margem-desejada-input { width:104px; padding:6px 6px; border:1px solid var(--borda); border-radius:7px; background:var(--fundo); color:var(--texto); text-align:right; font:inherit; font-size:.76rem; font-variant-numeric:tabular-nums; }
     .custo-input:focus, .margem-desejada-input:focus { outline:2px solid rgba(23,143,160,.2); border-color:var(--dourado); }
     .margem-positiva { color:var(--verde); font-weight:700; }
@@ -430,6 +444,9 @@
     .financeiro-cofre.ok { color:var(--verde); }
     .financeiro-cofre.alerta { color:#a86612; font-weight:600; }
     .financeiro-vazio { font-size:.78rem; color:var(--texto-suave); line-height:1.55; border:1px solid var(--borda); border-radius:10px; background:var(--fundo); padding:12px 14px; margin:0 0 14px; }
+    .precos-ajuda { margin:0 0 14px; }
+    .precos-ajuda > summary { cursor:pointer; color:var(--texto-suave); font-size:.78rem; font-weight:600; }
+    .precos-ajuda .custos-nota { margin:8px 0 0; }
     .incc-ajuda { display:block; margin-top:5px; color:var(--texto-suave); font-size:.7rem; line-height:1.35; }
     .incc-historico { margin-top:16px; border:1px solid var(--borda); border-radius:10px; background:var(--fundo); overflow:hidden; }
     .incc-historico > summary { cursor:pointer; list-style:none; padding:12px 14px; display:flex; gap:10px; align-items:center; font-weight:750; font-size:.86rem; }
@@ -787,6 +804,7 @@
           </div>
 
           <button type="button" class="nav-item" data-modulo-alvo="estoque"><span class="nav-icone">▦</span>Estoque / Unidades</button>
+          <button type="button" class="nav-item" data-modulo-alvo="precos"><span class="nav-icone">R$</span>Preços e margem</button>
           <button type="button" class="nav-item" data-modulo-alvo="incc"><span class="nav-icone">%</span>Correção pelo INCC</button>
           <button type="button" class="nav-item" data-modulo-alvo="publicacao"><span class="nav-icone">↑</span>Publicação</button>
 
@@ -919,28 +937,43 @@
             <p class="incc-historico-nota">O histórico é salvo junto com a tabela do sistema quando a correção é publicada.</p>
           </details>
 
-          <div class="custos-area">
-            <h3>Custos e margem dos itens à venda</h3>
-            <p class="custos-nota"><strong>Custo - 5%</strong> = custo × 0,95 · <strong>Custo - 10%</strong> = custo × 0,90 · <strong>Margem extra atual</strong> = preço de venda atual − custo · <strong>Venda desejada</strong> = custo + margem extra desejada. Custos e margens desejadas são informação interna e não são enviados ao site público.</p>
-            <div class="faixa-precos" id="area-aplicar-precos" style="display:none">
-              <div>
-                <strong id="aplicar-precos-status"></strong>
-                <span>Clique em <strong>“Publicar no site”</strong>: ele mostra a lista antes de gravar e já guarda o custo e a margem junto. O <strong>“Salvar custos e margens”</strong> serve para guardar só o que é interno, sem mexer no site.</span>
-              </div>
+          <p class="descricao" style="margin-top:18px">Ao publicar a correção, os custos guardados sobem na mesma variação — a margem continua a mesma. Para ver custo, margem e preço item a item, abra <strong>Preços e margem</strong> no menu.</p>
+          <button type="button" class="botao secundario" data-modulo-alvo="precos" style="margin-top:0">Abrir Preços e margem</button>
+        </section>
+
+        <!-- Preços e margem -->
+        <section class="bloco" data-modulo="precos">
+          <h2>Preços e margem</h2>
+          <p class="descricao">Informe o <strong>custo</strong> de cada item e a <strong>venda desejada</strong>. A margem sai sozinha. Custo e margem ficam só aqui, na sua conta — quem vira preço no site é a venda desejada, e só depois de você clicar em “Publicar no site”.</p>
+          <div class="faixa-precos" id="area-aplicar-precos" style="display:none">
+            <div>
+              <strong id="aplicar-precos-status"></strong>
+              <span>Clique em <strong>“Publicar no site”</strong>: ele mostra a lista antes de gravar e já guarda o custo e a margem junto. O <strong>“Salvar custos e margens”</strong> serve para guardar só o que é interno, sem mexer no site.</span>
             </div>
-            <div class="custos-acoes">
-              <label class="botao-arquivo" for="arquivo-importar-custos">Importar backup</label>
-              <input class="arquivo-input" type="file" id="arquivo-importar-custos" accept="application/json,.json">
-              <button type="button" class="botao" id="botao-salvar-financeiro" style="margin-top:0" disabled>Salvar custos e margens</button>
-              <button type="button" class="botao secundario" id="botao-exportar-custos" style="margin-top:0">Exportar backup</button>
-              <span class="financeiro-status salvo" id="financeiro-status">Dados salvos neste aparelho ✓</span>
-            </div>
-            <p class="financeiro-cofre" id="financeiro-cofre"></p>
-            <button type="button" class="botao secundario" id="botao-chave-financeiro" style="display:none;margin:0 0 12px">Trocar a chave do GitHub</button>
-            <p class="financeiro-cofre" id="financeiro-import" style="display:none"></p>
-            <p class="financeiro-vazio" id="financeiro-vazio" style="display:none">Nenhum custo aparece aqui neste aparelho. Os custos são guardados na sua conta do GitHub, em repositório privado, e descem sozinhos quando o painel abre. Se a mensagem acima disser que não deu para alcançar a conta, use <strong>Importar backup</strong> com o arquivo que você exportou.</p>
-            <div id="custos-venda"></div>
           </div>
+          <div class="custos-acoes">
+            <label class="botao-arquivo" for="arquivo-importar-custos">Importar backup</label>
+            <input class="arquivo-input" type="file" id="arquivo-importar-custos" accept="application/json,.json">
+            <button type="button" class="botao" id="botao-salvar-financeiro" style="margin-top:0" disabled>Salvar custos e margens</button>
+            <button type="button" class="botao secundario" id="botao-exportar-custos" style="margin-top:0">Exportar backup</button>
+            <span class="financeiro-status salvo" id="financeiro-status">Dados salvos neste aparelho ✓</span>
+          </div>
+          <p class="financeiro-cofre" id="financeiro-cofre"></p>
+          <button type="button" class="botao secundario" id="botao-chave-financeiro" style="display:none;margin:0 0 12px">Trocar a chave do GitHub</button>
+          <p class="financeiro-cofre" id="financeiro-import" style="display:none"></p>
+          <p class="financeiro-vazio" id="financeiro-vazio" style="display:none">Nenhum custo aparece aqui neste aparelho. Os custos são guardados na sua conta do GitHub, em repositório privado, e descem sozinhos quando o painel abre. Se a mensagem acima disser que não deu para alcançar a conta, use <strong>Importar backup</strong> com o arquivo que você exportou.</p>
+          <details class="precos-ajuda">
+            <summary>Como as contas são feitas</summary>
+            <p class="custos-nota"><strong>Margem</strong> = o preço menos o custo. Enquanto a venda desejada estiver vazia, a margem mostrada é a do preço que está no site; assim que você informa a venda desejada, ela passa a mostrar a margem dessa venda. Tocando no <strong>⌄</strong> ao lado do nome do item aparecem: <strong>Custo - 5%</strong> = custo × 0,95 e <strong>Custo - 10%</strong> = custo × 0,90, para quando o cliente pede abatimento. Custo e margem são informação interna e não vão para o site.</p>
+          </details>
+          <div class="precos-filtros">
+            <button type="button" class="preco-chip ativo" data-preco-filtro="todos">Todos</button>
+            <button type="button" class="preco-chip" data-preco-filtro="sem-custo">Falta custo</button>
+            <button type="button" class="preco-chip" data-preco-filtro="muda">Vai mudar de preço</button>
+            <button type="button" class="preco-chip" data-preco-filtro="negativa">Abaixo do custo</button>
+            <input class="preco-busca" id="preco-busca" type="search" placeholder="Procurar apto, sala, lote, box…" autocomplete="off">
+          </div>
+          <div id="custos-venda"></div>
         </section>
 
         <!-- Unidades -->
@@ -1168,6 +1201,7 @@
     // Mexeu na venda desejada, a fila de publicacao muda junto — e o
     // "Publicar no site" acende ou apaga na hora.
     renderPendentes();
+    atualizarContagensPrecos();
   }
 
   // O custo sai da tabela do mes. Quando a tabela e corrigida pelo INCC, custo
@@ -1305,7 +1339,8 @@
     visao: ["Visão geral", "Resumo do estoque, movimento e pendências do cadastro."],
     materiais: ["Materiais dos empreendimentos", "Capa, galeria, plantas, folder e vídeo em uma área separada por tipo de material."],
     estoque: ["Estoque / Unidades", "Disponibilidade, preços, garagem e status das unidades do empreendimento escolhido."],
-    incc: ["Correção pelo INCC", "Atualização mensal de preços e conferência interna de custos e margens."],
+    precos: ["Preços e margem", "Custo, margem e preço item a item."],
+    incc: ["Correção pelo INCC", "Atualização mensal da tabela: o índice do mês corrige preços e custos de uma vez."],
     publicacao: ["Publicação", "Revisão das alterações pendentes antes de enviar ao site."],
   };
 
@@ -3369,38 +3404,145 @@
     return margem == null ? "—" : (margem < 0 ? "−" + moedaFinanceira(Math.abs(margem)) : moedaFinanceira(margem));
   }
 
+  // Uma margem so na tela. Enquanto a venda desejada esta vazia, a margem
+  // mostrada e a do preco que esta no site; assim que o dono informa a venda,
+  // ela passa a ser a margem dessa venda. Duas colunas de margem lado a lado
+  // era o que mais confundia na tela antiga.
+  function margemDaLinha(custo, preco, vendaDesejada) {
+    const sobreVenda = vendaDesejada != null && vendaDesejada > 0;
+    const base = sobreVenda ? vendaDesejada : preco;
+    if (!custo || !base) return { valor: null, sobreVenda };
+    return { valor: base - custo, sobreVenda };
+  }
+
+  // A venda desejada so vira preco quando e diferente do que esta no ar — e a
+  // mesma conta da fila de publicacao, para a faixa amarela da linha nunca
+  // dizer uma coisa e o botao "Publicar no site" outra.
+  function vendaVaiParaOSite(linha, vendaDesejada) {
+    const preco = Number(linha.dataset.preco || 0);
+    return linha.dataset.vendavel === "1" && vendaDesejada != null && preco > 0
+      && Math.round(vendaDesejada) > 0 && Math.round(vendaDesejada) !== preco;
+  }
+
   function atualizarLinhaFinanceira(linha, custo, margemDesejada = null) {
     const preco = Number(linha.dataset.preco || 0);
-    linha.querySelector("[data-custo-5]").textContent = custo ? valorFinanceiro(custo * .95) : "—";
-    linha.querySelector("[data-custo-10]").textContent = custo ? valorFinanceiro(custo * .90) : "—";
-    const margemAtual = custo && preco ? preco - custo : null;
-    const cel = linha.querySelector("[data-margem]");
-    cel.textContent = textoMargem(margemAtual);
-    cel.classList.toggle("margem-positiva", margemAtual != null && margemAtual >= 0);
-    cel.classList.toggle("margem-negativa", margemAtual != null && margemAtual < 0);
+    const c5 = linha.querySelector("[data-custo-5]");
+    const c10 = linha.querySelector("[data-custo-10]");
+    if (c5) c5.textContent = custo ? valorFinanceiro(custo * .95) : "—";
+    if (c10) c10.textContent = custo ? valorFinanceiro(custo * .90) : "—";
     const vendaDesejada = custo && margemDesejada != null ? custo + margemDesejada : null;
+    const { valor: margem, sobreVenda } = margemDaLinha(custo, preco, vendaDesejada);
+    const cel = linha.querySelector("[data-margem]");
+    if (cel) {
+      cel.textContent = textoMargem(margem);
+      cel.classList.toggle("margem-positiva", margem != null && margem >= 0);
+      cel.classList.toggle("margem-negativa", margem != null && margem < 0);
+    }
+    const nota = linha.querySelector("[data-margem-nota]");
+    if (nota) nota.textContent = margem == null ? "" : sobreVenda ? "na venda desejada" : "no preço do site";
+    const muda = vendaVaiParaOSite(linha, vendaDesejada);
+    linha.classList.toggle("muda", muda);
+    const marca = linha.querySelector("[data-venda-nota]");
+    if (marca) {
+      marca.textContent = muda ? "vai para o site" : "";
+      marca.classList.toggle("destaque", muda);
+    }
     const campoVenda = linha.querySelector("input[data-venda-chave]");
     if (campoVenda && document.activeElement !== campoVenda) {
       campoVenda.value = vendaDesejada == null ? "" : moedaFinanceira(vendaDesejada);
     }
   }
 
-  function renderCustosMargens() {
-    const alvo = $("custos-venda");
-    if (!alvo || !estado.dados) return;
-    const grupos = estado.dados.EMPREENDIMENTOS.map((emp) => ({
+  // ---------------- lista de precos ----------------
+
+  // Os tres filtros respondem as tres perguntas que o dono faz de pe na frente
+  // da lista: o que ainda nao tem custo, o que vai mudar de preco quando ele
+  // publicar, e o que esta abaixo do custo.
+  const ROTULO_FILTRO_PRECO = { todos: "Todos", "sem-custo": "Falta custo", muda: "Vai mudar de preço", negativa: "Abaixo do custo" };
+  let precoFiltro = "todos";
+  let precoBusca = "";
+  const precosEmpsAbertos = new Set();
+
+  // O prédio inteiro fica a vista: o box de todos os empreendimentos aparece
+  // (onde e venda separada tem valor proprio; nos demais ja esta no preco do
+  // apartamento) e o vendido vai para o fim da lista, em vermelho.
+  function itensFinanceiros() {
+    if (!estado.dados) return [];
+    return estado.dados.EMPREENDIMENTOS.map((emp) => ({
       emp,
-      // Alugado continua sendo produto à venda (investidor compra com o inquilino dentro).
-      // Os box de todos os predios aparecem, para o dono ver o que ainda esta
-      // livre. Onde o box e venda separada (Renaissance) ele tem valor e custo
-      // proprios; nos demais ele ja esta no preco do apartamento e entra so
-      // como situacao, sem valor — senao a garagem contaria duas vezes.
-      // Vendido tambem aparece, no fim da lista e em vermelho: o predio
-      // inteiro fica a vista, e o dono ve o custo do que ja saiu.
       itens: [...itensDoEmp(emp), ...boxesDoEmp(emp).map((b) => ({ ...b, semValor: !emp.boxSeparado }))]
         .sort((a, b) => (a.tipo === "box" ? 1 : 0) - (b.tipo === "box" ? 1 : 0)
           || (statusAtual(emp.id, a) === "vendido" ? 1 : 0) - (statusAtual(emp.id, b) === "vendido" ? 1 : 0)),
     })).filter(({ itens }) => itens.length);
+  }
+
+  // Tudo o que a linha precisa mostrar sai daqui: a tela desenha, a contagem
+  // dos filtros conta e o filtro escolhe sempre pelos mesmos numeros.
+  function lerItemFinanceiro(emp, item, boxesDaqui, prefixo) {
+    const chave = chaveDoItem(emp.id, item);
+    const custo = custoInterno(chave);
+    const margemDesejada = margemDesejadaInterna(chave);
+    const preco = Number(item.preco || 0);
+    const situacao = statusAtual(emp.id, item);
+    const vendido = situacao === "vendido";
+    const semValor = !!item.semValor;
+    const vendavel = !vendido && !semValor;
+    const vendaDesejada = custo && margemDesejada != null ? custo + margemDesejada : null;
+    const margem = margemDaLinha(custo, preco, vendaDesejada);
+    // Quem levou qual box: a unidade lista os box que foram junto e o box
+    // mostra a unidade que o levou.
+    const vinculo = item.tipo === "box"
+      ? (item.apto ? `${prefixo} ${item.apto}` : "")
+      : (item.apto ? boxesDaqui.filter((b) => String(b.apto) === String(item.apto)).map((b) => "Box " + b.box).join(" · ") : "");
+    const tipologia = item.tipo === "box" ? "" : (item.estoque || item.grupo || "");
+    return {
+      emp, item, chave, custo, margemDesejada, preco, situacao, vendido, semValor, vendavel,
+      vendaDesejada, margem: margem.valor, sobreVenda: margem.sobreVenda,
+      detalhe: [tipologia, vinculo].filter(Boolean).join(" · "),
+      muda: vendavel && vendaDesejada != null && preco > 0
+        && Math.round(vendaDesejada) > 0 && Math.round(vendaDesejada) !== preco,
+      faltaCusto: vendavel && !custo,
+      negativa: margem.valor != null && margem.valor < 0,
+    };
+  }
+
+  function passaNoFiltroPreco(reg) {
+    if (precoBusca && !`${reg.emp.nome} ${reg.item.rotulo} ${reg.detalhe}`.toLowerCase().includes(precoBusca)) return false;
+    if (precoFiltro === "sem-custo") return reg.faltaCusto;
+    if (precoFiltro === "muda") return reg.muda;
+    if (precoFiltro === "negativa") return reg.negativa;
+    return true;
+  }
+
+  // As contagens dos chips sao refeitas a cada tecla digitada, sem redesenhar
+  // a lista: redesenhar tiraria o cursor de dentro do campo.
+  function atualizarContagensPrecos() {
+    const contagem = { todos: 0, "sem-custo": 0, muda: 0, negativa: 0 };
+    itensFinanceiros().forEach(({ emp, itens }) => {
+      const boxesDaqui = boxesDoEmp(emp);
+      const prefixo = nomes(emp).prefixo;
+      itens.forEach((item) => {
+        const reg = lerItemFinanceiro(emp, item, boxesDaqui, prefixo);
+        contagem.todos++;
+        if (reg.faltaCusto) contagem["sem-custo"]++;
+        if (reg.muda) contagem.muda++;
+        if (reg.negativa) contagem.negativa++;
+      });
+    });
+    document.querySelectorAll("[data-preco-filtro]").forEach((botao) => {
+      const filtro = botao.dataset.precoFiltro;
+      const n = contagem[filtro] || 0;
+      botao.textContent = `${ROTULO_FILTRO_PRECO[filtro]} (${n})`;
+      botao.classList.toggle("ativo", filtro === precoFiltro);
+      botao.classList.toggle("vazio", filtro !== "todos" && !n);
+    });
+    return contagem;
+  }
+
+  function renderCustosMargens() {
+    const alvo = $("custos-venda");
+    if (!alvo || !estado.dados) return;
+    const grupos = itensFinanceiros();
 
     // Quantos itens A VENDA ja tem custo: e o numero que a linha de status
     // mostra. Nao entram o vendido (nao ha mais o que precificar) nem o box
@@ -3412,60 +3554,129 @@
       if (custoInterno(chaveDoItem(emp.id, item))) financeiroCobertura.comCusto++;
     }));
 
+    const filtrando = precoFiltro !== "todos" || !!precoBusca;
+    let visiveis = 0;
+
     alvo.innerHTML = grupos.map(({ emp, itens }) => {
-      // Quem levou qual box: a unidade mostra os box que foram junto, e o box
-      // mostra a unidade que o levou. E a mesma informacao dos dois lados.
       const boxesDaqui = boxesDoEmp(emp);
       const prefixo = nomes(emp).prefixo;
-      const vinculoDoItem = (item) => {
-        if (item.tipo === "box") return item.apto ? `${prefixo} ${item.apto}` : "";
-        if (!item.apto) return "";
-        const meus = boxesDaqui.filter((b) => String(b.apto) === String(item.apto));
-        return meus.map((b) => "Box " + b.box).join(" · ");
-      };
-      const daVenda = itens.filter((item) => !item.semValor);
-      const vendidos = daVenda.filter((item) => statusAtual(emp.id, item) === "vendido").length;
-      const boxInclusos = itens.length - daVenda.length;
-      return `<details class="financeiro-emp">
+      const registros = itens.map((item) => lerItemFinanceiro(emp, item, boxesDaqui, prefixo)).filter(passaNoFiltroPreco);
+      if (!registros.length) return "";
+      visiveis += registros.length;
+      const daVenda = registros.filter((r) => !r.semValor);
+      const vendidos = daVenda.filter((r) => r.vendido).length;
+      const boxInclusos = registros.length - daVenda.length;
+      // Com filtro ligado o grupo abre sozinho: o dono pediu para ver o que
+      // sobrou, nao para procurar dentro de gavetas fechadas.
+      const aberto = filtrando || precosEmpsAbertos.has(emp.id);
+      return `<details class="financeiro-emp" data-preco-emp="${escapeHtml(emp.id)}"${aberto ? " open" : ""}>
       <summary>${escapeHtml(emp.nome)} <span class="contagem">${conta(daVenda.length - vendidos, "item à venda", "itens à venda")}${vendidos ? ` · ${vendidos} vendido${vendidos === 1 ? "" : "s"}` : ""}${boxInclusos ? ` · ${boxInclusos} box no preço` : ""}</span></summary>
-      <div class="financeiro-tabela"><table>
-        <thead><tr><th>Unidade</th><th>Situação</th><th style="text-align:right">Custo</th><th style="text-align:right">Custo - 5%</th><th style="text-align:right">Custo - 10%</th><th style="text-align:right">Preço atual</th><th style="text-align:right">Margem atual</th><th style="text-align:right">Margem desejada</th><th style="text-align:right">Venda desejada</th></tr></thead>
-        <tbody>${itens.map((item) => {
-          const chave = chaveDoItem(emp.id, item);
-          const custo = custoInterno(chave);
-          const margemDesejada = margemDesejadaInterna(chave);
-          const preco = Number(item.preco || 0);
-          const margemAtual = custo && preco ? preco - custo : null;
-          const classeMargem = margemAtual == null ? "" : margemAtual < 0 ? " margem-negativa" : " margem-positiva";
-          const vendaDesejada = custo && margemDesejada != null ? custo + margemDesejada : null;
-          const situacao = statusAtual(emp.id, item);
-          const vendido = situacao === "vendido";
-          const vinculo = vinculoDoItem(item);
-          // Embaixo do nome: a tipologia (2 ou 3 dormitorios) e, quando ha, o
-          // box que foi junto. Sem a tipologia o dono nao sabe o que esta
-          // precificando so pelo numero do apartamento.
-          const tipologia = item.tipo === "box" ? "" : (item.estoque || item.grupo || "");
-          const detalhe = [tipologia, vinculo].filter(Boolean).join(" · ");
-          const nome = `<td>${escapeHtml(item.rotulo)}${item.tipo === "box" ? ` <span class="box-tipo">${item.vagas > 1 ? "duplo" : "simples"}${item.pne ? " · PCD" : ""}</span>` : ""}${detalhe ? `<span class="vinculo-box">${escapeHtml(detalhe)}</span>` : ""}</td>`;
-          const situacaoCel = `<td><span class="st-${situacao}"><span class="bolinha"></span>${escapeHtml(STATUS_LABEL[situacao] || situacao)}</span></td>`;
-          return `<tr data-financeiro-linha${vendido ? " class=\"linha-vendida\"" : ""} data-preco="${preco}" data-chave="${escapeHtml(chave)}">
-            ${nome}
-            ${situacaoCel}
-            <td class="num"><input class="custo-input" inputmode="decimal" data-custo-chave="${escapeHtml(chave)}" value="${custo ? escapeHtml(moedaFinanceira(custo)) : ""}" placeholder="Informe o custo" aria-label="Custo de ${escapeHtml(item.rotulo)}"></td>
-            <td class="num" data-custo-5>${custo ? valorFinanceiro(custo * .95) : "—"}</td>
-            <td class="num" data-custo-10>${custo ? valorFinanceiro(custo * .90) : "—"}</td>
-            <td class="num">${item.semValor ? `<span class="box-incluso">no preço do apto</span>` : `<strong>${valorFinanceiro(preco)}</strong>`}</td>
-            <td class="num${classeMargem}" data-margem>${textoMargem(margemAtual)}</td>
-            <td class="num"><input class="margem-desejada-input" inputmode="decimal" data-margem-chave="${escapeHtml(chave)}" value="${margemDesejada != null ? escapeHtml(moedaFinanceira(margemDesejada)) : ""}" placeholder="Informe a margem" aria-label="Margem extra desejada de ${escapeHtml(item.rotulo)}"></td>
-            <td class="num"><input class="margem-desejada-input" inputmode="decimal" data-venda-chave="${escapeHtml(chave)}" value="${vendaDesejada == null ? "" : escapeHtml(moedaFinanceira(vendaDesejada))}" placeholder="Informe a venda" aria-label="Venda desejada de ${escapeHtml(item.rotulo)}"></td>
-          </tr>`;
-        }).join("")}</tbody>
-      </table></div>
+      <div class="precos-lista">
+        <div class="precos-cabecalho"><span>Item <em>(toque no ⌄ para os descontos)</em></span><span>Custo</span><span>Preço no site</span><span>Venda desejada</span><span>Margem</span></div>
+        ${registros.map((reg) => {
+          const { item, chave, custo, margemDesejada, preco, situacao, vendido, semValor, vendavel, vendaDesejada, margem, sobreVenda, detalhe, muda } = reg;
+          // O campo de venda desejada some do vendido e do box que ja esta no
+          // preco do apartamento — la nao ha preco para mexer. Se um deles
+          // tiver margem guardada de outra epoca, o campo volta, para o valor
+          // nunca ficar preso sem quem o edite.
+          const mostraVenda = vendavel || margemDesejada != null;
+          const classes = ["preco-linha"];
+          if (vendido) classes.push("vendida");
+          if (muda) classes.push("muda");
+          const marcaBox = item.tipo === "box" ? ` <span class="box-tipo">${item.vagas > 1 ? "duplo" : "simples"}${item.pne ? " · PCD" : ""}</span>` : "";
+          return `<div class="${classes.join(" ")}" data-financeiro-linha data-preco="${preco}" data-chave="${escapeHtml(chave)}" data-vendavel="${vendavel ? 1 : 0}">
+          <div class="preco-linha-topo">
+            <div class="preco-item">
+              <button type="button" class="preco-abrir" data-abrir-gaveta aria-expanded="false" title="Ver descontos e margem" aria-label="Ver descontos e margem de ${escapeHtml(item.rotulo)}">⌄</button>
+              <div>
+                <span class="nome">${escapeHtml(item.rotulo)}</span>${marcaBox}
+                <span class="preco-sub"><span class="st-${situacao}"><span class="bolinha"></span>${escapeHtml(STATUS_LABEL[situacao] || situacao)}</span>${detalhe ? " · " + escapeHtml(detalhe) : ""}</span>
+              </div>
+            </div>
+            <div class="preco-campo">
+              <span class="preco-rotulo">Custo</span>
+              <input class="custo-input" inputmode="decimal" data-custo-chave="${escapeHtml(chave)}" value="${custo ? escapeHtml(moedaFinanceira(custo)) : ""}" placeholder="Informe o custo" aria-label="Custo de ${escapeHtml(item.rotulo)}">
+            </div>
+            <div class="preco-campo">
+              <span class="preco-rotulo">Preço no site</span>
+              ${semValor
+                ? `<span class="box-incluso">já incluso no preço do apartamento</span>`
+                : `<span class="valor">${valorFinanceiro(preco)}</span>`}
+            </div>
+            <div class="preco-campo">
+              <span class="preco-rotulo">Venda desejada</span>
+              ${mostraVenda
+                ? `<input class="margem-desejada-input" inputmode="decimal" data-venda-chave="${escapeHtml(chave)}" value="${vendaDesejada == null ? "" : escapeHtml(moedaFinanceira(vendaDesejada))}" placeholder="Informe a venda" aria-label="Venda desejada de ${escapeHtml(item.rotulo)}">`
+                : `<span class="valor">—</span>`}
+              <span class="preco-nota${muda ? " destaque" : ""}" data-venda-nota>${muda ? "vai para o site" : ""}</span>
+            </div>
+            <div class="preco-campo">
+              <span class="preco-rotulo">Margem</span>
+              <span class="valor${margem == null ? "" : margem < 0 ? " margem-negativa" : " margem-positiva"}" data-margem>${textoMargem(margem)}</span>
+              <span class="preco-nota" data-margem-nota>${margem == null ? "" : sobreVenda ? "na venda desejada" : "no preço do site"}</span>
+            </div>
+          </div>
+          <div class="preco-gaveta" hidden>
+            <div class="bloco-gaveta">
+              <span class="titulo-gaveta">Se o cliente pedir desconto</span>
+              <div class="desconto">Custo − 5%: <strong data-custo-5>${custo ? valorFinanceiro(custo * .95) : "—"}</strong></div>
+              <div class="desconto">Custo − 10%: <strong data-custo-10>${custo ? valorFinanceiro(custo * .90) : "—"}</strong></div>
+            </div>
+            <div class="bloco-gaveta">
+              <span class="titulo-gaveta">Quanto quero ganhar</span>
+              <input class="margem-desejada-input" inputmode="decimal" data-margem-chave="${escapeHtml(chave)}" value="${margemDesejada != null ? escapeHtml(moedaFinanceira(margemDesejada)) : ""}" placeholder="Margem em R$" aria-label="Margem desejada de ${escapeHtml(item.rotulo)}">
+            </div>
+            ${vendavel && preco > 0 ? `<button type="button" class="botao-gaveta" data-igualar-site>Deixar igual ao preço do site</button>` : ""}
+          </div>
+        </div>`;
+        }).join("")}
+      </div>
     </details>`;
     }).join("");
 
+    if (!visiveis) {
+      alvo.innerHTML = `<p class="financeiro-vazio">Nenhum item nesse filtro${precoBusca ? " com esse texto" : ""}. Toque em <strong>Todos</strong> para ver a lista inteira.</p>`;
+    }
+
+    alvo.querySelectorAll("details[data-preco-emp]").forEach((det) => {
+      det.addEventListener("toggle", () => {
+        if (det.open) precosEmpsAbertos.add(det.dataset.precoEmp);
+        else precosEmpsAbertos.delete(det.dataset.precoEmp);
+      });
+    });
+
+    // A gaveta guarda o que so serve na hora de uma proposta: os descontos
+    // sobre o custo e a margem em reais.
+    alvo.querySelectorAll("[data-abrir-gaveta]").forEach((botao) => {
+      botao.addEventListener("click", () => {
+        const linha = botao.closest("[data-financeiro-linha]");
+        const gaveta = linha.querySelector(".preco-gaveta");
+        const abrir = gaveta.hidden;
+        gaveta.hidden = !abrir;
+        botao.setAttribute("aria-expanded", String(abrir));
+      });
+    });
+
+    // Desistiu da mudanca de preco desta linha: a venda desejada volta a ser o
+    // preco que esta no ar e a linha sai da fila de publicacao.
+    alvo.querySelectorAll("[data-igualar-site]").forEach((botao) => {
+      botao.addEventListener("click", () => {
+        const linha = botao.closest("[data-financeiro-linha]");
+        const chave = linha.dataset.chave;
+        const custo = custoInterno(chave);
+        const preco = Number(linha.dataset.preco || 0);
+        if (!custo || !preco) { aviso("Informe primeiro o custo desta linha.", "falha"); return; }
+        const margem = Math.round((preco - custo) * 100) / 100;
+        margensDesejadas[chave] = margem;
+        const campoMargem = linha.querySelector("input[data-margem-chave]");
+        if (campoMargem) campoMargem.value = moedaFinanceira(margem);
+        atualizarLinhaFinanceira(linha, custo, margem);
+        atualizarEstadoFinanceiro(true);
+      });
+    });
+
     alvo.querySelectorAll("input[data-custo-chave]").forEach((input) => {
-      const linha = input.closest("tr[data-financeiro-linha]");
+      const linha = input.closest("[data-financeiro-linha]");
       const margemInput = linha.querySelector("input[data-margem-chave]");
       input.addEventListener("input", () => {
         const chave = input.dataset.custoChave;
@@ -3504,7 +3715,7 @@
     });
 
     alvo.querySelectorAll("input[data-margem-chave]").forEach((input) => {
-      const linha = input.closest("tr[data-financeiro-linha]");
+      const linha = input.closest("[data-financeiro-linha]");
       const custoInput = linha.querySelector("input[data-custo-chave]");
       input.addEventListener("input", () => {
         const chave = input.dataset.margemChave;
@@ -3545,7 +3756,7 @@
     // Venda desejada: o dono digita o preco que quer praticar e a margem sai
     // sozinha (venda − custo). Os dois campos falam um com o outro.
     alvo.querySelectorAll("input[data-venda-chave]").forEach((input) => {
-      const linha = input.closest("tr[data-financeiro-linha]");
+      const linha = input.closest("[data-financeiro-linha]");
       const custoInput = linha.querySelector("input[data-custo-chave]");
       const margemInput = linha.querySelector("input[data-margem-chave]");
       const custoDaLinha = () => numeroDeMoeda(custoInput.value) ?? custoInterno(input.dataset.vendaChave);
@@ -3556,6 +3767,9 @@
         if (!bruto) {
           delete margensDesejadas[chave];
           margemInput.value = "";
+          // A margem da linha volta a ser a do preco que esta no site, e a
+          // marca "vai para o site" sai junto.
+          atualizarLinhaFinanceira(linha, custoDaLinha(), null);
           atualizarEstadoFinanceiro(true);
           return;
         }
@@ -3571,6 +3785,9 @@
         const margem = Math.round((venda - custo) * 100) / 100;
         margensDesejadas[chave] = margem;
         margemInput.value = moedaFinanceira(margem);
+        // A margem mostrada passa a ser a da venda desejada, e a linha ganha a
+        // faixa de "vai para o site" na mesma tecla.
+        atualizarLinhaFinanceira(linha, custo, margem);
         atualizarEstadoFinanceiro(true);
       };
       input.addEventListener("input", () => aplicar(false));
@@ -3594,6 +3811,26 @@
     });
     atualizarEstadoFinanceiro(financeiroSujo);
   }
+
+  document.querySelectorAll("[data-preco-filtro]").forEach((botao) => {
+    botao.addEventListener("click", () => {
+      precoFiltro = botao.dataset.precoFiltro;
+      renderCustosMargens();
+    });
+  });
+
+  // A busca nao redesenha a cada tecla: espera o dono parar de digitar, senao
+  // o cursor sairia do campo no meio da palavra.
+  let buscaPrecoTimer = null;
+  $("preco-busca")?.addEventListener("input", (e) => {
+    const texto = e.target.value.trim().toLowerCase();
+    clearTimeout(buscaPrecoTimer);
+    buscaPrecoTimer = setTimeout(() => {
+      if (texto === precoBusca) return;
+      precoBusca = texto;
+      renderCustosMargens();
+    }, 250);
+  });
 
   $("botao-salvar-financeiro")?.addEventListener("click", salvarFinanceiroInterno);
 
