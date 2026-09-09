@@ -392,8 +392,36 @@
     .campo-pct input { width:78px; padding:7px 8px; border:1px solid var(--borda); border-radius:7px; background:var(--cartao); color:var(--texto); text-align:right; font:inherit; font-size:.8rem; font-variant-numeric:tabular-nums; }
     .campo-pct input:focus { outline:2px solid rgba(23,143,160,.2); border-color:var(--dourado); }
     .campo-pct span { color:var(--texto-suave); font-size:.8rem; font-weight:600; }
-    .precos-lista { border-top:1px solid var(--borda); background:var(--cartao); }
-    .precos-cabecalho, .preco-linha-topo { display:grid; grid-template-columns:minmax(0,1.7fr) 130px 140px 140px 130px; gap:12px; align-items:start; padding:9px 14px; }
+    /* A lista mede a si mesma, nao a janela: assim as colunas extras entram
+       quando ha espaco de verdade dentro dela, mesmo com o menu lateral. */
+    .precos-emp-massa { display:flex; flex-wrap:wrap; gap:10px; align-items:center; padding:10px 14px;
+      border-top:1px solid var(--borda); background:rgba(23,143,160,.05); }
+    .precos-emp-massa .titulo-massa { font-size:.78rem; font-weight:600; }
+    .precos-emp-massa .preco-massa-status { font-size:.73rem; color:var(--texto-suave); flex:1 1 100%; }
+    .precos-emp-massa .preco-massa-status.ok { color:var(--verde); font-weight:600; }
+    .precos-emp-massa .preco-massa-status.falha { color:#a86612; font-weight:600; }
+    .precos-emp-massa .campo-pct input { background:var(--cartao); }
+    .precos-lista { border-top:1px solid var(--borda); background:var(--cartao); container-type:inline-size; }
+    /* As colunas crescem junto com a lista, em vez de ficarem paradas na
+       direita com um vao no meio: era o vazio entre o nome e o custo. */
+    .precos-cabecalho, .preco-linha-topo { display:grid; gap:12px; align-items:start; padding:9px 14px;
+      grid-template-columns:minmax(0,1.5fr) minmax(106px,1fr) minmax(112px,1fr) minmax(120px,1.05fr) minmax(74px,.55fr) minmax(112px,1fr); }
+    /* Tela larga: cabem tambem os dois descontos, que so ficam na gaveta
+       quando nao ha espaco para eles. */
+    .col-desconto { display:none; }
+    @container (min-width: 1120px) {
+      .precos-cabecalho, .preco-linha-topo {
+        grid-template-columns:minmax(190px,1.35fr) minmax(112px,.95fr) minmax(108px,.75fr) minmax(108px,.75fr) minmax(116px,.9fr) minmax(124px,1fr) minmax(76px,.5fr) minmax(114px,.9fr); }
+      .col-desconto { display:block; }
+      .preco-gaveta .bloco-descontos { display:none; }
+      .preco-abrir .rot-estreito { display:none; }
+    }
+    .preco-abrir .rot-largo { display:none; }
+    @container (min-width: 1120px) { .preco-abrir .rot-largo { display:inline; } }
+    .valor-suave { font-weight:600; color:var(--texto-suave); font-size:.74rem; white-space:nowrap; }
+    .preco-campo .valor { white-space:nowrap; }
+    .preco-campo .campo-pct { display:flex; align-items:center; justify-content:flex-end; gap:5px; }
+    .preco-campo .campo-pct input { width:100%; }
     .precos-cabecalho { font-size:.66rem; text-transform:uppercase; letter-spacing:.04em; color:var(--texto-suave); font-weight:600; border-bottom:1px solid var(--borda); }
     .precos-cabecalho span + span { text-align:right; }
     .precos-cabecalho em { font-style:normal; text-transform:none; letter-spacing:0; opacity:.75; }
@@ -421,8 +449,9 @@
     .preco-gaveta .desconto { font-variant-numeric:tabular-nums; }
     .preco-gaveta input { width:150px; }
     .preco-gaveta .campo-pct input { width:88px; }
-    .preco-gaveta .botao-gaveta { border:1px solid var(--borda); background:var(--fundo); color:var(--texto); border-radius:8px; padding:8px 11px; font:inherit; font-size:.76rem; font-weight:600; cursor:pointer; }
-    .preco-gaveta .botao-gaveta:hover { border-color:var(--dourado); }
+    .botao-gaveta { border:1px solid var(--borda); background:var(--cartao); color:var(--texto); border-radius:8px; padding:8px 12px; font:inherit; font-size:.76rem; font-weight:600; cursor:pointer; }
+    .botao-gaveta:hover { border-color:var(--dourado); }
+    .preco-gaveta .botao-gaveta { background:var(--fundo); padding:8px 11px; }
     .preco-sub .bolinha { display:inline-block; width:8px; height:8px; margin-right:4px; vertical-align:middle; }
     .box-tipo { color:var(--texto-suave); font-size:.72rem; font-weight:500; }
     .box-incluso { color:var(--texto-suave); font-style:italic; font-size:.72rem; }
@@ -430,17 +459,20 @@
     .preco-linha.vendida { background:rgba(198,40,40,.045); }
     .preco-linha.vendida .nome, .preco-linha.vendida .preco-campo, .preco-linha.vendida .preco-sub { color:var(--vermelho); }
     .preco-linha.vendida .custo-input { color:var(--vermelho); border-color:rgba(198,40,40,.35); }
-    @media (max-width: 860px) {
+    @container (max-width: 860px) {
       .precos-cabecalho { display:none; }
       .preco-linha-topo { grid-template-columns:1fr 1fr; gap:10px 12px; padding:12px 14px; }
       .preco-item { grid-column:1 / -1; }
       .preco-campo { text-align:left; }
       .preco-campo .preco-rotulo { display:block; color:var(--texto-suave); font-size:.66rem; text-transform:uppercase; letter-spacing:.04em; margin-bottom:4px; }
       .preco-campo input { text-align:left; }
+      .preco-campo .campo-pct { justify-content:flex-start; }
+      .preco-campo .campo-pct input { width:88px; }
       .preco-gaveta { padding-left:14px; }
       .preco-gaveta .bloco-gaveta { flex:1 1 100%; }
       .preco-gaveta input { width:100%; }
-      .preco-gaveta .campo-pct { width:100%; }
+    }
+    @media (max-width: 860px) {
       .precos-massa .titulo-massa { flex:1 1 100%; }
     }
     .custo-input, .margem-desejada-input { width:104px; padding:6px 6px; border:1px solid var(--borda); border-radius:7px; background:var(--fundo); color:var(--texto); text-align:right; font:inherit; font-size:.76rem; font-variant-numeric:tabular-nums; }
@@ -3405,6 +3437,7 @@
   }
 
   function textoPct(n) {
+    if (n == null || n === "") return "";
     const valor = Number(n);
     if (!Number.isFinite(valor)) return "";
     return valor.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
@@ -3464,10 +3497,10 @@
 
   function atualizarLinhaFinanceira(linha, custo, margemDesejada = null) {
     const preco = Number(linha.dataset.preco || 0);
-    const c5 = linha.querySelector("[data-custo-5]");
-    const c10 = linha.querySelector("[data-custo-10]");
-    if (c5) c5.textContent = custo ? valorFinanceiro(custo * .95) : "—";
-    if (c10) c10.textContent = custo ? valorFinanceiro(custo * .90) : "—";
+    // O desconto aparece na coluna (tela larga) e dentro da gaveta (tela
+    // estreita): os dois recebem o mesmo valor.
+    linha.querySelectorAll("[data-custo-5]").forEach((el) => { el.textContent = custo ? valorFinanceiro(custo * .95) : "—"; });
+    linha.querySelectorAll("[data-custo-10]").forEach((el) => { el.textContent = custo ? valorFinanceiro(custo * .90) : "—"; });
     const vendaDesejada = custo && margemDesejada != null ? custo + margemDesejada : null;
     const { valor: margem, sobreVenda } = margemDaLinha(custo, preco, vendaDesejada);
     const cel = linha.querySelector("[data-margem]");
@@ -3501,6 +3534,9 @@
   // da lista: o que ainda nao tem custo, o que vai mudar de preco quando ele
   // publicar, e o que esta abaixo do custo.
   const ROTULO_FILTRO_PRECO = { todos: "Todos", "sem-custo": "Falta custo", muda: "Vai mudar de preço", negativa: "Abaixo do custo" };
+  // O que a faixa de cada empreendimento está dizendo. Fica fora do desenho da
+  // lista para sobreviver ao redesenho que vem logo depois de aplicar.
+  const statusPorEmp = new Map();
   let precoFiltro = "todos";
   let precoBusca = "";
   const precosEmpsAbertos = new Set();
@@ -3546,6 +3582,20 @@
       faltaCusto: vendavel && !custo,
       negativa: margem.valor != null && margem.valor < 0,
     };
+  }
+
+  // Quando todas as unidades a venda do empreendimento estao com a mesma
+  // margem, a faixa do topo mostra essa porcentagem; misturadas, fica vazia.
+  function pctComumDoEmp(emp, registros) {
+    let pct = null;
+    for (const reg of registros) {
+      if (!reg.vendavel || !reg.custo) continue;
+      if (reg.margemDesejada == null) return null;
+      const dele = Math.round(reg.margemDesejada / reg.custo * 10000) / 100;
+      if (pct == null) pct = dele;
+      else if (Math.abs(pct - dele) > 0.011) return null;
+    }
+    return pct;
   }
 
   function passaNoFiltroPreco(reg) {
@@ -3613,8 +3663,14 @@
       const aberto = filtrando || precosEmpsAbertos.has(emp.id);
       return `<details class="financeiro-emp" data-preco-emp="${escapeHtml(emp.id)}"${aberto ? " open" : ""}>
       <summary>${escapeHtml(emp.nome)} <span class="contagem">${conta(daVenda.length - vendidos, "item à venda", "itens à venda")}${vendidos ? ` · ${vendidos} vendido${vendidos === 1 ? "" : "s"}` : ""}${boxInclusos ? ` · ${boxInclusos} box no preço` : ""}</span></summary>
+      <div class="precos-emp-massa">
+        <span class="titulo-massa">Margem sobre o custo de todo o ${escapeHtml(emp.nome)}:</span>
+        <div class="campo-pct"><input inputmode="decimal" data-pct-emp="${escapeHtml(emp.id)}" value="${escapeHtml(textoPct(pctComumDoEmp(emp, registros)))}" placeholder="ex.: 5" aria-label="Margem em porcentagem para todo o ${escapeHtml(emp.nome)}"><span>%</span></div>
+        <button type="button" class="botao-gaveta" data-aplicar-emp="${escapeHtml(emp.id)}">Aplicar a todas as unidades</button>
+        <span class="preco-massa-status${statusPorEmp.get(emp.id) ? " " + escapeHtml(statusPorEmp.get(emp.id).tipo) : ""}" data-status-emp="${escapeHtml(emp.id)}">${statusPorEmp.get(emp.id) ? escapeHtml(statusPorEmp.get(emp.id).texto) : ""}</span>
+      </div>
       <div class="precos-lista">
-        <div class="precos-cabecalho"><span>Item</span><span>Custo</span><span>Preço no site</span><span>Venda desejada</span><span>Margem</span></div>
+        <div class="precos-cabecalho"><span>Item</span><span>Custo</span><span class="col-desconto">Custo − 5%</span><span class="col-desconto">Custo − 10%</span><span>Preço no site</span><span>Venda desejada</span><span>Margem %</span><span>Margem</span></div>
         ${registros.map((reg) => {
           const { item, chave, custo, margemDesejada, preco, situacao, vendido, semValor, vendavel, vendaDesejada, margem, sobreVenda, detalhe, muda } = reg;
           // O campo de venda desejada some do vendido e do box que ja esta no
@@ -3632,12 +3688,20 @@
               <div>
                 <span class="nome">${escapeHtml(item.rotulo)}</span>${marcaBox}
                 <span class="preco-sub"><span class="st-${situacao}"><span class="bolinha"></span>${escapeHtml(STATUS_LABEL[situacao] || situacao)}</span>${detalhe ? " · " + escapeHtml(detalhe) : ""}</span>
-                <button type="button" class="preco-abrir" data-abrir-gaveta aria-expanded="false" aria-label="Margem em % e descontos de ${escapeHtml(item.rotulo)}">▾ margem % e descontos</button>
+                <button type="button" class="preco-abrir" data-abrir-gaveta aria-expanded="false" aria-label="Mais opções de ${escapeHtml(item.rotulo)}"><span class="rot-estreito">▾ margem em R$ e descontos</span><span class="rot-largo">▾ mais opções</span></button>
               </div>
             </div>
             <div class="preco-campo">
               <span class="preco-rotulo">Custo</span>
               <input class="custo-input" inputmode="decimal" data-custo-chave="${escapeHtml(chave)}" value="${custo ? escapeHtml(moedaFinanceira(custo)) : ""}" placeholder="Informe o custo" aria-label="Custo de ${escapeHtml(item.rotulo)}">
+            </div>
+            <div class="preco-campo col-desconto">
+              <span class="preco-rotulo">Custo − 5%</span>
+              <span class="valor-suave" data-custo-5>${custo ? valorFinanceiro(custo * .95) : "—"}</span>
+            </div>
+            <div class="preco-campo col-desconto">
+              <span class="preco-rotulo">Custo − 10%</span>
+              <span class="valor-suave" data-custo-10>${custo ? valorFinanceiro(custo * .90) : "—"}</span>
             </div>
             <div class="preco-campo">
               <span class="preco-rotulo">Preço no site</span>
@@ -3653,6 +3717,10 @@
               <span class="preco-nota${muda ? " destaque" : ""}" data-venda-nota>${muda ? "vai para o site" : ""}</span>
             </div>
             <div class="preco-campo">
+              <span class="preco-rotulo">Margem %</span>
+              <div class="campo-pct"><input class="pct-input" inputmode="decimal" data-pct-chave="${escapeHtml(chave)}" value="${escapeHtml(textoPct(custo && margemDesejada != null ? margemDesejada / custo * 100 : null))}" aria-label="Margem em porcentagem de ${escapeHtml(item.rotulo)}"><span>%</span></div>
+            </div>
+            <div class="preco-campo">
               <span class="preco-rotulo">Margem</span>
               <span class="valor${margem == null ? "" : margem < 0 ? " margem-negativa" : " margem-positiva"}" data-margem>${textoMargem(margem)}</span>
               <span class="preco-nota" data-margem-nota>${margem == null ? "" : sobreVenda ? "na venda desejada" : "no preço do site"}</span>
@@ -3660,14 +3728,10 @@
           </div>
           <div class="preco-gaveta" hidden>
             <div class="bloco-gaveta">
-              <span class="titulo-gaveta">Margem sobre o custo</span>
-              <div class="campo-pct"><input class="pct-input" inputmode="decimal" data-pct-chave="${escapeHtml(chave)}" value="${escapeHtml(textoPct(custo && margemDesejada != null ? margemDesejada / custo * 100 : null))}" placeholder="ex.: 5" aria-label="Margem em porcentagem de ${escapeHtml(item.rotulo)}"><span>%</span></div>
-            </div>
-            <div class="bloco-gaveta">
-              <span class="titulo-gaveta">Ou em reais</span>
+              <span class="titulo-gaveta">Margem em reais</span>
               <input class="margem-desejada-input" inputmode="decimal" data-margem-chave="${escapeHtml(chave)}" value="${margemDesejada != null ? escapeHtml(moedaFinanceira(margemDesejada)) : ""}" placeholder="Margem em R$" aria-label="Margem desejada de ${escapeHtml(item.rotulo)}">
             </div>
-            <div class="bloco-gaveta">
+            <div class="bloco-gaveta bloco-descontos">
               <span class="titulo-gaveta">Se o cliente pedir desconto</span>
               <div class="desconto">Custo − 5%: <strong data-custo-5>${custo ? valorFinanceiro(custo * .95) : "—"}</strong></div>
               <div class="desconto">Custo − 10%: <strong data-custo-10>${custo ? valorFinanceiro(custo * .90) : "—"}</strong></div>
@@ -3700,6 +3764,16 @@
         const abrir = gaveta.hidden;
         gaveta.hidden = !abrir;
         botao.setAttribute("aria-expanded", String(abrir));
+      });
+    });
+
+    alvo.querySelectorAll("[data-aplicar-emp]").forEach((botao) => {
+      const empId = botao.dataset.aplicarEmp;
+      const campo = alvo.querySelector('input[data-pct-emp="' + empId + '"]');
+      const aplicar = () => aplicarPctNoEmp(empId, campo ? campo.value : "");
+      botao.addEventListener("click", aplicar);
+      if (campo) campo.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") { e.preventDefault(); aplicar(); }
       });
     });
 
@@ -3908,6 +3982,45 @@
     el.textContent = texto;
     el.classList.toggle("ok", tipo === "ok");
     el.classList.toggle("falha", tipo === "falha");
+  }
+
+  // Um percentual no topo do empreendimento precifica o predio inteiro de uma
+  // vez. Diferente da faixa de cima, esta nao olha o filtro: ela vale para
+  // todas as unidades a venda daquele empreendimento.
+  function aplicarPctNoEmp(empId, bruto) {
+    const emp = (estado.dados?.EMPREENDIMENTOS || []).find((e) => e.id === empId);
+    if (!emp) return;
+    const pct = numeroDePct(bruto);
+    if (pct == null) {
+      statusPorEmp.set(empId, { texto: "Informe o percentual antes, como 5 ou 7,5.", tipo: "falha" });
+      renderCustosMargens();
+      return;
+    }
+    const boxesDaqui = boxesDoEmp(emp);
+    const prefixo = nomes(emp).prefixo;
+    const itens = [...itensDoEmp(emp), ...boxesDaqui.map((b) => ({ ...b, semValor: !emp.boxSeparado }))];
+    let quantos = 0;
+    let semCusto = 0;
+    itens.forEach((item) => {
+      const reg = lerItemFinanceiro(emp, item, boxesDaqui, prefixo);
+      if (!reg.vendavel) return;
+      if (!reg.custo) { semCusto++; return; }
+      margensDesejadas[reg.chave] = margemDePct(reg.custo, pct);
+      quantos++;
+    });
+    if (!quantos) {
+      statusPorEmp.set(empId, { texto: semCusto
+        ? `Nenhuma unidade daqui tem custo lançado (${semCusto} sem custo). A margem sai do custo, então é ele que vem primeiro.`
+        : "Nenhum item à venda aqui.", tipo: "falha" });
+      renderCustosMargens();
+      return;
+    }
+    statusPorEmp.set(empId, { texto: `${textoPct(pct)}% em ${quantos} ${quantos === 1 ? "item" : "itens"}.`
+      + (semCusto ? ` ${semCusto} sem custo ${semCusto === 1 ? "ficou" : "ficaram"} de fora.` : "")
+      + " Confira a venda desejada e clique em “Publicar no site”.", tipo: "ok" });
+    atualizarEstadoFinanceiro(true);
+    renderCustosMargens();
+    aviso(`${textoPct(pct)}% de margem em ${quantos} ${quantos === 1 ? "item" : "itens"} do ${emp.nome}.`, "ok");
   }
 
   $("botao-pct-massa")?.addEventListener("click", () => {
