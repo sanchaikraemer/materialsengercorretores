@@ -98,6 +98,24 @@ ninguém faria. Pede confirmação dizendo quantos itens vão mudar, pula o que 
 tem custo lançado (e diz quantos foram), e nada vai para o site antes do
 "Publicar no site".
 
+**Um percentual para o prédio inteiro (v212).** Dentro de cada empreendimento,
+logo abaixo do nome dele, há `Margem sobre o custo de todo o <nome>: [ 5 ] % ·
+Aplicar a todas as unidades`. Diferente da faixa do topo da tela (que respeita o
+filtro e a busca), **esta vale para todas as unidades à venda daquele
+empreendimento**, filtro ligado ou não. Pula quem não tem custo lançado e diz
+quantos ficaram de fora. O campo mostra a porcentagem quando o prédio inteiro
+está com a mesma margem, e fica **vazio quando elas estão misturadas** — é assim
+que se vê, de relance, se alguma unidade fugiu do padrão.
+
+**As colunas ocupam a largura toda (v212).** Na v210/v211 sobrava um vão entre
+o nome do apartamento e o custo: as colunas de número tinham largura fixa e
+ficavam encostadas na direita. Agora elas crescem juntas (`fr` com mínimo), e a
+lista mede a si mesma (`container-type: inline-size`), não a janela — o menu
+lateral entra na conta. Onde a lista passa de **1120 px** aparecem também
+**Custo − 5%, Custo − 10% e Margem %** como colunas; abaixo disso os descontos
+voltam sozinhos para a gaveta e a margem % continua na linha. O botão da gaveta
+troca de nome conforme o que sobrou dentro dela.
+
 **Três filtros e uma busca (v210)**: `Falta custo`, `Vai mudar de preço` e
 `Abaixo do custo`, cada um com a contagem ao lado, refeita a cada tecla
 digitada. Com filtro ligado os empreendimentos abrem sozinhos. A linha que vai
@@ -340,4 +358,4 @@ painel.
 - A variação mensal é calculada automaticamente e o painel mostra também a variação anterior.
 - A data da tabela usa input de data real; ao publicar, grava dd/mm/aaaa.
 - META.historicoIncc guarda mês, data, valor e variação de cada correção publicada.
-- A tela de Preços e margem não tem rolagem horizontal: no computador é uma grade de cinco colunas, no celular um cartão por item.
+- A tela de Preços e margem não tem rolagem horizontal: no computador é uma grade de seis colunas (oito, com os descontos, quando a lista passa de 1120 px) e no celular um cartão por item.
