@@ -70,6 +70,14 @@ desejada e margem** — e nada mais. **Nunca grave custo no `data.js` ou em outr
 arquivo público do repositório.** O painel permite importar/exportar um JSON de
 backup.
 
+**Não existe mais coluna "Preço no site" (v217).** *"Quero que 'preço no site'
+não exista mais, somente venda desejada — que é o que vai pro site."* A
+**Venda desejada é o preço**: enquanto o dono não informa uma, o campo mostra o
+preço que está no ar, então a coluna nunca fica vazia. A margem e a `Margem %`
+saem sempre do que está nesse campo. O preço publicado continua guardado na
+linha (`data-preco`) — é com ele que a marca "vai para o site", o "desfazer" e a
+fila de publicação comparam.
+
 **Uma margem só na tela (v210).** Enquanto a venda desejada está vazia, a margem
 mostrada é a do preço que está no site; assim que o dono informa a venda
 desejada, ela passa a ser a margem dessa venda, e a letra miúda embaixo diz
@@ -418,4 +426,4 @@ painel.
 - A variação mensal é calculada automaticamente e o painel mostra também a variação anterior.
 - A data da tabela usa input de data real; ao publicar, grava dd/mm/aaaa.
 - META.historicoIncc guarda mês, data, valor e variação de cada correção publicada.
-- A tela de Preços e margem não tem rolagem horizontal: no computador é uma grade de oito colunas em qualquer largura, e abaixo de 760 px um cartão por item.
+- A tela de Preços e margem não tem rolagem horizontal: no computador é uma grade de sete colunas em qualquer largura, e abaixo de 760 px um cartão por item.

@@ -412,7 +412,7 @@
        cabecalho ja nomeia a coluna) sobram ~22 px por coluna, e e isso que
        faz todas caberem juntas ate numa janela estreita. */
     .precos-cabecalho, .preco-linha-topo { display:grid; gap:7px; align-items:start; padding:9px 10px;
-      grid-template-columns:minmax(88px,1.05fr) minmax(84px,.8fr) minmax(80px,.66fr) minmax(80px,.66fr) minmax(84px,.78fr) minmax(86px,.82fr) minmax(56px,.42fr) minmax(82px,.76fr); }
+      grid-template-columns:minmax(112px,1.25fr) minmax(90px,.86fr) minmax(84px,.7fr) minmax(84px,.7fr) minmax(92px,.88fr) minmax(58px,.44fr) minmax(88px,.82fr); }
     .precos-lista .precos-cabecalho { font-size:.55rem; }
     .precos-lista .precos-cabecalho span { white-space:normal; line-height:1.2; }
     .precos-lista .preco-campo { font-size:.68rem; }
@@ -420,7 +420,7 @@
     .precos-lista .valor-suave { font-size:.65rem; }
     @container (min-width: 860px) {
       .precos-cabecalho, .preco-linha-topo { gap:9px; padding:9px 12px;
-        grid-template-columns:minmax(112px,1.15fr) minmax(92px,.85fr) minmax(80px,.68fr) minmax(80px,.68fr) minmax(92px,.85fr) minmax(94px,.88fr) minmax(62px,.44fr) minmax(90px,.82fr); }
+        grid-template-columns:minmax(140px,1.3fr) minmax(98px,.9fr) minmax(90px,.72fr) minmax(90px,.72fr) minmax(100px,.92fr) minmax(64px,.46fr) minmax(96px,.86fr); }
       .precos-lista .precos-cabecalho { font-size:.58rem; }
       .precos-lista .preco-campo { font-size:.73rem; }
       .precos-lista .preco-campo input { font-size:.71rem; padding:6px 5px; }
@@ -428,7 +428,7 @@
     }
     @container (min-width: 1060px) {
       .precos-cabecalho, .preco-linha-topo { gap:13px; padding:9px 14px;
-        grid-template-columns:minmax(116px,1.15fr) minmax(100px,.86fr) minmax(88px,.68fr) minmax(88px,.68fr) minmax(104px,.9fr) minmax(106px,.92fr) minmax(74px,.46fr) minmax(100px,.86fr); }
+        grid-template-columns:minmax(170px,1.35fr) minmax(108px,.9fr) minmax(96px,.72fr) minmax(96px,.72fr) minmax(112px,.95fr) minmax(78px,.48fr) minmax(108px,.88fr); }
       .precos-lista .precos-cabecalho { font-size:.62rem; }
       .precos-lista .preco-campo { font-size:.78rem; }
       .precos-lista .preco-campo input { font-size:.76rem; padding:6px 7px; }
@@ -3523,15 +3523,15 @@
     linha.querySelectorAll("[data-custo-5]").forEach((el) => escrever(el, custo ? custo * .95 : 0));
     linha.querySelectorAll("[data-custo-10]").forEach((el) => escrever(el, custo ? custo * .90 : 0));
     const vendaDesejada = custo && margemDesejada != null ? custo + margemDesejada : null;
-    const { valor: margem, sobreVenda } = margemDaLinha(custo, preco, vendaDesejada);
+    // Sem venda desejada informada, a coluna mostra o preço que está no ar.
+    const vendaMostrada = vendaDesejada != null ? vendaDesejada : preco;
+    const { valor: margem } = margemDaLinha(custo, preco, vendaDesejada);
     const cel = linha.querySelector("[data-margem]");
     if (cel) {
       if (document.activeElement !== cel) cel.value = margem == null ? "" : semMoeda(textoMargem(margem));
       cel.classList.toggle("margem-positiva", margem != null && margem >= 0);
       cel.classList.toggle("margem-negativa", margem != null && margem < 0);
     }
-    const nota = linha.querySelector("[data-margem-nota]");
-    if (nota) nota.textContent = margem == null ? "" : sobreVenda ? "na venda desejada" : "no preço do site";
     const muda = vendaVaiParaOSite(linha, vendaDesejada);
     linha.classList.toggle("muda", muda);
     const marca = linha.querySelector("[data-venda-nota]");
@@ -3541,11 +3541,11 @@
     }
     const campoVenda = linha.querySelector("input[data-venda-chave]");
     if (campoVenda && document.activeElement !== campoVenda) {
-      campoVenda.value = vendaDesejada == null ? "" : dinheiroDaLinha(vendaDesejada);
+      campoVenda.value = vendaMostrada ? dinheiroDaLinha(vendaMostrada) : "";
     }
     const campoPct = linha.querySelector("input[data-pct-chave]");
     if (campoPct && document.activeElement !== campoPct) {
-      campoPct.value = custo && margemDesejada != null ? textoPct(margemDesejada / custo * 100) : "";
+      campoPct.value = custo && margem != null ? textoPct(margem / custo * 100) : "";
     }
   }
 
@@ -3691,9 +3691,13 @@
         <span class="preco-massa-status${statusPorEmp.get(emp.id) ? " " + escapeHtml(statusPorEmp.get(emp.id).tipo) : ""}" data-status-emp="${escapeHtml(emp.id)}">${statusPorEmp.get(emp.id) ? escapeHtml(statusPorEmp.get(emp.id).texto) : ""}</span>
       </div>
       <div class="precos-lista">
-        <div class="precos-cabecalho"><span>Item</span><span>Custo</span><span class="col-desconto">Custo − 5%</span><span class="col-desconto">Custo − 10%</span><span>Preço no site</span><span>Venda desejada</span><span>Margem %</span><span>Margem</span></div>
+        <div class="precos-cabecalho"><span>Item</span><span>Custo</span><span class="col-desconto">Custo − 5%</span><span class="col-desconto">Custo − 10%</span><span>Venda desejada</span><span>Margem %</span><span>Margem</span></div>
         ${registros.map((reg) => {
-          const { item, chave, custo, margemDesejada, preco, situacao, vendido, semValor, vendavel, vendaDesejada, margem, sobreVenda, detalhe, muda } = reg;
+          const { item, chave, custo, margemDesejada, preco, situacao, vendido, semValor, vendavel, vendaDesejada, margem, detalhe, muda } = reg;
+          // Nao existe mais coluna "Preco no site": a venda desejada E o preco.
+          // Enquanto o dono nao informa uma, o campo mostra o preco que esta no
+          // ar — assim a coluna nunca fica vazia e ele ve de quanto esta saindo.
+          const vendaMostrada = vendaDesejada != null ? vendaDesejada : preco;
           // O campo de venda desejada some do vendido e do box que ja esta no
           // preco do apartamento — la nao ha preco para mexer. Se um deles
           // tiver margem guardada de outra epoca, o campo volta, para o valor
@@ -3724,27 +3728,22 @@
               <span class="valor-suave" data-custo-10>${custo ? escapeHtml(semMoeda(valorFinanceiro(custo * .90))) : "—"}</span>
             </div>
             <div class="preco-campo">
-              <span class="preco-rotulo">Preço no site</span>
+              <span class="preco-rotulo">Venda desejada</span>
               ${semValor
                 ? `<span class="box-incluso">já incluso no preço do apartamento</span>`
-                : `<span class="valor">${escapeHtml(semMoeda(valorFinanceiro(preco)))}</span>`}
-            </div>
-            <div class="preco-campo">
-              <span class="preco-rotulo">Venda desejada</span>
-              ${mostraVenda
-                ? `<input class="margem-desejada-input" inputmode="decimal" data-venda-chave="${escapeHtml(chave)}" value="${vendaDesejada == null ? "" : escapeHtml(dinheiroDaLinha(vendaDesejada))}" placeholder="Informe a venda" aria-label="Venda desejada de ${escapeHtml(item.rotulo)}">`
+                : mostraVenda
+                ? `<input class="margem-desejada-input" inputmode="decimal" data-venda-chave="${escapeHtml(chave)}" value="${vendaMostrada ? escapeHtml(dinheiroDaLinha(vendaMostrada)) : ""}" placeholder="Informe a venda" aria-label="Venda desejada de ${escapeHtml(item.rotulo)}">`
                 : `<span class="valor">—</span>`}
               <span class="preco-nota${muda ? " destaque" : ""}" data-venda-nota>${muda ? "vai para o site" : ""}</span>
               ${vendavel && preco > 0 ? `<button type="button" class="preco-desfazer" data-igualar-site title="Voltar a venda desejada para o preço que está no site">desfazer</button>` : ""}
             </div>
             <div class="preco-campo">
               <span class="preco-rotulo">Margem %</span>
-              <div class="campo-pct"><input class="pct-input" inputmode="decimal" data-pct-chave="${escapeHtml(chave)}" value="${escapeHtml(textoPct(custo && margemDesejada != null ? margemDesejada / custo * 100 : null))}" aria-label="Margem em porcentagem de ${escapeHtml(item.rotulo)}"><span>%</span></div>
+              <div class="campo-pct"><input class="pct-input" inputmode="decimal" data-pct-chave="${escapeHtml(chave)}" value="${escapeHtml(textoPct(custo && margem != null ? margem / custo * 100 : null))}" aria-label="Margem em porcentagem de ${escapeHtml(item.rotulo)}"><span>%</span></div>
             </div>
             <div class="preco-campo">
               <span class="preco-rotulo">Margem</span>
               <input class="margem-desejada-input${margem == null ? "" : margem < 0 ? " margem-negativa" : " margem-positiva"}" inputmode="decimal" data-margem-chave="${escapeHtml(chave)}" data-margem value="${escapeHtml(semMoeda(textoMargem(margem)) === "—" ? "" : semMoeda(textoMargem(margem)))}" placeholder="—" aria-label="Margem de ${escapeHtml(item.rotulo)}">
-              <span class="preco-nota" data-margem-nota>${margem == null ? "" : sobreVenda ? "na venda desejada" : "no preço do site"}</span>
             </div>
           </div>
         </div>`;
