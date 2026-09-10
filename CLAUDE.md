@@ -606,6 +606,11 @@ acusar desatualizado sem motivo.
   direto no repositório precisa subir o número à mão, antes do merge.
 - Cada empreendimento tem abas Disponíveis / Vendidos / Alugados / Todos, que
   filtram unidades e box juntos.
+- **Em Estoque / Unidades, "Todos os empreendimentos" mostra todos (v247).**
+  Antes ele escondia os dez e deixava na tela só a frase "toque em um
+  empreendimento acima" — sem nada acima para tocar: a tela ficava vazia e sem
+  serventia. Agora "Todos" lista os dez fechados e o dono abre o que quiser;
+  escolher um no seletor continua mostrando só ele, já aberto.
 - O cartão mostra o estoque por tipologia. O rótulo vem de `estoque` (na
   unidade ou no grupo) e cai para `grupo.tipo` quando não há — é assim que as
   Casas Suspensas do Renaissance contam junto com o andar delas.

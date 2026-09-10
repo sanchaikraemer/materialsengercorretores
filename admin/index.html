@@ -1074,7 +1074,7 @@
         <section class="bloco" id="bloco-unidades" data-modulo="estoque">
           <h2>Disponibilidade das unidades</h2>
           <p class="descricao">Marque como <strong>Vendido</strong> para a unidade sumir da lista do site, dos PDFs e das mensagens. Volte para <strong>Disponível</strong> se a venda for cancelada e ela reaparece. Alugado continua aparecendo. Use as abas para ver uma situação por vez.</p>
-          <p class="descricao vazio-emp" id="nenhum-emp">Toque em um empreendimento acima para ver as unidades.</p>
+          <p class="descricao vazio-emp" id="nenhum-emp">Nenhum empreendimento no cadastro.</p>
           <div class="legenda">
             <span class="st-disponivel"><span class="bolinha"></span>Disponível</span>
             <span class="st-vendido"><span class="bolinha"></span>Vendido</span>
@@ -1166,7 +1166,7 @@
   // A versao DESTA pagina. O numero que aparecia no alto vinha do site, entao
   // uma pagina velha guardada pelo navegador se anunciava como nova — e o dono
   // ficou horas mexendo numa tela antiga achando que o sistema nao obedecia.
-  const VERSAO_PAINEL = 246;
+  const VERSAO_PAINEL = 247;
 
   const CUSTOS_ITEM = "senger-admin-custos-v1"; // legado v171
   const FINANCEIRO_ITEM = "senger-admin-financeiro-v2";
@@ -2831,15 +2831,23 @@
     if (rolar && estado.moduloAtivo !== "estoque") ativarModulo("estoque", { rolar: false });
     const bloco = $("bloco-unidades");
     const nenhum = $("nenhum-emp");
+    // Com "Todos os empreendimentos" a tela escondia TODOS e pedia para tocar
+    // num empreendimento que nao estava em lugar nenhum — a tela ficava vazia
+    // e sem serventia (v247). Agora "Todos" mostra a lista inteira, fechada,
+    // e o dono abre a que quiser.
+    const todos = !estado.empAberto;
     let visivel = null;
     $("lista-emps").querySelectorAll("details.emp").forEach((det) => {
-      const mostra = det.dataset.emp === estado.empAberto;
+      const mostra = todos || det.dataset.emp === estado.empAberto;
       det.hidden = !mostra;
-      if (mostra) { det.open = true; visivel = det; }
+      // Só abre sozinho quando ele escolheu um; em "Todos" a gaveta que ele
+      // deixou aberta continua como estava.
+      if (mostra && !todos) det.open = true;
+      if (mostra) visivel = visivel || det;
     });
     nenhum.hidden = Boolean(visivel);
     bloco.querySelector(".legenda").hidden = !visivel;
-    if (visivel && rolar) bloco.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (visivel && rolar && !todos) bloco.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   function renderEmps() {
