@@ -3505,9 +3505,8 @@
   // era o que mais confundia na tela antiga.
   function margemDaLinha(custo, preco, vendaDesejada) {
     const sobreVenda = vendaDesejada != null && vendaDesejada > 0;
-    const base = sobreVenda ? vendaDesejada : preco;
-    if (!custo || !base) return { valor: null, sobreVenda };
-    return { valor: base - custo, sobreVenda };
+    if (!custo || !sobreVenda) return { valor: null, sobreVenda };
+    return { valor: vendaDesejada - custo, sobreVenda };
   }
 
   // A venda desejada so vira preco quando e diferente do que esta no ar — e a
@@ -3527,8 +3526,7 @@
     linha.querySelectorAll("[data-custo-5]").forEach((el) => escrever(el, custo ? custo * .95 : 0));
     linha.querySelectorAll("[data-custo-10]").forEach((el) => escrever(el, custo ? custo * .90 : 0));
     const vendaDesejada = custo && margemDesejada != null ? custo + margemDesejada : null;
-    // Sem venda desejada informada, a coluna mostra o preço que está no ar.
-    const vendaMostrada = vendaDesejada != null ? vendaDesejada : preco;
+    const vendaMostrada = vendaDesejada;
     const { valor: margem } = margemDaLinha(custo, preco, vendaDesejada);
     const cel = linha.querySelector("[data-margem]");
     if (cel) {
@@ -3698,10 +3696,9 @@
         <div class="precos-cabecalho"><span>Item</span><span>Custo</span><span class="col-desconto">Custo − 5%</span><span class="col-desconto">Custo − 10%</span><span>Venda desejada</span><span>Margem %</span><span>Margem</span></div>
         ${registros.map((reg) => {
           const { item, chave, custo, margemDesejada, preco, situacao, vendido, semValor, vendavel, vendaDesejada, margem, detalhe, muda } = reg;
-          // Nao existe mais coluna "Preco no site": a venda desejada E o preco.
-          // Enquanto o dono nao informa uma, o campo mostra o preco que esta no
-          // ar — assim a coluna nunca fica vazia e ele ve de quanto esta saindo.
-          const vendaMostrada = vendaDesejada != null ? vendaDesejada : preco;
+          // A venda desejada e o preco, e so aparece quando o dono informa:
+          // sem ela a linha fica em branco de propósito.
+          const vendaMostrada = vendaDesejada;
           // O campo de venda desejada some do vendido e do box que ja esta no
           // preco do apartamento — la nao ha preco para mexer. Se um deles
           // tiver margem guardada de outra epoca, o campo volta, para o valor
