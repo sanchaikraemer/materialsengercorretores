@@ -3798,7 +3798,11 @@
       const prefixo = nomes(emp).prefixo;
       itens.forEach((item) => {
         const reg = lerItemFinanceiro(emp, item, boxesDaqui, prefixo);
-        contagem.todos++;
+        // O box de garagem nao entra no "Todos": o dono conta a tabela em
+        // apartamento, sala e lote, e a garagem inflava o numero (638 com box,
+        // e sao 65 box para 43 apartamentos so no Renaissance). Eles continuam
+        // na lista, nas gavetas do fim de cada empreendimento.
+        if (reg.item.tipo !== "box") contagem.todos++;
         if (reg.faltaCusto) contagem["sem-custo"]++;
         if (reg.muda) contagem.muda++;
         if (reg.negativa) contagem.negativa++;

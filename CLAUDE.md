@@ -213,6 +213,12 @@ recarregava a mesma página: *"to clicando em atualizar e nada acontece"*. Agora
 site e compara com o desta página — a faixa só aparece quando existe mesmo uma
 página de painel mais nova.
 
+**O "Todos" conta em apartamento, não em box (v234).** A soma do chip incluía a
+garagem e dava 638 — só no Renaissance são 65 box para 43 apartamentos. Agora o
+`todos` pula `item.tipo === "box"` (270 no cadastro de setembro). Os outros três
+chips continuam contando box de propósito: no Renaissance o box é venda separada
+e precisa de custo, e é por "Falta custo" que se vê isso.
+
 **Três filtros e uma busca (v210)**: `Falta custo`, `Vai mudar de preço` e
 `Abaixo do custo`, cada um com a contagem ao lado, refeita a cada tecla
 digitada. Com filtro ligado os empreendimentos abrem sozinhos. A linha que vai
