@@ -1166,7 +1166,7 @@
   // A versao DESTA pagina. O numero que aparecia no alto vinha do site, entao
   // uma pagina velha guardada pelo navegador se anunciava como nova — e o dono
   // ficou horas mexendo numa tela antiga achando que o sistema nao obedecia.
-  const VERSAO_PAINEL = 245;
+  const VERSAO_PAINEL = 246;
 
   const CUSTOS_ITEM = "senger-admin-custos-v1"; // legado v171
   const FINANCEIRO_ITEM = "senger-admin-financeiro-v2";
@@ -3957,7 +3957,14 @@
             </div>
             <div class="preco-campo">
               <span class="preco-rotulo">Custo</span>
-              <input class="custo-input" inputmode="decimal" data-custo-chave="${escapeHtml(chave)}" value="${custo ? escapeHtml(dinheiroDaLinha(custo)) : ""}" placeholder="Informe o custo" aria-label="Custo de ${escapeHtml(item.rotulo)}">
+              ${semValor
+                // Box que ja esta dentro do preco do apartamento nao tem custo
+                // proprio: o valor dele foi somado no custo da unidade, entao
+                // pedir custo aqui era convidar a contar a garagem duas vezes
+                // (v246). Se sobrou custo de outra epoca, ele aparece como
+                // texto para nao ficar preso invisivel.
+                ? `<span class="valor-suave">${custo ? escapeHtml(dinheiroDaLinha(custo)) : "—"}</span>`
+                : `<input class="custo-input" inputmode="decimal" data-custo-chave="${escapeHtml(chave)}" value="${custo ? escapeHtml(dinheiroDaLinha(custo)) : ""}" placeholder="Informe o custo" aria-label="Custo de ${escapeHtml(item.rotulo)}">`}
             </div>
             <div class="preco-campo col-desconto">
               <span class="preco-rotulo">Custo − 5%</span>

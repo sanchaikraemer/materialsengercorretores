@@ -33,7 +33,6 @@ const EMPREENDIMENTOS = [
     // So aqui o box e venda separada, com valor proprio. Em todos os outros
     // empreendimentos o box ja esta dentro do preco do apartamento — por isso
     // eles nao entram como item na tabela de custos do painel.
-    boxSeparado: true,
     confirmado: true,
     cidade: "Carazinho/RS",
     categoria: "residencial",
