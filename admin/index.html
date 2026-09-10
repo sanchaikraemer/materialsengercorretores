@@ -683,6 +683,10 @@
     }
     .painel-conteudo { min-width:0; }
     .painel-conteudo main { max-width:1240px; margin:0 auto; padding:22px; }
+    .painel-velho { display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between;
+      background:#fff3cd; border:1px solid #e0a437; border-radius:10px; padding:12px 14px; margin:0 0 14px; }
+    .painel-velho strong { font-size:.86rem; color:#7a4f0b; }
+    .painel-velho[hidden] { display:none; }
     .contexto-modulo {
       display:flex; align-items:flex-end; justify-content:space-between; gap:18px;
       margin-bottom:16px; padding:2px 2px 14px; border-bottom:1px solid var(--borda);
@@ -892,6 +896,10 @@
 
       <div class="painel-conteudo">
         <main>
+          <div class="painel-velho" id="painel-velho" hidden>
+            <strong id="painel-velho-texto"></strong>
+            <button type="button" class="botao" id="botao-atualizar-painel" style="margin-top:0">Atualizar agora</button>
+          </div>
           <div class="contexto-modulo" id="contexto-modulo">
             <div>
               <h2 id="titulo-modulo">Visão geral</h2>
@@ -1149,6 +1157,11 @@
   // digitado, a cópia salva neste aparelho e o cofre privado da conta no
   // GitHub — é o cofre que faz o mesmo custo aparecer no celular e em
   // qualquer computador.
+  // A versao DESTA pagina. O numero que aparecia no alto vinha do site, entao
+  // uma pagina velha guardada pelo navegador se anunciava como nova — e o dono
+  // ficou horas mexendo numa tela antiga achando que o sistema nao obedecia.
+  const VERSAO_PAINEL = 227;
+
   const CUSTOS_ITEM = "senger-admin-custos-v1"; // legado v171
   const FINANCEIRO_ITEM = "senger-admin-financeiro-v2";
   // Rascunho do que foi digitado e ainda nao foi salvo. Sem ele, fechar a aba
@@ -1471,6 +1484,18 @@
     publicacao: ["Publicação", "Revisão das alterações pendentes antes de enviar ao site."],
   };
 
+  // Pagina velha guardada pelo navegador: e o que faz uma correcao publicada
+  // "nao acontecer" na tela do dono. Aqui ele ve e resolve num clique.
+  function avisarPainelVelho() {
+    const barra = $("painel-velho");
+    if (!barra) return;
+    const velho = Number(estado.versao) > VERSAO_PAINEL;
+    barra.hidden = !velho;
+    if (velho) {
+      $("painel-velho-texto").textContent = `Esta página do painel é a v${VERSAO_PAINEL} e já existe a v${estado.versao}. Enquanto não atualizar, você está mexendo na versão antiga.`;
+    }
+  }
+
   function fecharMenuMobile() {
     document.body.classList.remove("menu-admin-aberto");
   }
@@ -1570,6 +1595,11 @@
         materialFiltro: botao.dataset.materialFiltro || undefined,
       });
     });
+  });
+
+  $("botao-atualizar-painel")?.addEventListener("click", () => {
+    // O ?atualizar= muda o endereco e obriga o navegador a buscar a pagina nova.
+    location.replace(location.pathname + "?atualizar=" + Date.now());
   });
 
   $("botao-menu-admin")?.addEventListener("click", () => document.body.classList.add("menu-admin-aberto"));
@@ -2206,9 +2236,10 @@
 
   function renderTudo() {
     const meta = estado.dados.META;
-    const infoTexto = `v${estado.versao} · ${meta.mesTabela} · INCC ${meta.incc.valor} (${meta.incc.variacao})`;
+    const infoTexto = `v${VERSAO_PAINEL} · ${meta.mesTabela} · INCC ${meta.incc.valor} (${meta.incc.variacao})`;
     $("info-versao").textContent = infoTexto;
     if ($("sidebar-versao")) $("sidebar-versao").textContent = infoTexto;
+    avisarPainelVelho();
     popularSeletorEmp();
     renderDashboard();
     renderUso();

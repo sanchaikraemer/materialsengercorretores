@@ -424,6 +424,22 @@ mesmo quando o preço volta atrás, e é isso que faz a margem aparecer negativa
 Margem negativa depois de uma publicação é sinal de tabela errada no ar, não de
 custo errado.
 
+## O painel diz a própria versão (v227)
+
+O número no alto do painel vinha do `index.html` lido pela API — ou seja, **do
+site**, não da página aberta. Uma cópia velha guardada pelo navegador se
+anunciava como nova, e o dono passou horas mexendo numa tela antiga achando que
+o sistema não obedecia ("apaguei três vezes e não apaga").
+
+Agora `admin/index.html` traz **`VERSAO_PAINEL`**, que é o que aparece no
+cabeçalho e no rodapé. Quando o site está numa versão maior que a da página,
+uma faixa amarela avisa e oferece **Atualizar agora** (recarrega com
+`?atualizar=<hora>`, que obriga o navegador a buscar a página nova).
+
+**Ao publicar qualquer mudança no painel, suba o `VERSAO_PAINEL` junto com o
+`?v=` do `index.html` e o `CACHE` do `sw.js`.** Se esquecer, a faixa passa a
+acusar desatualizado sem motivo.
+
 ## Painel administrativo
 
 - A senha é comparada por hash SHA-256; o token do GitHub fica no `localStorage`
