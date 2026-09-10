@@ -390,9 +390,9 @@ const EMPREENDIMENTOS = [
         garagem: "01 box",
         unidades: [
           { apto: "401", status: "vendido", tags: ["Casa Suspensa"], areaUnit: "215 m² global · 169 m² privativo" },
-          { apto: "402", preco: 820655, status: "disponivel", tags: ["Casa Suspensa"], areaUnit: "173 m² global · 133 m² privativo" },
+          { apto: "402", preco: 826050, status: "disponivel", tags: ["Casa Suspensa"], areaUnit: "173 m² global · 133 m² privativo" },
           { apto: "501", status: "vendido" },
-          { apto: "502", preco: 800795, status: "disponivel" },
+          { apto: "502", preco: 807995, status: "disponivel" },
           { apto: "601", status: "vendido" },
           { apto: "602", status: "vendido" },
           { apto: "701", status: "vendido" },
