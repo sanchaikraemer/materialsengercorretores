@@ -1166,7 +1166,7 @@
   // A versao DESTA pagina. O numero que aparecia no alto vinha do site, entao
   // uma pagina velha guardada pelo navegador se anunciava como nova — e o dono
   // ficou horas mexendo numa tela antiga achando que o sistema nao obedecia.
-  const VERSAO_PAINEL = 238;
+  const VERSAO_PAINEL = 239;
 
   const CUSTOS_ITEM = "senger-admin-custos-v1"; // legado v171
   const FINANCEIRO_ITEM = "senger-admin-financeiro-v2";
@@ -3791,6 +3791,8 @@
   // no Renaissance sao 65 box para 43 apartamentos, e o dono pediu para so
   // abrir quando quisesse ver.
   const precosBoxAbertos = new Set();
+  // A gaveta das unidades vendidas, que lembra se foi deixada aberta (v239).
+  const precosUnidadesVendidasAbertas = new Set();
 
   // O prédio inteiro fica a vista: o box de todos os empreendimentos aparece
   // (onde e venda separada tem valor proprio; nos demais ja esta no preco do
@@ -3987,15 +3989,23 @@
         </div>`;
         };
         const ehBox = (r) => r.item.tipo === "box";
-        const naLista = registros.filter((r) => !ehBox(r));
+        const naLista = registros.filter((r) => !ehBox(r) && !r.vendido);
+        // A unidade vendida tambem sai da lista (v239): no Premium Office sao
+        // 25 de 34 e o dono rolava tudo para achar as 9 que ainda vende.
+        const unidadesVendidas = registros.filter((r) => !ehBox(r) && r.vendido);
         const boxNaOferta = registros.filter((r) => ehBox(r) && !r.vendido);
         const boxVendidos = registros.filter((r) => ehBox(r) && r.vendido);
+        const palavras = nomes(emp);
+        // "salas vendidas", nao "salas vendidos": no comercial a palavra e ela.
+        const vendidoNoGenero = palavras.sing === "sala" ? ["sala vendida", "salas vendidas"] : ["apartamento vendido", "apartamentos vendidos"];
         const gaveta = (lista, chaveDado, aberta, texto) => lista.length ? `
           <details class="precos-vendidos" ${chaveDado}="${escapeHtml(emp.id)}"${aberta ? " open" : ""}>
             <summary>${texto} — toque para ver</summary>
             ${lista.map(desenhar).join("")}
           </details>` : "";
         return naLista.map(desenhar).join("")
+          + gaveta(unidadesVendidas, "data-preco-unidades-vendidas", precosUnidadesVendidasAbertas.has(emp.id),
+                   conta(unidadesVendidas.length, vendidoNoGenero[0], vendidoNoGenero[1]))
           + gaveta(boxNaOferta, "data-preco-box", precosBoxAbertos.has(emp.id),
                    conta(boxNaOferta.length, "box à venda", "box à venda"))
           + gaveta(boxVendidos, "data-preco-vendidos", precosVendidosAbertos.has(emp.id),
@@ -4020,6 +4030,13 @@
       det.addEventListener("toggle", () => {
         if (det.open) precosBoxAbertos.add(det.dataset.precoBox);
         else precosBoxAbertos.delete(det.dataset.precoBox);
+      });
+    });
+
+    alvo.querySelectorAll("details[data-preco-unidades-vendidas]").forEach((det) => {
+      det.addEventListener("toggle", () => {
+        if (det.open) precosUnidadesVendidasAbertas.add(det.dataset.precoUnidadesVendidas);
+        else precosUnidadesVendidasAbertas.delete(det.dataset.precoUnidadesVendidas);
       });
     });
 

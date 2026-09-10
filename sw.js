@@ -1,5 +1,5 @@
-const CACHE = "senger-portfolio-v238-20260910-apagar-por-empreendimento";
-const CORE = ["./", "./index.html", "./styles.css?v=238", "./data.js?v=238", "./app.js?v=238", "./manifest.json"];
+const CACHE = "senger-portfolio-v239-20260910-vendidos-em-gaveta";
+const CORE = ["./", "./index.html", "./styles.css?v=239", "./data.js?v=239", "./app.js?v=239", "./manifest.json"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

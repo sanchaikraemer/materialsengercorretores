@@ -198,6 +198,13 @@ ver"), fechada por padrão e que lembra se o dono a deixou aberta. **Só o box
 vendido** vai para lá: disponível e alugado continuam na lista, e a unidade
 vendida também, em vermelho, como antes.
 
+**A unidade vendida também vai para gaveta (v239).** No Premium Office são 25
+vendidas para 9 à venda, e o dono rolava tudo para achar o que ainda vende. Agora
+cada empreendimento termina com até três gavetas fechadas, nesta ordem:
+**"N apartamentos vendidos"** (ou "N salas vendidas", no comercial),
+**"N box à venda"** e **"N box vendidos"** — cada uma lembrando se foi deixada
+aberta. A lista solta fica só com o que está à venda.
+
 **Todo box vai para gaveta, não só o vendido (v232).** A v223 recolheu só o box
 vendido; o dono pediu o resto também — no Renaissance são 65 box para 43
 apartamentos, e a lista de preço é dos apartamentos. Agora cada empreendimento
