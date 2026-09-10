@@ -1277,6 +1277,53 @@
   // O custo sai da tabela do mes. Quando a tabela e corrigida pelo INCC, custo
   // e margem desejada sobem no mesmo passo — senao a margem apareceria maior
   // sem ninguem ter ganhado nada.
+  // O dono aplica a correcao e quer ver o painel ja corrigido, antes de
+  // publicar. Entao a correcao entra na tela na hora: os precos (a partir de um
+  // retrato do que veio do arquivo) e os custos e margens (a partir de um
+  // retrato do que estava guardado). Publicar continua sendo o que muda o site;
+  // o "Descartar" desfaz os dois lados.
+  let precosOriginais = null;
+  let financeiroAntesDaPrevia = null;
+
+  function itensComPreco() {
+    const lista = [];
+    (estado.dados?.EMPREENDIMENTOS || []).forEach((emp) => {
+      (emp.grupos || []).forEach((g) => (g.unidades || []).forEach((u) => lista.push(u)));
+      (emp.boxes || []).forEach((b) => lista.push(b));
+      (emp.terrenos || []).forEach((t) => lista.push(t));
+      (emp.outros || []).forEach((o) => lista.push(o));
+    });
+    return lista.filter((item) => Number(item.preco) > 0);
+  }
+
+  function guardarPrecosOriginais() {
+    precosOriginais = new Map(itensComPreco().map((item) => [item, item.preco]));
+  }
+
+  function aplicarPreviaIncc() {
+    const op = estado.ops.find((o) => o.tipoOp === "incc");
+    if (precosOriginais) {
+      precosOriginais.forEach((original, item) => {
+        item.preco = op ? novoPreco(original, op.pct, op.arredondar) : original;
+      });
+    }
+    // Custo e margem: um retrato antes de corrigir, para o Descartar voltar e
+    // para o publicar nao corrigir duas vezes.
+    if (op && !financeiroAntesDaPrevia) {
+      financeiroAntesDaPrevia = { custos: { ...custosInternos }, margens: { ...margensDesejadas } };
+      const fator = 1 + op.pct / 100;
+      const corrigido = (n) => Math.round(n * fator * 100) / 100;
+      Object.keys(custosInternos).forEach((k) => { const n = Number(custosInternos[k]); if (Number.isFinite(n) && n > 0) custosInternos[k] = corrigido(n); });
+      Object.keys(margensDesejadas).forEach((k) => { const n = Number(margensDesejadas[k]); if (Number.isFinite(n)) margensDesejadas[k] = corrigido(n); });
+      atualizarEstadoFinanceiro(true);
+    } else if (!op && financeiroAntesDaPrevia) {
+      custosInternos = { ...financeiroAntesDaPrevia.custos };
+      margensDesejadas = { ...financeiroAntesDaPrevia.margens };
+      financeiroAntesDaPrevia = null;
+      atualizarEstadoFinanceiro(true);
+    }
+  }
+
   function corrigirFinanceiroPeloIncc(pct) {
     const fator = 1 + Number(pct) / 100;
     if (!Number.isFinite(fator) || fator <= 0) return 0;
@@ -1829,6 +1876,8 @@
     ]);
     estado.arquivos = { "data.js": dataJs, "index.html": indexHtml, "sw.js": swJs };
     estado.dados = avaliarDataJs(dataJs.text);
+    guardarPrecosOriginais();
+    financeiroAntesDaPrevia = null;
     const m = indexHtml.text.match(/data\.js\?v=(\d+)/);
     estado.versao = m ? Number(m[1]) : 0;
     estado.ops = [];
@@ -4409,8 +4458,9 @@
       data: dataBr,
     });
     $("previa-incc").classList.remove("visivel");
-    aviso("Correção do INCC anotada. Clique em “Publicar no site” para valer.", "ok");
-    renderPendentes();
+    aplicarPreviaIncc();
+    renderTudo();
+    aviso("Correção aplicada no painel. Confira e clique em “Publicar no site” para levar ao site.", "ok");
   });
 
   // ---------------- edição textual do data.js ----------------
@@ -4800,7 +4850,10 @@
       await ghGravar("sw.js", novoSw, swJs.sha, mensagem);
 
       // A tabela subiu: o custo, que sai dela, sobe no mesmo passo.
-      const custosCorrigidos = incc ? corrigirFinanceiroPeloIncc(incc.pct) : 0;
+      // A previa ja corrigiu custo e margem na tela; aqui so falta guardar.
+      const custosCorrigidos = incc
+        ? (financeiroAntesDaPrevia ? Object.keys(custosInternos).length : corrigirFinanceiroPeloIncc(incc.pct))
+        : 0;
       aviso(`Publicado! O site sobe para a v${novaVersao} em 1–2 minutos.` +
         (custosCorrigidos ? ` ${custosCorrigidos} custos também foram corrigidos em ${incc.pct.toLocaleString("pt-BR")}%.` : ""), "ok");
       await carregarTudo();
@@ -5004,6 +5057,7 @@
     // na linha seguinte. Volta a aparecer assim que a venda desejada mudar.
     estado.ops.filter((op) => op.tipoOp === "preco").forEach((op) => precosDispensados.add(`${op.chave}=${op.novo}`));
     estado.ops = [];
+    aplicarPreviaIncc();
     renderTudo();
     aviso("Alterações descartadas.", "ok");
   });
