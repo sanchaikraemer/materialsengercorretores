@@ -944,7 +944,7 @@
         <!-- INCC -->
         <section class="bloco" data-modulo="incc">
           <h2>Correção pelo INCC</h2>
-          <p class="descricao">Informe o novo índice e a variação do mês. A variação é aplicada a todos os preços do sistema de uma vez. Nada muda no site até você clicar em “Publicar no site”.</p>
+          <p class="descricao">Informe o novo índice e a variação do mês. A variação sobe todos os custos guardados de uma vez. O preço do site não muda aqui — ele sai da venda desejada, em Preços e margem.</p>
           <div class="form-incc">
             <div>
               <label for="incc-valor">Novo INCC (R$)</label>
@@ -965,7 +965,7 @@
               <input id="incc-data" type="date" lang="pt-BR" autocomplete="off">
               <small class="incc-ajuda" id="incc-data-ajuda"></small>
             </div>
-            <div>
+            <div hidden>
               <label for="incc-arredondar">Arredondar preços para</label>
               <select id="incc-arredondar">
                 <option value="100" selected>R$ 100 para cima</option>
@@ -981,7 +981,7 @@
             <p class="resumo" id="previa-resumo"></p>
             <div class="tabela-previa">
               <table>
-                <thead><tr><th>Empreendimento</th><th>Unidade</th><th style="text-align:right">Preço atual</th><th style="text-align:right">Preço novo</th></tr></thead>
+                <thead><tr><th>Empreendimento</th><th>Item</th><th style="text-align:right">Custo atual</th><th style="text-align:right">Custo novo</th></tr></thead>
                 <tbody id="previa-corpo"></tbody>
               </table>
             </div>
@@ -1000,7 +1000,7 @@
             <p class="incc-historico-nota">O histórico é salvo junto com a tabela do sistema quando a correção é publicada.</p>
           </details>
 
-          <p class="descricao" style="margin-top:18px">Ao publicar a correção, os custos guardados sobem na mesma variação — a margem continua a mesma. Para ver custo, margem e preço item a item, abra <strong>Preços e margem</strong> no menu.</p>
+          <p class="descricao" style="margin-top:18px">A correção entra no painel assim que você clica em <strong>Aplicar correção</strong>, e o <strong>Publicar no site</strong> guarda o novo mês e o novo índice. Para ver custo, margem e venda item a item, abra <strong>Preços e margem</strong>.</p>
           <button type="button" class="botao secundario" data-modulo-alvo="precos" style="margin-top:0">Abrir Preços e margem</button>
         </section>
 
@@ -1302,11 +1302,6 @@
 
   function aplicarPreviaIncc() {
     const op = estado.ops.find((o) => o.tipoOp === "incc");
-    if (precosOriginais) {
-      precosOriginais.forEach((original, item) => {
-        item.preco = op ? novoPreco(original, op.pct, op.arredondar) : original;
-      });
-    }
     // Custo e margem: um retrato antes de corrigir, para o Descartar voltar e
     // para o publicar nao corrigir duas vezes.
     if (op && !financeiroAntesDaPrevia) {
@@ -1457,7 +1452,7 @@
     materiais: ["Materiais dos empreendimentos", "Capa, galeria, plantas, folder e vídeo em uma área separada por tipo de material."],
     estoque: ["Estoque / Unidades", "Disponibilidade, preços, garagem e status das unidades do empreendimento escolhido."],
     precos: ["Preços e margem", "Custo, margem e preço item a item."],
-    incc: ["Correção pelo INCC", "Atualização mensal da tabela: o índice do mês corrige preços e custos de uma vez."],
+    incc: ["Correção pelo INCC", "Atualização mensal: o índice do mês corrige todos os custos de uma vez. Venda e margem ficam em Preços e margem."],
     publicacao: ["Publicação", "Revisão das alterações pendentes antes de enviar ao site."],
   };
 
@@ -3426,7 +3421,9 @@
         if (!custo || margem == null) return;
         const novo = Math.round(custo + margem);
         const atual = Number(item.preco || 0);
-        if (!atual || novo === atual || novo <= 0) return;
+        // Item sem preço no cadastro também entra: a venda desejada vira o
+        // primeiro preço dele. Antes o "!atual" descartava esses.
+        if (novo <= 0 || novo === atual) return;
         lista.push({ tipoOp: "preco", chave, empId: emp.id, rotulo: `${emp.nome} · ${item.rotulo}`, atual, novo });
       });
     });
@@ -4418,19 +4415,24 @@
   $("botao-previa").addEventListener("click", () => {
     const pct = lerVariacao();
     if (pct === null) { aviso("Informe a variação do mês (ex.: 0,62).", "falha"); return; }
-    const arredondar = $("incc-arredondar").value;
+    // O INCC corrige o CUSTO. Venda e margem sao de outra tela.
+    const fator = 1 + pct / 100;
     let linhas = "";
     let total = 0;
-    estado.dados.EMPREENDIMENTOS.forEach((emp) => {
-      itensDoEmp(emp).forEach((item) => {
-        if (!item.preco) return;
+    (estado.dados.EMPREENDIMENTOS || []).forEach((emp) => {
+      const boxesDaqui = boxesDoEmp(emp);
+      [...itensDoEmp(emp), ...boxesDaqui].forEach((item) => {
+        const custo = custoInterno(chaveDoItem(emp.id, item));
+        if (!custo) return;
         total += 1;
         linhas += `<tr><td>${escapeHtml(emp.nome)}</td><td>${escapeHtml(item.rotulo)}</td>
-          <td class="num">${moeda(item.preco)}</td><td class="num"><strong>${moeda(novoPreco(item.preco, pct, arredondar))}</strong></td></tr>`;
+          <td class="num">${moedaFinanceira(custo)}</td><td class="num"><strong>${moedaFinanceira(Math.round(custo * fator * 100) / 100)}</strong></td></tr>`;
       });
     });
-    $("previa-corpo").innerHTML = linhas;
-    $("previa-resumo").textContent = `Variação de ${pct.toLocaleString("pt-BR")}% aplicada a ${total} preços. Confira alguns valores antes de aplicar.`;
+    $("previa-corpo").innerHTML = linhas || `<tr><td colspan="4">Nenhum custo lançado ainda. Informe os custos em <strong>Preços e margem</strong> antes de corrigir.</td></tr>`;
+    $("previa-resumo").textContent = total
+      ? `Variação de ${pct.toLocaleString("pt-BR")}% aplicada a ${conta(total, "custo", "custos")}. Confira alguns valores antes de aplicar.`
+      : "Não há custo lançado para corrigir.";
     $("previa-incc").classList.add("visivel");
   });
 
@@ -4485,10 +4487,15 @@
   function aplicarPreco(texto, op) {
     const partes = op.chave.split(":");
     const empId = partes[0];
+    // O item pode ainda nao ter preco no cadastro (o dono apagou todos para
+    // remontar a tabela pela venda desejada). Entao: troca se existir, e
+    // acrescenta se nao existir — antes do status, para o arquivo ficar legivel.
     const trocar = (linha) => {
-      const nova = linha.replace(/preco:\s*-?\d+(?:\.\d+)?/, `preco: ${op.novo}`);
-      if (nova === linha) throw new Error(`Não achei o preço de ${op.rotulo} em ${empId}.`);
-      return nova;
+      if (/preco:\s*-?\d/.test(linha)) return linha.replace(/preco:\s*-?\d+(?:\.\d+)?/, `preco: ${op.novo}`);
+      if (/\bstatus:/.test(linha)) return linha.replace(/\bstatus:/, `preco: ${op.novo}, status:`);
+      const fecha = linha.lastIndexOf("}");
+      if (fecha === -1) throw new Error(`Não consegui gravar o preço de ${op.rotulo} em ${empId}.`);
+      return linha.slice(0, fecha).replace(/,\s*$/, "") + `, preco: ${op.novo} ` + linha.slice(fecha);
     };
     return trocarNoBloco(texto, empId, (bloco) => {
       if (partes[1] === "u") {
@@ -4521,7 +4528,11 @@
       const depois = bloco.slice(posNome);
       const limite = depois.search(/\n\s*\},/);
       const trecho = depois.slice(0, limite === -1 ? undefined : limite);
-      return bloco.slice(0, posNome) + trocar(trecho) + bloco.slice(posNome + trecho.length);
+      const novoTrecho = /preco:\s*-?\d/.test(trecho)
+        ? trecho.replace(/preco:\s*-?\d+(?:\.\d+)?/, `preco: ${op.novo}`)
+        : trecho.replace(/(nome:\s*"[^"]*",)/, `$1\n        preco: ${op.novo},`);
+      if (novoTrecho === trecho) throw new Error(`Não consegui gravar o preço de "${nome}" em ${empId}.`);
+      return bloco.slice(0, posNome) + novoTrecho + bloco.slice(posNome + trecho.length);
     });
   }
 
@@ -4742,9 +4753,9 @@
 
   function aplicarIncc(texto, op) {
     // Os preços só existem dentro de EMPREENDIMENTOS; o regex \bpreco: não pega "precoPrefixo".
-    const inicio = texto.indexOf("const EMPREENDIMENTOS");
-    let saida = texto.slice(0, inicio) + texto.slice(inicio).replace(/(\bpreco:\s*)(\d+)/g,
-      (m, prefixo, valor) => prefixo + novoPreco(Number(valor), op.pct, op.arredondar));
+    // v225 — o INCC corrige o custo, que e interno e nao mora neste arquivo.
+    // Aqui so entram o mes, a data, o indice e o historico.
+    let saida = texto;
 
     const variacaoTexto = (op.pct >= 0 ? "+" : "") + op.pct.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + "%";
     const valorNumero = numeroDeMoeda(op.valor);
