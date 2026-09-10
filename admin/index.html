@@ -1160,7 +1160,7 @@
   // A versao DESTA pagina. O numero que aparecia no alto vinha do site, entao
   // uma pagina velha guardada pelo navegador se anunciava como nova — e o dono
   // ficou horas mexendo numa tela antiga achando que o sistema nao obedecia.
-  const VERSAO_PAINEL = 234;
+  const VERSAO_PAINEL = 235;
 
   const CUSTOS_ITEM = "senger-admin-custos-v1"; // legado v171
   const FINANCEIRO_ITEM = "senger-admin-financeiro-v2";
@@ -1616,9 +1616,29 @@
     });
   });
 
-  $("botao-atualizar-painel")?.addEventListener("click", () => {
-    // O ?atualizar= muda o endereco e obriga o navegador a buscar a pagina nova.
-    location.replace(location.pathname + "?atualizar=" + Date.now());
+  // A faixa compara com o repositorio, que muda na hora; o site (GitHub Pages)
+  // leva 1 a 2 minutos para subir a pagina nova. Nesse intervalo o dono
+  // clicava, a mesma pagina voltava e a faixa reaparecia — "clico em atualizar
+  // e nada acontece". Entao antes de recarregar o botao vai ver o que o SITE
+  // esta servindo agora, e diz a verdade quando ainda nao chegou (v235).
+  $("botao-atualizar-painel")?.addEventListener("click", async () => {
+    const botao = $("botao-atualizar-painel");
+    const antesTexto = botao.textContent;
+    botao.disabled = true;
+    botao.textContent = "Procurando…";
+    let noAr = null;
+    try {
+      const resp = await fetch(location.pathname + "?conferir=" + Date.now(), { cache: "no-store" });
+      const m = (await resp.text()).match(/const VERSAO_PAINEL = (\d+)/);
+      noAr = m ? Number(m[1]) : null;
+    } catch (e) { noAr = null; }
+    if (noAr === null || noAr > VERSAO_PAINEL) {
+      location.replace(location.pathname + "?atualizar=" + Date.now());
+      return;
+    }
+    $("painel-velho-texto").textContent = `A v${estado.versaoPainel} já foi publicada, mas o site ainda está subindo ela — isso leva 1 a 2 minutos. A página que está no ar ainda é a v${noAr}. Espere um pouco e clique de novo.`;
+    botao.disabled = false;
+    botao.textContent = antesTexto;
   });
 
   $("botao-menu-admin")?.addEventListener("click", () => document.body.classList.add("menu-admin-aberto"));
