@@ -78,11 +78,18 @@ backup.
 
 **Não existe mais coluna "Preço no site" (v217).** *"Quero que 'preço no site'
 não exista mais, somente venda desejada — que é o que vai pro site."* A
-**Venda desejada é o preço**: enquanto o dono não informa uma, o campo mostra o
-preço que está no ar, então a coluna nunca fica vazia. A margem e a `Margem %`
-saem sempre do que está nesse campo. O preço publicado continua guardado na
-linha (`data-preco`) — é com ele que a marca "vai para o site", o "desfazer" e a
-fila de publicação comparam.
+**Venda desejada é o preço**. O preço publicado continua guardado na linha
+(`data-preco`) — é com ele que a marca "vai para o site", o "desfazer" e a fila
+de publicação comparam.
+
+**A linha fica em branco até o dono precificar (v221).** A v217 preenchia a
+venda desejada com o preço que estava no ar quando não havia margem guardada; o
+dono pediu o contrário — *"apague a venda desejada também, deixe tudo zerado"*.
+Agora **custo, venda desejada, `Margem %` e `Margem` só aparecem quando ele
+informa**: sem venda desejada, `margemDaLinha` devolve nulo e a linha inteira
+fica vazia. É o que faz o "Apagar tudo" deixar a tela realmente limpa. Efeito
+colateral aceito: o preço que está no ar não aparece mais nessa tela — quem
+mostra preço publicado é o site e o PDF.
 
 **Uma margem só na tela (v210).** Enquanto a venda desejada está vazia, a margem
 mostrada é a do preço que está no site; assim que o dono informa a venda
