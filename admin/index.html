@@ -1160,7 +1160,7 @@
   // A versao DESTA pagina. O numero que aparecia no alto vinha do site, entao
   // uma pagina velha guardada pelo navegador se anunciava como nova — e o dono
   // ficou horas mexendo numa tela antiga achando que o sistema nao obedecia.
-  const VERSAO_PAINEL = 227;
+  const VERSAO_PAINEL = 228;
 
   const CUSTOS_ITEM = "senger-admin-custos-v1"; // legado v171
   const FINANCEIRO_ITEM = "senger-admin-financeiro-v2";
@@ -1182,6 +1182,10 @@
         custos: mapaDeNumeros(bruto.custos),
         margensDesejadas: mapaDeNumeros(bruto.margensDesejadas),
         salvoEm: bruto.salvoEm || "",
+        // Sem esta linha o "Apagar tudo" nunca durava: a data da limpeza era
+        // gravada e depois jogada fora na leitura, entao ao reabrir o painel
+        // achava que nunca se apagou nada e o cofre devolvia tudo (v228).
+        apagadoEm: bruto.apagadoEm || "",
       };
     } catch (e) { return null; }
   }
@@ -4316,8 +4320,12 @@
   $("botao-apagar-financeiro")?.addEventListener("click", async () => {
     const quantosCustos = Object.keys(custosInternos).length;
     const quantasMargens = Object.keys(margensDesejadas).length;
-    if (!quantosCustos && !quantasMargens) { aviso("Não há custo nem margem para apagar.", "falha"); return; }
-    if (!confirm(`Apagar TODOS os custos e margens?\n\n${quantosCustos} custos e ${quantasMargens} margens, deste aparelho e da sua conta.\n\nNão dá para desfazer. Se quiser guardar antes, cancele e use “Exportar backup”.\n\nOs preços do site não mudam.`)) return;
+    // Mesmo com o aparelho ja vazio o botao funciona: o que precisa ser
+    // apagado pode estar so na conta, e era de la que os custos voltavam.
+    const oQueVai = quantosCustos || quantasMargens
+      ? `${quantosCustos} custos e ${quantasMargens} margens, deste aparelho e da sua conta.`
+      : "Este aparelho já está vazio; isto apaga o que ainda estiver guardado na sua conta.";
+    if (!confirm(`Apagar TODOS os custos e margens?\n\n${oQueVai}\n\nNão dá para desfazer. Se quiser guardar antes, cancele e use “Exportar backup”.\n\nOs preços do site não mudam.`)) return;
     custosInternos = {};
     margensDesejadas = {};
     financeiroSalvoEm = new Date().toISOString();
@@ -4338,7 +4346,7 @@
       const quantos = Object.keys(remoto?.pacote?.custos || {}).length;
       naConta = quantos ? `ATENÇÃO: a sua conta ainda tem ${quantos} custos — feche as outras abas do painel e apague de novo` : "e na sua conta também ✓";
     } catch (e) { /* sem conexao ou sem permissao: a linha do cofre ja explica */ }
-    alert(`Apagados ${quantosCustos} custos e ${quantasMargens} margens neste aparelho ${naConta}.\n\nSe você tiver o painel aberto em outra aba ou em outro aparelho, feche antes de importar de novo — senão ela devolve os valores antigos.`);
+    alert(`Apagados ${quantosCustos} custos e ${quantasMargens} margens neste aparelho, ${naConta}.\n\nSe você tiver o painel aberto em outra aba ou em outro aparelho, feche antes de importar de novo — senão ela devolve os valores antigos.`);
     aviso(`Apagados ${quantosCustos} custos e ${quantasMargens} margens.`, "ok");
   });
 
