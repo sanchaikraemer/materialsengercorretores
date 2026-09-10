@@ -483,6 +483,14 @@ cabeçalho e no rodapé. Quando o site está numa versão maior que a da página
 uma faixa amarela avisa e oferece **Atualizar agora** (recarrega com
 `?atualizar=<hora>`, que obriga o navegador a buscar a página nova).
 
+**O botão confere o site antes de recarregar (v235).** A faixa lê o repositório
+pela API, que muda na hora; a página vem do GitHub Pages, que leva 1 a 2 minutos
+para subir. Nesse intervalo o dono clicava, a mesma página voltava e a faixa
+reaparecia — *"clico em atualizar e nada acontece"*. Agora o botão busca a
+própria página no site (`?conferir=<hora>`, `no-store`), lê o `VERSAO_PAINEL`
+dela e só recarrega quando a nova chegou; enquanto não chegou, a faixa diz que o
+site ainda está publicando e para esperar.
+
 **Ao publicar qualquer mudança no painel, suba o `VERSAO_PAINEL` junto com o
 `?v=` do `index.html` e o `CACHE` do `sw.js`.** Se esquecer, a faixa passa a
 acusar desatualizado sem motivo.
