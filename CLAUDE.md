@@ -177,6 +177,14 @@ mesma conta da fila de publicação, para a tela nunca dizer uma coisa e o botã
 **No celular a linha vira cartão (v210)**, com o nome de cada valor em cima
 dele. Não há mais rolagem lateral em tela nenhuma.
 
+**Apagar tudo e recomeçar (v220).** Ao lado do "Exportar backup" há
+**Apagar tudo**: limpa todos os custos e margens **do aparelho, do rascunho e do
+cofre**. Só limpar o aparelho não adiantaria — ao reabrir, a fusão da v190
+traria os valores de volta do cofre. Pede confirmação dizendo quantos custos e
+quantas margens vão embora e lembrando do Exportar backup; **não mexe em preço
+nenhum do site**. Existe porque reimportar por cima só soma, e às vezes o dono
+quer começar do zero.
+
 **Onde o custo mora (v176).** Em três lugares, nesta ordem:
 
 1. `senger-admin-financeiro-rascunho` — o que está sendo digitado e ainda não foi salvo. Existe porque fechar a aba sem salvar apagava tudo em silêncio; ao reabrir, o painel recupera o rascunho e continua marcando **Alterações não salvas**.
