@@ -448,6 +448,13 @@ Mostrei quatro modelos de cada parte em imagem e ele escolheu; o que está no ar
   à direita e o "Ver unidades" escrito dá lugar só à setinha. Cabem cinco
   tipologias numa tela, contra uma e meia.
 
+**O `nowrap` das medidas quase estragou tudo (v249).** Para "1 box simples" não
+quebrar no meio, cada medida ficou `white-space: nowrap` — mas o separador "·"
+mora dentro do próprio span, então **não sobrava nenhum ponto de quebra na
+linha**: ela virava uma palavra só, estourava a caixa e o texto passava por cima
+do preço no celular. O conserto é deixar só o separador fora do nowrap
+(`span + span::before { white-space: normal }`).
+
 **Cuidado: há dois `@media (max-width: 720px)` no `styles.css`.** O segundo (o
 que vem depois de `.unit-result-foot`) é o que manda nas regras repetidas — foi
 ele que continuou empilhando o cabeçalho depois da primeira tentativa.
