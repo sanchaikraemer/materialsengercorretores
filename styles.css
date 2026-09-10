@@ -718,7 +718,10 @@ img { max-width: 100%; display: block; }
   .unit-group-header h3 { font-size: 14px; font-weight: 700; }
   .unit-group-chips { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; line-height: 1.4; }
   .unit-group-chips span { padding: 0; border-radius: 0; background: none; font-size: 11px; font-weight: 400; white-space: nowrap; }
-  .unit-group-chips span + span::before { content: " · "; }
+  /* O "·" fica FORA do nowrap: sem isto a linha inteira virava uma palavra so
+     (cada medida e nowrap e o separador estava dentro dela), o texto estourava
+     a caixa e passava por cima do preco no celular (v249). */
+  .unit-group-chips span + span::before { content: " · "; white-space: normal; }
   .unit-group-obs { margin-top: 5px; color: var(--muted); font-size: 11px; }
   .unit-group-aside { flex-direction: row; align-items: center; gap: 8px; display: flex; }
   .unit-group-desde { color: var(--muted); font-size: 8.5px; letter-spacing: .07em; }
