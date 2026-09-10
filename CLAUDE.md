@@ -174,6 +174,13 @@ gerais de `.preco-campo` e `.valor-suave`, que vêm depois no arquivo, ganhavam
 por ordem e o texto não diminuía — as colunas então estouravam a própria
 largura.
 
+**Box vendido vai para uma gaveta recolhida (v223).** Ele não tem o que
+precificar e enchia a lista — no Personalité são 60 de 65, no Prime 39 de 40.
+Agora fica numa gaveta no fim do empreendimento ("N box vendidos — toque para
+ver"), fechada por padrão e que lembra se o dono a deixou aberta. **Só o box
+vendido** vai para lá: disponível e alugado continuam na lista, e a unidade
+vendida também, em vermelho, como antes.
+
 **Três filtros e uma busca (v210)**: `Falta custo`, `Vai mudar de preço` e
 `Abaixo do custo`, cada um com a contagem ao lado, refeita a cada tecla
 digitada. Com filtro ligado os empreendimentos abrem sozinhos. A linha que vai
