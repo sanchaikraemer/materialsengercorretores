@@ -108,7 +108,7 @@ const EMPREENDIMENTOS = [
       {
         tipo: "3 suítes — frente",
         area: "180 m² global · 117 m² privativo",
-        garagem: "Box opcional (consultar)",
+        garagem: "1 box duplo",
         planta: "ren-planta-3s-frente-dir",
         obs: "Valor sem box de garagem.",
         unidades: [
@@ -135,7 +135,7 @@ const EMPREENDIMENTOS = [
         // No cartao do painel a linha e mais curta, para nao quebrar em duas.
         estoque: "3 suítes — superiores",
         area: "243 m² global · 159 m² privativo",
-        garagem: "Box opcional (consultar)",
+        garagem: "1 box duplo + 1 box simples",
         planta: "ren-planta-3s-superior",
         obs: "Pé-direito livre de 3 metros. Valor sem box de garagem.",
         unidades: [
@@ -157,7 +157,7 @@ const EMPREENDIMENTOS = [
         // aparece no site.
         tipo: "18º pavimento",
         area: "490 m² global · 332 m² privativo",
-        garagem: "Box opcional (consultar)",
+        garagem: "4 box simples",
         // Nao ha planta a mostrar: a cobertura foi vendida e a planta e a que o
         // comprador desenhar. Sem este recado, quem abrisse o link da unidade
         // veria as plantas de todas as outras tipologias no lugar.
@@ -169,7 +169,7 @@ const EMPREENDIMENTOS = [
       {
         tipo: "2 suítes",
         area: "130 m² global · 86 m² privativo",
-        garagem: "Box opcional (consultar)",
+        garagem: "1 box simples",
         planta: "ren-planta-2suites",
         obs: "Valor sem box de garagem.",
         unidades: [
@@ -193,7 +193,7 @@ const EMPREENDIMENTOS = [
       {
         tipo: "Casa Suspensa (2 suítes)",
         area: "205 m² global · 146 m² privativo",
-        garagem: "Box opcional (consultar)",
+        garagem: "1 box simples",
         planta: "ren-planta-504",
         obs: "Unidade 504 — lateral direita. Valor sem box de garagem.",
         unidades: [
@@ -361,7 +361,7 @@ const EMPREENDIMENTOS = [
         tipo: "2 dormitórios (1 suíte)",
         planta: "evo-p2",
         area: "99 m² global · 73 m² privativo",
-        garagem: "01 box",
+        garagem: "1 box simples",
         unidades: [
           { apto: "404", preco: 760281, status: "disponivel", tags: ["Casa Suspensa"], areaUnit: "135 m² global · 104 m² privativo" },
           { apto: "504", preco: 713610, status: "disponivel" },
@@ -374,7 +374,7 @@ const EMPREENDIMENTOS = [
         tipo: "2 dormitórios (1 suíte)",
         planta: "evo-p2",
         area: "99 m² global · 73 m² privativo",
-        garagem: "01 box",
+        garagem: "1 box simples",
         unidades: [
           { apto: "403", status: "vendido", tags: ["Casa Suspensa"], areaUnit: "149 m² global · 116 m² privativo" },
           { apto: "503", preco: 741324, status: "disponivel" },
@@ -387,7 +387,7 @@ const EMPREENDIMENTOS = [
         tipo: "2 dormitórios (2 suítes)",
         planta: "evo-p2",
         area: "118 m² global · 87 m² privativo",
-        garagem: "01 box",
+        garagem: "1 box simples",
         unidades: [
           { apto: "401", status: "vendido", tags: ["Casa Suspensa"], areaUnit: "215 m² global · 169 m² privativo" },
           { apto: "402", preco: 826050, status: "disponivel", tags: ["Casa Suspensa"], areaUnit: "173 m² global · 133 m² privativo" },
@@ -409,7 +409,7 @@ const EMPREENDIMENTOS = [
         tipo: "9º pavimento",
         planta: "evo-p3",
         area: "217 m² global · 164 m² privativo",
-        garagem: "01 box duplo",
+        garagem: "1 box duplo",
         unidades: [
           { apto: "901", status: "vendido" },
           { apto: "902", status: "vendido" },
@@ -419,7 +419,7 @@ const EMPREENDIMENTOS = [
         tipo: "3 dormitórios (3 suítes)",
         planta: "evo-p3",
         area: "179 m² global · 132 m² privativo",
-        garagem: "01 box duplo",
+        garagem: "1 box duplo",
         unidades: [
           { apto: "1001", status: "vendido" },
           { apto: "1002", preco: 1170119, status: "disponivel" },
@@ -541,7 +541,7 @@ const EMPREENDIMENTOS = [
       {
         tipo: "Sala comercial no térreo",
         area: "387 m² global · 219 m² privativo",
-        garagem: "03 vagas de garagem",
+        garagem: "3 box simples",
         estoque: "Sala térreo",
         unidades: [{ apto: "101", status: "vendido" }],
       },
@@ -549,7 +549,7 @@ const EMPREENDIMENTOS = [
         tipo: "Salas comerciais",
         sufixo: "2º pavimento",
         area: "Áreas variadas",
-        garagem: "01 vaga de garagem por sala",
+        garagem: "1 box simples",
         estoque: "Sala 2º pavimento",
         planta: "po-planta-2pav",
         unidades: [
@@ -567,7 +567,7 @@ const EMPREENDIMENTOS = [
         tipo: "Sala comercial",
         sufixo: "final 01",
         area: "115 m² global · 65 m² privativo",
-        garagem: "01 vaga de garagem",
+        garagem: "1 box simples",
         estoque: "Sala 115 m²",
         planta: "po-planta",
         unidades: [
@@ -583,7 +583,7 @@ const EMPREENDIMENTOS = [
         tipo: "Sala comercial",
         sufixo: "final 02",
         area: "129 m² global · 73 m² privativo",
-        garagem: "01 vaga de garagem",
+        garagem: "1 box simples",
         estoque: "Sala 122 a 129 m²",
         planta: "po-planta",
         unidades: [{ apto: "802", preco: 839677, status: "disponivel" }],
@@ -594,7 +594,7 @@ const EMPREENDIMENTOS = [
         tipo: "Sala comercial",
         sufixo: "final 02",
         area: "Áreas variadas",
-        garagem: "01 vaga de garagem",
+        garagem: "1 box simples",
         estoque: "Sala 122 a 129 m²",
         planta: "po-planta",
         unidades: [
@@ -609,7 +609,7 @@ const EMPREENDIMENTOS = [
         tipo: "Sala comercial",
         sufixo: "final 03",
         area: "54 m² global · 31 m² privativo",
-        garagem: "01 vaga de garagem",
+        garagem: "1 box simples",
         estoque: "Sala 54 m²",
         planta: "po-planta",
         unidades: [
@@ -625,7 +625,7 @@ const EMPREENDIMENTOS = [
         tipo: "Sala comercial",
         sufixo: "final 04",
         area: "72 m² global · 40 m² privativo",
-        garagem: "01 vaga de garagem",
+        garagem: "1 box simples",
         estoque: "Sala 72 m²",
         planta: "po-planta",
         unidades: [
@@ -641,7 +641,7 @@ const EMPREENDIMENTOS = [
         tipo: "Sala comercial",
         sufixo: "final 05",
         area: "76 m² global · 43 m² privativo",
-        garagem: "01 vaga de garagem",
+        garagem: "1 box simples",
         estoque: "Sala 76 m²",
         planta: "po-planta",
         unidades: [
@@ -750,7 +750,7 @@ const EMPREENDIMENTOS = [
       {
         tipo: "3 suítes + lavabo",
         area: "212 m² global · 149 m² privativo",
-        garagem: "Box duplo",
+        garagem: "1 box duplo",
         unidades: [
           { apto: "301", status: "vendido" },
           { apto: "401", status: "vendido" },
@@ -768,7 +768,7 @@ const EMPREENDIMENTOS = [
       {
         tipo: "3 suítes + lavabo",
         area: "212 m² global · 149 m² privativo",
-        garagem: "Box duplo",
+        garagem: "1 box duplo",
         unidades: [
           { apto: "302", status: "vendido" },
           { apto: "402", status: "vendido" },
@@ -786,7 +786,7 @@ const EMPREENDIMENTOS = [
       {
         tipo: "2 suítes + lavabo",
         area: "131 m² global · 93 m² privativo",
-        garagem: "01 box de garagem",
+        garagem: "1 box simples",
         unidades: [
           { apto: "304", preco: 884490, status: "disponivel", tags: ["Casa Suspensa"], areaUnit: "165 m² global · 121 m² privativo" },
           { apto: "404", preco: 860643, status: "disponivel" },
@@ -804,7 +804,7 @@ const EMPREENDIMENTOS = [
       {
         tipo: "2 dormitórios (1 suíte)",
         area: "127 m² global · 91 m² privativo",
-        garagem: "01 box",
+        garagem: "1 box simples",
         // Falta o 303 neste final: ele nao esta no estoque e nenhum box vendido
         // aponta para ele, entao nao da para dizer se foi vendido ou se ainda
         // esta a venda. Fica de fora ate a construtora confirmar.
@@ -930,7 +930,7 @@ const EMPREENDIMENTOS = [
         tipo: "3 suítes + lavabo",
         planta: "perso-planta",
         area: "172 m² global · 132 m² privativo",
-        garagem: "Box duplo",
+        garagem: "1 box duplo",
         unidades: [
           { apto: "602", status: "disponivel" },
           { apto: "902", status: "disponivel", tags: ["Semimobiliado"] },
@@ -1050,7 +1050,7 @@ const EMPREENDIMENTOS = [
         tipo: "3 dormitórios (2 suítes)",
         planta: "prime-planta",
         area: "124 m² global · 96 m² privativo",
-        garagem: "Box duplo",
+        garagem: "1 box duplo",
         unidades: [{ apto: "303", status: "disponivel", tags: ["Decorado"] }],
       },
     ],
@@ -1153,21 +1153,21 @@ const EMPREENDIMENTOS = [
       {
         tipo: "2 dormitórios c/ móveis",
         area: "57 m² global · 43 m² privativo",
-        garagem: "1 Box de garagem",
+        garagem: "1 box simples",
         planta: "qual-planta-57",
         unidades: [{ apto: "802A", preco: 421661, status: "disponivel" }],
       },
       {
         tipo: "2 dormitórios c/ móveis",
         area: "69 m² global · 53 m² privativo",
-        garagem: "1 Box de garagem",
+        garagem: "1 box simples",
         planta: "qual-planta-69",
         unidades: [{ apto: "701B", preco: 520048, status: "alugado" }],
       },
       {
         tipo: "2 dormitórios — já alugados",
         area: "69 m² global · 53 m² privativo",
-        garagem: "1 Box de garagem",
+        garagem: "1 box simples",
         planta: "qual-planta-69",
         obs: "Aluguel R$ 1.400,00 · Condomínio e IPTU por conta do inquilino.",
         unidades: [
@@ -1178,7 +1178,7 @@ const EMPREENDIMENTOS = [
       {
         tipo: "3 dormitórios — já alugados",
         area: "87 m² global · 66 m² privativo",
-        garagem: "1 Box de garagem",
+        garagem: "1 box simples",
         planta: "qual-planta-3d",
         obs: "Aluguel R$ 1.600,00 · Condomínio e IPTU por conta do inquilino.",
         unidades: [
@@ -1190,7 +1190,7 @@ const EMPREENDIMENTOS = [
       {
         tipo: "3 dormitórios (1 suíte)",
         area: "87 m² global · 66 m² privativo",
-        garagem: "1 Box de garagem",
+        garagem: "1 box simples",
         planta: "qual-planta-3d",
         unidades: [
           { apto: "201A", preco: 562093, status: "disponivel" },
