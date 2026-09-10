@@ -363,6 +363,20 @@
     .previa.visivel { display: block; }
     .previa .resumo { font-size: .88rem; margin-bottom: 10px; color: var(--texto-suave); }
     .tabela-previa { max-height: 320px; overflow: auto; border: 1px solid var(--borda); border-radius: 8px; }
+    .previa-cabecalho { display:grid; grid-template-columns:1fr 150px 150px; gap:10px; padding:0 14px 6px;
+      font-size:.62rem; text-transform:uppercase; letter-spacing:.04em; color:var(--texto-suave); font-weight:600; }
+    .previa-cabecalho span + span { text-align:right; }
+    .previa-emp { border-bottom:1px solid var(--borda); }
+    .previa-emp:last-child { border-bottom:none; }
+    .previa-emp > summary { cursor:pointer; list-style:none; padding:10px 14px; display:flex; gap:10px; align-items:center; font-weight:750; font-size:.84rem; }
+    .previa-emp > summary::-webkit-details-marker { display:none; }
+    .previa-emp > summary::before { content:"▸ "; color:var(--texto-suave); }
+    .previa-emp[open] > summary::before { content:"▾ "; }
+    .previa-emp > summary .contagem { margin-left:auto; color:var(--texto-suave); font-size:.74rem; font-weight:500; font-variant-numeric:tabular-nums; }
+    .previa-emp table { width:100%; }
+    .previa-emp td { padding:6px 14px; font-size:.78rem; border-bottom:1px solid var(--borda); }
+    .previa-emp tr:last-child td { border-bottom:none; }
+    .previa-emp td:nth-child(2), .previa-emp td:nth-child(3) { width:150px; text-align:right; font-variant-numeric:tabular-nums; }
     .custos-nota { color:var(--texto-suave); font-size:.8rem; line-height:1.5; margin-bottom:12px; }
     .custos-nota strong { color:var(--texto); }
     .custos-acoes { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:0 0 14px; }
@@ -979,12 +993,8 @@
           </div>
           <div class="previa" id="previa-incc">
             <p class="resumo" id="previa-resumo"></p>
-            <div class="tabela-previa">
-              <table>
-                <thead><tr><th>Empreendimento</th><th>Item</th><th style="text-align:right">Custo atual</th><th style="text-align:right">Custo novo</th></tr></thead>
-                <tbody id="previa-corpo"></tbody>
-              </table>
-            </div>
+            <div class="previa-cabecalho"><span>Item</span><span>Custo atual</span><span>Custo novo</span></div>
+            <div class="tabela-previa" id="previa-lista"></div>
             <button class="botao" id="botao-aplicar-incc">Aplicar correção</button>
             <button class="botao secundario" id="botao-cancelar-incc">Cancelar</button>
           </div>
@@ -1178,6 +1188,7 @@
       custos: mudou ? rascunho.custos : salvo.custos,
       margensDesejadas: mudou ? rascunho.margensDesejadas : salvo.margensDesejadas,
       salvoEm: salvo.salvoEm,
+      apagadoEm: salvo.apagadoEm || "",
       recuperado: !!mudou,
     };
   }
@@ -1186,6 +1197,10 @@
   let custosInternos = { ...financeiroInicial.custos };
   let margensDesejadas = { ...financeiroInicial.margensDesejadas };
   let financeiroSalvoEm = financeiroInicial.salvoEm;
+  // Quando o dono apagou tudo pela ultima vez. Sem esta data, o cofre (e outra
+  // aba aberta com os valores velhos) devolvia os custos apagados na abertura
+  // seguinte: a fusao da v190 soma os dois lados e uma limpeza nunca ganhava.
+  let financeiroApagadoEm = financeiroInicial.apagadoEm || "";
   let financeiroSujo = financeiroInicial.recuperado;
   // Quantos itens da tabela ja tem custo. E o que responde na tela a pergunta
   // "cade meus custos?" sem o dono precisar rolar a tabela inteira.
@@ -1208,7 +1223,7 @@
   function gravarFinanceiroLocal() {
     try {
       localStorage.setItem(FINANCEIRO_ITEM, JSON.stringify({
-        versao: 2, salvoEm: financeiroSalvoEm, custos: custosInternos, margensDesejadas,
+        versao: 2, salvoEm: financeiroSalvoEm, apagadoEm: financeiroApagadoEm, custos: custosInternos, margensDesejadas,
       }));
       // Mantém o mapa antigo atualizado para não perder compatibilidade com backups v171.
       localStorage.setItem(CUSTOS_ITEM, JSON.stringify(custosInternos));
@@ -1767,7 +1782,7 @@
     if (!estado.token) { definirCofre("sem-permissao"); return; }
     definirCofre("enviando");
     try {
-      await cofreEnviar({ versao: 2, salvoEm: financeiroSalvoEm, custos: custosInternos, margensDesejadas });
+      await cofreEnviar({ versao: 2, salvoEm: financeiroSalvoEm, apagadoEm: financeiroApagadoEm, custos: custosInternos, margensDesejadas });
       definirCofre("ok");
     } catch (e) {
       definirCofre(e.status ? "sem-permissao" : "offline");
@@ -1789,8 +1804,21 @@
     // Os dois lados se JUNTAM, nunca um apaga o outro: custo lancado num
     // aparelho e custo lancado no outro somam. Quando o mesmo item tem valor
     // dos dois lados, vale o do pacote salvo mais tarde.
-    const remotoCustos = mapaDeNumeros(pacote.custos);
-    const remotoMargens = mapaDeNumeros(pacote.margensDesejadas);
+    // Uma limpeza vale contra tudo o que e mais antigo que ela. Sem isto o
+    // "Apagar tudo" nunca ganhava: o cofre devolvia os custos na abertura
+    // seguinte, e outra aba aberta com os valores velhos os empurrava de volta.
+    const apagadoRemoto = Date.parse(pacote.apagadoEm || "") || 0;
+    const apagadoLocal = Date.parse(financeiroApagadoEm || "") || 0;
+    const valeORemoto = quandoRemoto > apagadoLocal;
+    if (apagadoRemoto > quandoLocal) {
+      custosInternos = {};
+      margensDesejadas = {};
+      financeiroApagadoEm = pacote.apagadoEm;
+      financeiroSalvoEm = pacote.salvoEm || new Date().toISOString();
+      gravarFinanceiroLocal();
+    }
+    const remotoCustos = valeORemoto ? mapaDeNumeros(pacote.custos) : {};
+    const remotoMargens = valeORemoto ? mapaDeNumeros(pacote.margensDesejadas) : {};
     const remotoManda = quandoRemoto >= quandoLocal;
     const antes = JSON.stringify([custosInternos, margensDesejadas]);
     custosInternos = remotoManda ? { ...custosInternos, ...remotoCustos } : { ...remotoCustos, ...custosInternos };
@@ -1801,10 +1829,11 @@
       gravarFinanceiroLocal();
       renderCustosMargens();
     }
-    // Se este aparelho tinha algo que o cofre nao tem, devolve para o cofre.
-    const faltaNoCofre = Object.keys(custosInternos).length > Object.keys(remotoCustos).length
-      || Object.keys(margensDesejadas).length > Object.keys(remotoMargens).length;
-    if (faltaNoCofre) await enviarAoCofre();
+    // Devolve ao cofre so quando este aparelho e o mais recente. Antes, uma aba
+    // velha devolvia o que ja tinha sido apagado.
+    const diferente = Object.keys(custosInternos).length !== Object.keys(remotoCustos).length
+      || Object.keys(margensDesejadas).length !== Object.keys(remotoMargens).length;
+    if (diferente && quandoLocal >= quandoRemoto) await enviarAoCofre();
     else definirCofre("ok");
   }
 
@@ -4261,6 +4290,7 @@
     custosInternos = {};
     margensDesejadas = {};
     financeiroSalvoEm = new Date().toISOString();
+    financeiroApagadoEm = financeiroSalvoEm;
     gravarFinanceiroLocal();
     try { localStorage.removeItem(FINANCEIRO_RASCUNHO); } catch (e) { /* modo privado */ }
     statusPorEmp.clear();
@@ -4269,7 +4299,16 @@
     renderCustosMargens();
     renderPendentes();
     await enviarAoCofre();
-    aviso(`Apagados ${quantosCustos} custos e ${quantasMargens} margens. Pode importar de novo.`, "ok");
+    // Confere na propria conta se ficou mesmo vazio: apagar aqui e voltar na
+    // proxima abertura foi o que mais irritou o dono.
+    let naConta = "não deu para conferir a sua conta agora";
+    try {
+      const remoto = await cofreLer();
+      const quantos = Object.keys(remoto?.pacote?.custos || {}).length;
+      naConta = quantos ? `ATENÇÃO: a sua conta ainda tem ${quantos} custos — feche as outras abas do painel e apague de novo` : "e na sua conta também ✓";
+    } catch (e) { /* sem conexao ou sem permissao: a linha do cofre ja explica */ }
+    alert(`Apagados ${quantosCustos} custos e ${quantasMargens} margens neste aparelho ${naConta}.\n\nSe você tiver o painel aberto em outra aba ou em outro aparelho, feche antes de importar de novo — senão ela devolve os valores antigos.`);
+    aviso(`Apagados ${quantosCustos} custos e ${quantasMargens} margens.`, "ok");
   });
 
   $("botao-exportar-custos")?.addEventListener("click", () => {
@@ -4417,19 +4456,25 @@
     if (pct === null) { aviso("Informe a variação do mês (ex.: 0,62).", "falha"); return; }
     // O INCC corrige o CUSTO. Venda e margem sao de outra tela.
     const fator = 1 + pct / 100;
+    // Um bloco por empreendimento, fechado: sao mais de cem linhas e o dono
+    // pediu para nao rolar tudo de uma vez.
     let linhas = "";
     let total = 0;
     (estado.dados.EMPREENDIMENTOS || []).forEach((emp) => {
       const boxesDaqui = boxesDoEmp(emp);
-      [...itensDoEmp(emp), ...boxesDaqui].forEach((item) => {
-        const custo = custoInterno(chaveDoItem(emp.id, item));
-        if (!custo) return;
-        total += 1;
-        linhas += `<tr><td>${escapeHtml(emp.nome)}</td><td>${escapeHtml(item.rotulo)}</td>
-          <td class="num">${moedaFinanceira(custo)}</td><td class="num"><strong>${moedaFinanceira(Math.round(custo * fator * 100) / 100)}</strong></td></tr>`;
-      });
+      const daqui = [...itensDoEmp(emp), ...boxesDaqui]
+        .map((item) => ({ item, custo: custoInterno(chaveDoItem(emp.id, item)) }))
+        .filter((x) => x.custo);
+      if (!daqui.length) return;
+      total += daqui.length;
+      const soma = daqui.reduce((t, x) => t + x.custo, 0);
+      linhas += `<details class="previa-emp">
+        <summary>${escapeHtml(emp.nome)} <span class="contagem">${conta(daqui.length, "custo", "custos")} · ${moedaFinanceira(soma)} → ${moedaFinanceira(Math.round(soma * fator * 100) / 100)}</span></summary>
+        <table><tbody>${daqui.map(({ item, custo }) => `<tr><td>${escapeHtml(item.rotulo)}</td>
+          <td class="num">${moedaFinanceira(custo)}</td><td class="num"><strong>${moedaFinanceira(Math.round(custo * fator * 100) / 100)}</strong></td></tr>`).join("")}</tbody></table>
+      </details>`;
     });
-    $("previa-corpo").innerHTML = linhas || `<tr><td colspan="4">Nenhum custo lançado ainda. Informe os custos em <strong>Preços e margem</strong> antes de corrigir.</td></tr>`;
+    $("previa-lista").innerHTML = linhas || `<p class="descricao">Nenhum custo lançado ainda. Informe os custos em <strong>Preços e margem</strong> antes de corrigir.</p>`;
     $("previa-resumo").textContent = total
       ? `Variação de ${pct.toLocaleString("pt-BR")}% aplicada a ${conta(total, "custo", "custos")}. Confira alguns valores antes de aplicar.`
       : "Não há custo lançado para corrigir.";
