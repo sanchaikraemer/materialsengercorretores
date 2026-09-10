@@ -397,6 +397,13 @@
     .campo-pct span { color:var(--texto-suave); font-size:.8rem; font-weight:600; }
     /* A lista mede a si mesma, nao a janela: assim as colunas extras entram
        quando ha espaco de verdade dentro dela, mesmo com o menu lateral. */
+    .precos-vendidos { border-top:1px solid var(--borda); background:var(--fundo); }
+    .precos-vendidos > summary { cursor:pointer; list-style:none; padding:10px 14px; font-size:.76rem; font-weight:700; color:var(--vermelho); }
+    .precos-vendidos > summary::-webkit-details-marker { display:none; }
+    .precos-vendidos > summary::before { content:"▸ "; }
+    .precos-vendidos[open] > summary::before { content:"▾ "; }
+    .precos-vendidos > summary:hover { text-decoration:underline; }
+    .precos-vendidos .preco-linha { background:var(--cartao); }
     .precos-emp-massa { display:flex; flex-wrap:wrap; gap:10px; align-items:center; padding:10px 14px;
       border-top:1px solid var(--borda); background:rgba(23,143,160,.05); }
     .precos-emp-massa .titulo-massa { font-size:.78rem; font-weight:600; }
@@ -3563,6 +3570,7 @@
   let precoFiltro = "todos";
   let precoBusca = "";
   const precosEmpsAbertos = new Set();
+  const precosVendidosAbertos = new Set();
 
   // O prédio inteiro fica a vista: o box de todos os empreendimentos aparece
   // (onde e venda separada tem valor proprio; nos demais ja esta no preco do
@@ -3694,7 +3702,11 @@
       </div>
       <div class="precos-lista">
         <div class="precos-cabecalho"><span>Item</span><span>Custo</span><span class="col-desconto">Custo − 5%</span><span class="col-desconto">Custo − 10%</span><span>Venda desejada</span><span>Margem %</span><span>Margem</span></div>
-        ${registros.map((reg) => {
+        ${(() => {
+        // Box vendido nao tem o que precificar e enche a lista: no Quality sao
+        // 50 de 60. Eles saem para uma gaveta recolhida no fim do
+        // empreendimento — os demais (disponivel e alugado) ficam na lista.
+        const desenhar = (reg) => {
           const { item, chave, custo, margemDesejada, preco, situacao, vendido, semValor, vendavel, vendaDesejada, margem, detalhe, muda } = reg;
           // A venda desejada e o preco, e so aparece quando o dono informa:
           // sem ela a linha fica em branco de propósito.
@@ -3748,7 +3760,17 @@
             </div>
           </div>
         </div>`;
-        }).join("")}
+        };
+        const ehBoxVendido = (r) => r.item.tipo === "box" && r.vendido;
+        const naLista = registros.filter((r) => !ehBoxVendido(r));
+        const boxVendidos = registros.filter(ehBoxVendido);
+        const abertaVendidos = precosVendidosAbertos.has(emp.id);
+        return naLista.map(desenhar).join("") + (boxVendidos.length ? `
+          <details class="precos-vendidos" data-preco-vendidos="${escapeHtml(emp.id)}"${abertaVendidos ? " open" : ""}>
+            <summary>${conta(boxVendidos.length, "box vendido", "box vendidos")} — toque para ver</summary>
+            ${boxVendidos.map(desenhar).join("")}
+          </details>` : "");
+        })()}
       </div>
     </details>`;
     }).join("");
@@ -3756,6 +3778,13 @@
     if (!visiveis) {
       alvo.innerHTML = `<p class="financeiro-vazio">Nenhum item nesse filtro${precoBusca ? " com esse texto" : ""}. Toque em <strong>Todos</strong> para ver a lista inteira.</p>`;
     }
+
+    alvo.querySelectorAll("details[data-preco-vendidos]").forEach((det) => {
+      det.addEventListener("toggle", () => {
+        if (det.open) precosVendidosAbertos.add(det.dataset.precoVendidos);
+        else precosVendidosAbertos.delete(det.dataset.precoVendidos);
+      });
+    });
 
     alvo.querySelectorAll("details[data-preco-emp]").forEach((det) => {
       det.addEventListener("toggle", () => {
