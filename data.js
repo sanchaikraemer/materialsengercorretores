@@ -1050,7 +1050,7 @@ const EMPREENDIMENTOS = [
         planta: "prime-planta",
         area: "124 m² global · 96 m² privativo",
         garagem: "1 box duplo",
-        unidades: [{ apto: "303", status: "disponivel", tags: ["Decorado"] }],
+        unidades: [{ apto: "303", preco: 1175700, status: "disponivel", tags: ["Decorado"] }],
       },
     ],
     // Box de garagem do terreo (101 a 118) e do subsolo (201 a 222), pela
