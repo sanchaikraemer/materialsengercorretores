@@ -1182,6 +1182,7 @@ const EMPREENDIMENTOS = [
         planta: "qual-planta-3d",
         obs: "Aluguel R$ 1.600,00 · Condomínio e IPTU por conta do inquilino.",
         unidades: [
+          { apto: "501A", preco: 618302, status: "alugado" },
           { apto: "601A", preco: 618302, status: "alugado" },
           { apto: "801A", preco: 637038, status: "alugado" },
         ],
@@ -1194,7 +1195,6 @@ const EMPREENDIMENTOS = [
         unidades: [
           { apto: "201A", preco: 562093, status: "disponivel" },
           { apto: "401A", preco: 618302, status: "disponivel", tags: ["Semimobiliado"] },
-          { apto: "501A", preco: 618302, status: "alugado" },
           { apto: "701A", preco: 637038, status: "disponivel" },
         ],
       },
