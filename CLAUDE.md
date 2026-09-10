@@ -66,6 +66,23 @@ até alguém informar o novo valor.
   em Preços e margem. As telas são longas e não há como subir nem sair de
   nenhuma delas sem rolar tudo.
 
+### A tabela começa vazia (v225)
+
+**Não há mais preço no `data.js`** — os 264 preços foram apagados a pedido do
+dono, que está remontando a tabela pelo custo. Enquanto o preço não é publicado,
+o site e o PDF mostram **"Sob consulta"**. O preço volta item a item: o dono
+informa o **custo** e a **venda desejada** em Preços e margem, e o "Publicar no
+site" grava. Como a linha do item pode não ter mais o campo `preco`,
+`aplicarPreco` **acrescenta** o campo quando ele não existe (antes do `status:`)
+em vez de falhar, e `precosDesejadosPendentes` deixou de exigir um preço atual.
+
+**O INCC corrige custo, não preço (v225).** *"Nessa tela tem que aparecer o
+custo e não venda — INCC corrige custo; venda e margem é outra coisa."* A
+pré-visualização lista **Custo atual → Custo novo** dos custos guardados, o
+"Aplicar correção" sobe todos na hora, e o "Publicar no site" grava só o mês, a
+data, o índice e o histórico no `data.js`. O seletor de arredondamento ficou
+escondido: ele existia para preço.
+
 ### Custos e margem (somente painel)
 
 **Preços e margem é uma tela própria (v210)**, no menu, ao lado da Correção pelo
