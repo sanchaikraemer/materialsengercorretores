@@ -245,6 +245,16 @@ marca do cofre. O dono apagou dezenas de vezes por causa disso. Agora o
 `apagadoEm` é lido junto, e o "Apagar tudo" funciona **mesmo com o aparelho já
 vazio** (o que sobrou pode estar só no cofre, que é de onde os valores voltavam).
 
+**Quem não sabe da limpeza limpa a si mesmo antes de falar (v229).** O que
+realmente devolvia os custos era **outra aba do painel**, aberta antes do
+"Apagar tudo" e com os valores velhos na memória: bastava ela salvar (ou ser
+recarregada) para reenviar tudo ao cofre — no dia 10/09 a limpeza foi às
+13:37:28 e os 118 custos voltaram às 13:38:20. Agora `acatarLimpezaDaConta`
+roda **antes de toda gravação no cofre** e também na abertura: se o cofre traz
+um `apagadoEm` mais novo que o desta aba, a aba se limpa (aparelho, rascunho e
+tela) e só então grava. A limpeza vence inclusive digitação em andamento — era o
+`financeiroSujo` que fazia o painel nem olhar o cofre.
+
 **Os dois lados se juntam, nunca se apagam (v190).** Ao abrir, o painel funde o cofre com o que está no aparelho: custo lançado aqui e custo lançado lá somam, e quando o mesmo item tem valor dos dois lados vale o do pacote com `salvoEm` mais recente. Se o aparelho tinha algo que faltava no cofre, ele devolve para o cofre na hora. Isso evita o acidente clássico: abrir num computador com poucos custos e apagar os de todos os outros. Digitação em andamento nunca é atropelada pelo cofre. Se a chave não tiver permissão para o repositório privado, nada quebra: os custos ficam no aparelho e a tela explica, apontando o **Exportar/Importar backup**.
 
 A linha de status diz a verdade — `X de Y itens com custo ✓ · salvo em dd/mm/aaaa`, ou "Nenhum custo guardado neste aparelho". O antigo "Dados salvos neste computador ✓" aparecia mesmo com a tabela vazia.

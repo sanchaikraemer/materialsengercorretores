@@ -1160,7 +1160,7 @@
   // A versao DESTA pagina. O numero que aparecia no alto vinha do site, entao
   // uma pagina velha guardada pelo navegador se anunciava como nova — e o dono
   // ficou horas mexendo numa tela antiga achando que o sistema nao obedecia.
-  const VERSAO_PAINEL = 228;
+  const VERSAO_PAINEL = 229;
 
   const CUSTOS_ITEM = "senger-admin-custos-v1"; // legado v171
   const FINANCEIRO_ITEM = "senger-admin-financeiro-v2";
@@ -1812,10 +1812,37 @@
     if (!resp.ok) throw erroHttp(resp);
   }
 
+  // Uma aba aberta antes do "Apagar tudo" continua com os valores velhos na
+  // memoria. Bastava ela salvar (ou so recarregar) para devolver tudo ao cofre
+  // — foi assim que os custos apagados voltaram dezenas de vezes. Entao: quem
+  // nao conhece a ultima limpeza da conta limpa a si mesmo antes de falar.
+  function acatarLimpezaDaConta(pacote) {
+    const apagadoRemoto = Date.parse(pacote?.apagadoEm || "") || 0;
+    const apagadoLocal = Date.parse(financeiroApagadoEm || "") || 0;
+    if (!apagadoRemoto || apagadoRemoto <= apagadoLocal) return false;
+    custosInternos = {};
+    margensDesejadas = {};
+    financeiroApagadoEm = pacote.apagadoEm;
+    financeiroSalvoEm = pacote.apagadoEm;
+    try { localStorage.removeItem(FINANCEIRO_RASCUNHO); } catch (e) { /* modo privado */ }
+    gravarFinanceiroLocal();
+    statusPorEmp.clear();
+    precosDispensados.clear();
+    atualizarEstadoFinanceiro(false);
+    renderCustosMargens();
+    renderPendentes();
+    return true;
+  }
+
   async function enviarAoCofre() {
     if (!estado.token) { definirCofre("sem-permissao"); return; }
     definirCofre("enviando");
     try {
+      // Confere a conta ANTES de gravar: se ela foi limpa e esta aba nao sabia,
+      // quem cede e a aba.
+      let remoto = null;
+      try { remoto = await cofreLer(); } catch (e) { remoto = null; }
+      acatarLimpezaDaConta(remoto?.pacote);
       await cofreEnviar({ versao: 2, salvoEm: financeiroSalvoEm, apagadoEm: financeiroApagadoEm, custos: custosInternos, margensDesejadas });
       definirCofre("ok");
     } catch (e) {
@@ -1830,27 +1857,22 @@
     try { remoto = await cofreLer(); }
     catch (e) { definirCofre(e.status ? "sem-permissao" : "offline"); return; }
     if (!remoto) { definirCofre("vazio"); return; }
-    // Digitacao em andamento neste aparelho nunca e atropelada pelo cofre.
-    if (financeiroSujo) { definirCofre("conflito"); return; }
     const pacote = remoto.pacote || {};
     const quandoRemoto = Date.parse(pacote.salvoEm || "") || 0;
     const quandoLocal = Date.parse(financeiroSalvoEm || "") || 0;
+    // Uma limpeza feita na conta vence ate a digitacao em andamento: era ela
+    // que segurava os custos apagados neste aparelho.
+    if (acatarLimpezaDaConta(pacote)) { definirCofre("ok"); return; }
+    // Digitacao em andamento neste aparelho nunca e atropelada pelo cofre.
+    if (financeiroSujo) { definirCofre("conflito"); return; }
     // Os dois lados se JUNTAM, nunca um apaga o outro: custo lancado num
     // aparelho e custo lancado no outro somam. Quando o mesmo item tem valor
     // dos dois lados, vale o do pacote salvo mais tarde.
     // Uma limpeza vale contra tudo o que e mais antigo que ela. Sem isto o
     // "Apagar tudo" nunca ganhava: o cofre devolvia os custos na abertura
     // seguinte, e outra aba aberta com os valores velhos os empurrava de volta.
-    const apagadoRemoto = Date.parse(pacote.apagadoEm || "") || 0;
     const apagadoLocal = Date.parse(financeiroApagadoEm || "") || 0;
     const valeORemoto = quandoRemoto > apagadoLocal;
-    if (apagadoRemoto > quandoLocal) {
-      custosInternos = {};
-      margensDesejadas = {};
-      financeiroApagadoEm = pacote.apagadoEm;
-      financeiroSalvoEm = pacote.salvoEm || new Date().toISOString();
-      gravarFinanceiroLocal();
-    }
     const remotoCustos = valeORemoto ? mapaDeNumeros(pacote.custos) : {};
     const remotoMargens = valeORemoto ? mapaDeNumeros(pacote.margensDesejadas) : {};
     const remotoManda = quandoRemoto >= quandoLocal;
