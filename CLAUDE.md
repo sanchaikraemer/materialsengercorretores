@@ -229,6 +229,27 @@ mesma conta da fila de publicação, para a tela nunca dizer uma coisa e o botã
 **No celular a linha vira cartão (v210)**, com o nome de cada valor em cima
 dele. Não há mais rolagem lateral em tela nenhuma.
 
+**Apagar tudo de um empreendimento só (v238).** Na faixa de cada empreendimento,
+em Preços e margem, há **"Apagar tudo do &lt;nome&gt;"**. Ele faz **as duas coisas**,
+por decisão do dono: limpa o custo e a margem daquele prédio (aparelho e cofre,
+na hora) **e** coloca na fila de publicação a remoção do `preco` de cada item
+dele — o preço só sai do ar no "Publicar no site", e ali o painel avisa quantos
+vão sair e que as unidades passam a "Sob consulta". Nenhum outro empreendimento
+é tocado.
+
+Existe porque só limpar o custo deixava o preço velho no ar: a fila de
+publicação só leva preço quando há **venda desejada diferente** do preço atual, e
+sem custo não há venda desejada. A remoção é um `tipoOp: "preco-apagar"` — tipo
+próprio de propósito, porque `sincronizarPrecosDesejados` refaz as ops `"preco"`
+a cada render e apagaria as de remoção junto.
+
+**A limpeza de um prédio não pode virar limpeza geral.** Por isso ela grava
+`apagadoPorEmp: { renaissance: "<data>" }`, separado do `apagadoEm` — que zera
+tudo em todo aparelho. Na fusão, custo do cofre cujo prédio foi apagado **aqui
+depois** do pacote remoto ser salvo é ignorado, e limpeza de prédio vinda do
+cofre mais nova que a deste aparelho limpa o prédio aqui, inclusive antes de
+qualquer gravação no cofre (`acatarLimpezasPorEmp`).
+
 **Apagar tudo e recomeçar (v220).** Ao lado do "Exportar backup" há
 **Apagar tudo**: limpa todos os custos e margens **do aparelho, do rascunho e do
 cofre**. Só limpar o aparelho não adiantaria — ao reabrir, a fusão da v190
