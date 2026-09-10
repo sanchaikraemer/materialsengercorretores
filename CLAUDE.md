@@ -65,6 +65,30 @@ até alguém informar o novo valor.
 - **Botão "voltar" em todas as telas do painel** (pedido em 10/09/2026), não só
   em Preços e margem. As telas são longas e não há como subir nem sair de
   nenhuma delas sem rolar tudo.
+- **Embutir o valor do box no custo do Renaissance**, como foi feito no
+  Boulevard (pedido em 10/09/2026). Lá o box é venda separada e os custos ainda
+  estão sem ele.
+- **Renaissance · "Casa Suspensa (3 suítes)" ficou sem rótulo de garagem
+  padronizado.** Os quatro apartamentos do grupo não levam a mesma garagem: 401
+  e 402 contam como "3 suítes — frente" (1 box duplo) e 1301 e 1302 como
+  "3 suítes — superiores" (1 box duplo + 1 box simples). Um rótulo só no grupo
+  ficaria errado para metade deles, então ele segue com
+  "Box opcional (consultar)" até o dono dizer o que fazer.
+
+### Garagem: "1 box simples" ou "1 box duplo" (v245)
+
+O campo `garagem` de cada grupo tinha **nove escritas diferentes** para a mesma
+coisa — "01 vaga de garagem", "1 Box de garagem", "01 box", "Box duplo",
+"01 box duplo", "01 box de garagem", "01 vaga de garagem por sala",
+"03 vagas de garagem" e "Box opcional (consultar)". O dono pediu **um padrão
+só**: sempre *"1 box simples"* ou *"1 box duplo"*.
+
+O texto novo **não foi inventado**: veio de `vagasPorTipologia`, que já dizia
+quantos box cada tipologia leva. Onde a tipologia leva mais de um, a escrita
+segue as mesmas palavras — "1 box duplo + 1 box simples" (Renaissance, 3 suítes
+superiores), "4 box simples" (18º pavimento) e "3 box simples" (a sala do térreo
+do Premium Office, que tem três mesmo). As salas do térreo do Renaissance
+continuam sem garagem, com o campo vazio, a pedido dele.
 
 ### A tabela começa vazia (v225)
 
