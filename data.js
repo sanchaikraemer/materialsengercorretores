@@ -5,11 +5,12 @@
 // ============================================================
 
 const META = {
-  mesTabela: "Agosto / 2026",
-  dataTabela: "10/07/2026",
-  incc: { valor: "R$ 3.377,91", variacao: "+0,62%" },
+  mesTabela: "Setembro/2026",
+  dataTabela: "10/09/2026",
+  incc: { valor: "R$ 3.406,62", variacao: "+0,85%" },
   historicoIncc: [
     { mes: "Agosto / 2026", data: "10/07/2026", valor: "R$ 3.377,91", variacao: "+0,62%" },
+    { mes: "Setembro/2026", data: "10/09/2026", valor: "R$ 3.406,62", variacao: "+0,85%" },
   ],
   contato: {
     telefones: ["(54) 3331-2756", "(54) 99901-3331", "(54) 98434-6602"],
@@ -1154,14 +1155,14 @@ const EMPREENDIMENTOS = [
         area: "57 m² global · 43 m² privativo",
         garagem: "1 Box de garagem",
         planta: "qual-planta-57",
-        unidades: [{ apto: "802A", status: "disponivel" }],
+        unidades: [{ apto: "802A", preco: 439994, status: "disponivel" }],
       },
       {
         tipo: "2 dormitórios c/ móveis",
         area: "69 m² global · 53 m² privativo",
         garagem: "1 Box de garagem",
         planta: "qual-planta-69",
-        unidades: [{ apto: "701B", status: "alugado" }],
+        unidades: [{ apto: "701B", preco: 520048, status: "alugado" }],
       },
       {
         tipo: "2 dormitórios — já alugados",
@@ -1170,8 +1171,8 @@ const EMPREENDIMENTOS = [
         planta: "qual-planta-69",
         obs: "Aluguel R$ 1.400,00 · Condomínio e IPTU por conta do inquilino.",
         unidades: [
-          { apto: "301B", status: "alugado" },
-          { apto: "601B", status: "alugado" },
+          { apto: "301B", preco: 470550, status: "alugado" },
+          { apto: "601B", preco: 497437, status: "alugado" },
         ],
       },
       {
@@ -1181,8 +1182,8 @@ const EMPREENDIMENTOS = [
         planta: "qual-planta-3d",
         obs: "Aluguel R$ 1.600,00 · Condomínio e IPTU por conta do inquilino.",
         unidades: [
-          { apto: "601A", status: "alugado" },
-          { apto: "801A", status: "alugado" },
+          { apto: "601A", preco: 618302, status: "alugado" },
+          { apto: "801A", preco: 637038, status: "alugado" },
         ],
       },
       {
@@ -1191,10 +1192,10 @@ const EMPREENDIMENTOS = [
         garagem: "1 Box de garagem",
         planta: "qual-planta-3d",
         unidades: [
-          { apto: "201A", status: "disponivel" },
-          { apto: "401A", status: "disponivel", tags: ["Semimobiliado"] },
-          { apto: "501A", status: "alugado" },
-          { apto: "701A", status: "disponivel" },
+          { apto: "201A", preco: 562093, status: "disponivel" },
+          { apto: "401A", preco: 618302, status: "disponivel", tags: ["Semimobiliado"] },
+          { apto: "501A", preco: 618302, status: "alugado" },
+          { apto: "701A", preco: 637038, status: "disponivel" },
         ],
       },
     ],
