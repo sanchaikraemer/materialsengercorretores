@@ -237,6 +237,14 @@ lá. Ele apagou três vezes antes de me dizer isso. Agora o pacote guarda
 O "Apagar tudo" confere a conta depois de limpar e avisa em `alert` se ainda
 sobrou algo lá, lembrando de fechar as outras abas.
 
+**Por que a limpeza da v226 nunca funcionou (v228).** O `apagadoEm` era gravado
+mas **jogado fora na leitura**: `lerPacoteFinanceiro` devolvia só `custos`,
+`margensDesejadas` e `salvoEm`. Ao reabrir, o painel achava que nunca se apagara
+nada, o cofre vencia e os custos voltavam — e a gravação seguinte ainda apagava a
+marca do cofre. O dono apagou dezenas de vezes por causa disso. Agora o
+`apagadoEm` é lido junto, e o "Apagar tudo" funciona **mesmo com o aparelho já
+vazio** (o que sobrou pode estar só no cofre, que é de onde os valores voltavam).
+
 **Os dois lados se juntam, nunca se apagam (v190).** Ao abrir, o painel funde o cofre com o que está no aparelho: custo lançado aqui e custo lançado lá somam, e quando o mesmo item tem valor dos dois lados vale o do pacote com `salvoEm` mais recente. Se o aparelho tinha algo que faltava no cofre, ele devolve para o cofre na hora. Isso evita o acidente clássico: abrir num computador com poucos custos e apagar os de todos os outros. Digitação em andamento nunca é atropelada pelo cofre. Se a chave não tiver permissão para o repositório privado, nada quebra: os custos ficam no aparelho e a tela explica, apontando o **Exportar/Importar backup**.
 
 A linha de status diz a verdade — `X de Y itens com custo ✓ · salvo em dd/mm/aaaa`, ou "Nenhum custo guardado neste aparelho". O antigo "Dados salvos neste computador ✓" aparecia mesmo com a tabela vazia.
