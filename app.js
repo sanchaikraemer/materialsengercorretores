@@ -1231,7 +1231,10 @@
             ${(emp.diferenciais || []).length ? `
               <div class="info-differentials">
                 ${emp.diferenciais.map((item) => `
-                  <div class="info-differential"><h4>${escapeHtml(item.titulo)}</h4><p>${escapeHtml(item.desc)}</p></div>
+                  <div class="info-differential">
+                    <span class="diff-icone" aria-hidden="true">${iconeDeDiferencial(item.titulo)}</span>
+                    <div><h4>${escapeHtml(item.titulo)}</h4><p>${escapeHtml(item.desc)}</p></div>
+                  </div>
                 `).join("")}
               </div>
             ` : ""}
@@ -1243,12 +1246,12 @@
               <div class="fact-card"><span>Etapa</span><strong>${escapeHtml(emp.entrega || emp.statusLabel || "—")}</strong></div>
               ${focusItem ? `
                 <div class="fact-card"><span>Área</span><strong>${escapeHtml(focusItem.area || "—")}</strong></div>
-                <div class="fact-card"><span>Valor</span><strong class="price-value">${money(focusItem.price)}</strong></div>
+                <div class="fact-card destaque"><span>Valor</span><strong class="price-value">${money(focusItem.price)}</strong></div>
               ` : focusRange ? `
                 <div class="fact-card"><span>Unidades selecionadas</span><strong>${focusItems.length}</strong></div>
-                <div class="fact-card"><span>Valores</span><strong class="price-value">${focusRange}</strong></div>
+                <div class="fact-card destaque"><span>Valores</span><strong class="price-value">${focusRange}</strong></div>
               ` : `
-                <div class="fact-card"><span>Preço inicial</span><strong class="price-value">${minimum ? money(minimum) : "Sob consulta"}</strong></div>
+                <div class="fact-card destaque"><span>Preço inicial</span><strong class="price-value">${minimum ? money(minimum) : "Sob consulta"}</strong></div>
               `}
               <div class="fact-card"><span>Registro</span><strong>${escapeHtml((emp.ri || []).join(" · ") || "Não informado")}</strong></div>
             </div>
@@ -1469,6 +1472,53 @@
         ${cantoDaGaveta(units)}
       </summary>
     `;
+  }
+
+  // Um icone para cada diferencial, escolhido pelo titulo que o dono escreveu
+  // no data.js — sao 34 titulos diferentes e crescendo, entao a escolha e por
+  // palavra, nunca por lista fixa: titulo novo cai no icone generico e nada
+  // quebra. Traco simples, na cor verde clara da paleta (o CSS pinta).
+  const DESENHOS = {
+    piscina: '<path d="M3 18c1.5 0 1.5 1 3 1s1.5-1 3-1 1.5 1 3 1 1.5-1 3-1 1.5 1 3 1 1.5-1 3-1"/><path d="M7 13V6a2 2 0 0 1 4 0"/><path d="M13 13V6a2 2 0 0 1 4 0"/><path d="M7 10h10"/>',
+    halter: '<path d="M4 9v6M20 9v6M7 6v12M17 6v12M7 12h10"/>',
+    taca: '<path d="M5 21h14M12 21v-6M6 4h12l-2.5 7a4 4 0 0 1-7 0z"/>',
+    maquina: '<rect x="4" y="3" width="16" height="18" rx="2"/><circle cx="12" cy="13" r="4"/><path d="M8 7h2"/>',
+    pincel: '<path d="M4 20h16M6 16l9-9 3 3-9 9H6z"/><path d="M14 5l2-2 3 3-2 2"/>',
+    escudo: '<path d="M12 3l7 3v6c0 4-3 7.5-7 9-4-1.5-7-5-7-9V6z"/><path d="M9.5 12l1.8 1.8L15 10"/>',
+    pin: '<path d="M12 21s7-6 7-11a7 7 0 1 0-14 0c0 5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/>',
+    carro: '<path d="M4 16v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2M16 16v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2"/><path d="M3 16v-4l2-5h14l2 5v4z"/><path d="M7 13h.01M17 13h.01"/>',
+    folha: '<path d="M5 19C5 10 12 5 20 5c0 8-5 14-14 14z"/><path d="M9 15c2-3 5-5 8-6"/>',
+    acessivel: '<circle cx="12" cy="5" r="1.6"/><path d="M9 9h6M12 9v5h4l2 5"/><path d="M12 14a4 4 0 1 1-4 4"/>',
+    predio: '<path d="M4 21V6l8-3 8 3v15"/><path d="M9 21v-5h6v5"/><path d="M9 9h.01M15 9h.01M9 12.5h.01M15 12.5h.01"/>',
+    sol: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+    pessoas: '<circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M16 11a3 3 0 1 0-1.5-5.6"/><path d="M17.5 20a5.5 5.5 0 0 0-2.2-4.4"/>',
+    sofa: '<path d="M4 12V9a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3"/><path d="M3 12a2 2 0 0 1 2 2v3h14v-3a2 2 0 0 1 2-2"/><path d="M6 17v2M18 17v2"/>',
+    diamante: '<path d="M6 3h12l3 6-9 12L3 9z"/><path d="M3 9h18M9 3l-3 6 6 12M15 3l3 6-6 12"/>',
+    estrela: '<path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1.1 5.9-5.3-2.9-5.3 2.9 1.1-5.9L3.5 9.7l5.9-.8z"/>',
+  };
+  // A ordem importa: a primeira palavra que casar decide.
+  const PALAVRAS_DO_ICONE = [
+    [/piscina|aquat|lazer/, "piscina"],
+    [/fitness|academia|esporte|wellness|bem-?estar|pilates|sauna/, "halter"],
+    [/festa|sal[aã]o|salões|lounge|sunset|pub|churrasq/, "taca"],
+    [/pratic|lavanderia|comodidade/, "maquina"],
+    [/acabamento|personaliz|design|led/, "pincel"],
+    [/seguran|portaria|monitor/, "escudo"],
+    [/localiza/, "pin"],
+    [/garagem|box|ve[ií]cul|el[eé]tric|estacion/, "carro"],
+    [/energia|renov[aá]vel|sustent|solar/, "folha"],
+    [/acess[ií]vel|acessibilidade|wc|maca|elevador/, "acessivel"],
+    [/rooftop|terra[cç]o|sol/, "sol"],
+    [/conviv|care|fam[ií]lia|kids|playground|pessoas/, "pessoas"],
+    [/conforto|aquec|churrasq|sacada|living/, "sofa"],
+    [/alto padr[aã]o|refinad|exclusiv|premium|luxo/, "diamante"],
+    [/estrutura|hall|entrada|t[eé]rreo|comercial|tipologia|predio|pr[eé]dio/, "predio"],
+  ];
+  function iconeDeDiferencial(titulo) {
+    const limpo = String(titulo || "").toLowerCase();
+    const achado = PALAVRAS_DO_ICONE.find(([regra]) => regra.test(limpo));
+    const desenho = DESENHOS[achado ? achado[1] : "estrela"];
+    return `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${desenho}</svg>`;
   }
 
   // O canto direito do cabecalho: o menor valor da tipologia e a setinha.

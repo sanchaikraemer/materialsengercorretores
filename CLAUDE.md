@@ -365,6 +365,31 @@ o alto da página, ficava por cima do texto da apresentação e, como tem
 referência. Vale a regra geral: **nunca troque um `sticky`/`relative` por
 `static` num elemento que tem filho absoluto.**
 
+## O celular ganhou três layouts escolhidos pelo dono (v237)
+
+Mostrei quatro modelos de cada parte em imagem e ele escolheu; o que está no ar
+é a escolha dele, não a minha.
+
+- **Características (`info-differentials`)** — modelo "só o ícone": ícone verde
+  (`--verde: #2fb39a`) à esquerda, título e frase à direita, sem quadro nenhum, e
+  **duas colunas no celular** (antes virava coluna única). O ícone sai de
+  `iconeDeDiferencial()`, que escolhe **por palavra do título**, nunca por lista
+  fixa: são 34 títulos no `data.js` e o dono inventa outros, então título novo
+  cai numa estrela e nada quebra.
+- **Resumo comercial (`fact-grid`)** — modelo "preço em destaque": no celular a
+  grade vira uma coluna, o quadro do preço (`.fact-card.destaque`, marcado no
+  `app.js`) sobe para o topo (`order: -1`) num bloco `--brand-soft` com o valor
+  grande, e Etapa e Registro viram linhas rótulo→valor.
+- **Unidades e valores (`unit-group-header`)** — modelo "uma linha só": no
+  celular o cabeçalho deixa de ser a faixa colorida e vira cartão branco, as
+  etiquetas de metragem viram texto miúdo separado por "·", o "a partir de" fica
+  à direita e o "Ver unidades" escrito dá lugar só à setinha. Cabem cinco
+  tipologias numa tela, contra uma e meia.
+
+**Cuidado: há dois `@media (max-width: 720px)` no `styles.css`.** O segundo (o
+que vem depois de `.unit-result-foot`) é o que manda nas regras repetidas — foi
+ele que continuou empilhando o cabeçalho depois da primeira tentativa.
+
 ## Fotos
 
 As fotos ficam em **webp** (`assets/`), que é bem mais leve no 4G do corretor na
