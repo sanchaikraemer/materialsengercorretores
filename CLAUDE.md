@@ -342,6 +342,16 @@ A linha de status diz a verdade — `X de Y itens com custo ✓ · salvo em dd/m
 
 **O vendido continua na tabela (v181).** A tabela financeira mostra o prédio inteiro: os vendidos vão para o fim da lista, em vermelho e com a situação "Vendido". Eles ficam **fora** da conta `X de Y itens com custo` — não há mais o que precificar — e o cabeçalho do empreendimento diz "N itens à venda · M vendidos".
 
+**Nenhum empreendimento tem mais box de venda separada (v246).** O Renaissance
+era o único com `boxSeparado: true`; o dono embutiu o valor do box no custo de
+cada apartamento (1 box simples R$ 74.000, 1 duplo R$ 121.000, e os "3 suítes
+superiores" levam os dois), então o box lá deixou de ter valor próprio. A marca
+foi removida do `data.js` e **o campo de custo sumiu da linha do box** — em
+qualquer empreendimento, box que já está no preço do apartamento mostra só a
+situação e o aviso "já incluso no preço do apartamento". Pedir custo ali era
+convidar a contar a garagem duas vezes. Se algum box tiver custo guardado de
+outra época, ele aparece como texto, para não ficar preso invisível.
+
 **Os box entram na tabela financeira (v180), só onde são venda separada (v185).** No **Renaissance** o box tem valor próprio e é vendido à parte — lá o `data.js` marca `boxSeparado: true` no empreendimento e guarda `preco` no box (interno; o site não lê `boxes`), e a tabela financeira lista unidades **e** box, com coluna **Situação** e a marca simples/duplo. Em **todos os outros empreendimentos o box já está dentro do preço do apartamento**: ele aparece na tabela (v187) depois das unidades, com a situação Disponível/Vendido e a frase "Já incluso no preço do apartamento" no lugar dos valores — assim o dono acompanha o que está livre sem que a garagem entre duas vezes na conta. Esses box ficam fora de `X de Y itens com custo`, e o cabeçalho do empreendimento os anuncia à parte: "14 itens à venda · 19 vendidos · 36 box no preço".
 
 **A tipologia aparece embaixo do nome (v205).** Na tabela financeira, cada
