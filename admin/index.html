@@ -1160,7 +1160,7 @@
   // A versao DESTA pagina. O numero que aparecia no alto vinha do site, entao
   // uma pagina velha guardada pelo navegador se anunciava como nova — e o dono
   // ficou horas mexendo numa tela antiga achando que o sistema nao obedecia.
-  const VERSAO_PAINEL = 230;
+  const VERSAO_PAINEL = 232;
 
   const CUSTOS_ITEM = "senger-admin-custos-v1"; // legado v171
   const FINANCEIRO_ITEM = "senger-admin-financeiro-v2";
@@ -1493,11 +1493,26 @@
   function avisarPainelVelho() {
     const barra = $("painel-velho");
     if (!barra) return;
-    const velho = Number(estado.versao) > VERSAO_PAINEL;
+    // Compara com a PAGINA DO PAINEL que esta no site, nao com o ?v= do
+    // index.html: aquele sobe sozinho a cada publicacao do dono, entao a faixa
+    // acusava "versao antiga" logo depois de publicar, e o "Atualizar agora"
+    // recarregava a mesma pagina — parecia que o botao nao fazia nada (v232).
+    const noSite = Number(estado.versaoPainel || 0);
+    const velho = noSite > VERSAO_PAINEL;
     barra.hidden = !velho;
     if (velho) {
-      $("painel-velho-texto").textContent = `Esta página do painel é a v${VERSAO_PAINEL} e já existe a v${estado.versao}. Enquanto não atualizar, você está mexendo na versão antiga.`;
+      $("painel-velho-texto").textContent = `Esta página do painel é a v${VERSAO_PAINEL} e já existe a v${noSite}. Enquanto não atualizar, você está mexendo na versão antiga.`;
     }
+  }
+
+  // Sem segurar a tela: a faixa aparece assim que a resposta chega.
+  async function conferirVersaoDoPainel() {
+    try {
+      const arq = await ghBuscar("admin/index.html");
+      const m = arq.text.match(/const VERSAO_PAINEL = (\d+)/);
+      estado.versaoPainel = m ? Number(m[1]) : 0;
+    } catch (e) { estado.versaoPainel = 0; }
+    avisarPainelVelho();
   }
 
   function fecharMenuMobile() {
@@ -1967,6 +1982,7 @@
     // Busca os custos guardados na conta sem segurar a tela: eles aparecem
     // assim que chegam.
     carregarDoCofre();
+    conferirVersaoDoPainel();
   }
 
   // Predio comercial nao tem apartamento: no Premium Office as unidades sao
@@ -3703,6 +3719,10 @@
   let precoBusca = "";
   const precosEmpsAbertos = new Set();
   const precosVendidosAbertos = new Set();
+  // O box disponivel e o alugado tambem saem da lista para uma gaveta propria:
+  // no Renaissance sao 65 box para 43 apartamentos, e o dono pediu para so
+  // abrir quando quisesse ver.
+  const precosBoxAbertos = new Set();
 
   // O prédio inteiro fica a vista: o box de todos os empreendimentos aparece
   // (onde e venda separada tem valor proprio; nos demais ja esta no preco do
@@ -3893,15 +3913,20 @@
           </div>
         </div>`;
         };
-        const ehBoxVendido = (r) => r.item.tipo === "box" && r.vendido;
-        const naLista = registros.filter((r) => !ehBoxVendido(r));
-        const boxVendidos = registros.filter(ehBoxVendido);
-        const abertaVendidos = precosVendidosAbertos.has(emp.id);
-        return naLista.map(desenhar).join("") + (boxVendidos.length ? `
-          <details class="precos-vendidos" data-preco-vendidos="${escapeHtml(emp.id)}"${abertaVendidos ? " open" : ""}>
-            <summary>${conta(boxVendidos.length, "box vendido", "box vendidos")} — toque para ver</summary>
-            ${boxVendidos.map(desenhar).join("")}
-          </details>` : "");
+        const ehBox = (r) => r.item.tipo === "box";
+        const naLista = registros.filter((r) => !ehBox(r));
+        const boxNaOferta = registros.filter((r) => ehBox(r) && !r.vendido);
+        const boxVendidos = registros.filter((r) => ehBox(r) && r.vendido);
+        const gaveta = (lista, chaveDado, aberta, texto) => lista.length ? `
+          <details class="precos-vendidos" ${chaveDado}="${escapeHtml(emp.id)}"${aberta ? " open" : ""}>
+            <summary>${texto} — toque para ver</summary>
+            ${lista.map(desenhar).join("")}
+          </details>` : "";
+        return naLista.map(desenhar).join("")
+          + gaveta(boxNaOferta, "data-preco-box", precosBoxAbertos.has(emp.id),
+                   conta(boxNaOferta.length, "box à venda", "box à venda"))
+          + gaveta(boxVendidos, "data-preco-vendidos", precosVendidosAbertos.has(emp.id),
+                   conta(boxVendidos.length, "box vendido", "box vendidos"));
         })()}
       </div>
     </details>`;
@@ -3915,6 +3940,13 @@
       det.addEventListener("toggle", () => {
         if (det.open) precosVendidosAbertos.add(det.dataset.precoVendidos);
         else precosVendidosAbertos.delete(det.dataset.precoVendidos);
+      });
+    });
+
+    alvo.querySelectorAll("details[data-preco-box]").forEach((det) => {
+      det.addEventListener("toggle", () => {
+        if (det.open) precosBoxAbertos.add(det.dataset.precoBox);
+        else precosBoxAbertos.delete(det.dataset.precoBox);
       });
     });
 
