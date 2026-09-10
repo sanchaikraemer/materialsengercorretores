@@ -383,6 +383,9 @@
     .preco-chip.vazio { opacity:.45; }
     .preco-busca { flex:1; min-width:160px; padding:9px 11px; border:1px solid var(--borda); border-radius:9px; background:var(--fundo); color:var(--texto); font:inherit; font-size:.8rem; }
     .preco-busca:focus { outline:2px solid rgba(23,143,160,.2); border-color:var(--dourado); }
+    /* Apagar custo e margem nao se desfaz: o botao e vermelho de proposito. */
+    .botao.perigo { background:var(--cartao); color:var(--vermelho); border:1px solid rgba(157,73,73,.45); }
+    .botao.perigo:hover { background:rgba(157,73,73,.08); border-color:var(--vermelho); }
     .precos-massa { display:flex; flex-wrap:wrap; gap:10px; align-items:center; border:1px solid var(--borda); border-radius:10px; background:var(--fundo); padding:11px 13px; margin:0 0 14px; }
     .precos-massa .titulo-massa { font-size:.78rem; font-weight:600; }
     .precos-massa .preco-massa-status { font-size:.74rem; color:var(--texto-suave); flex:1 1 100%; }
@@ -1009,6 +1012,7 @@
             <input class="arquivo-input" type="file" id="arquivo-importar-custos" accept="application/json,.json">
             <button type="button" class="botao" id="botao-salvar-financeiro" style="margin-top:0" disabled>Salvar custos e margens</button>
             <button type="button" class="botao secundario" id="botao-exportar-custos" style="margin-top:0">Exportar backup</button>
+            <button type="button" class="botao perigo" id="botao-apagar-financeiro" style="margin-top:0">Apagar tudo</button>
             <span class="financeiro-status salvo" id="financeiro-status">Dados salvos neste aparelho ✓</span>
           </div>
           <p class="financeiro-cofre" id="financeiro-cofre"></p>
@@ -4172,6 +4176,28 @@
     } finally {
       e.target.value = "";
     }
+  });
+
+  // Comecar do zero. So limpar o aparelho nao adianta: ao reabrir, o painel
+  // funde o cofre de volta (v190) e os custos antigos ressuscitam. Entao o
+  // apagar tem de ir aos dois lugares.
+  $("botao-apagar-financeiro")?.addEventListener("click", async () => {
+    const quantosCustos = Object.keys(custosInternos).length;
+    const quantasMargens = Object.keys(margensDesejadas).length;
+    if (!quantosCustos && !quantasMargens) { aviso("Não há custo nem margem para apagar.", "falha"); return; }
+    if (!confirm(`Apagar TODOS os custos e margens?\n\n${quantosCustos} custos e ${quantasMargens} margens, deste aparelho e da sua conta.\n\nNão dá para desfazer. Se quiser guardar antes, cancele e use “Exportar backup”.\n\nOs preços do site não mudam.`)) return;
+    custosInternos = {};
+    margensDesejadas = {};
+    financeiroSalvoEm = new Date().toISOString();
+    gravarFinanceiroLocal();
+    try { localStorage.removeItem(FINANCEIRO_RASCUNHO); } catch (e) { /* modo privado */ }
+    statusPorEmp.clear();
+    precosDispensados.clear();
+    atualizarEstadoFinanceiro(false);
+    renderCustosMargens();
+    renderPendentes();
+    await enviarAoCofre();
+    aviso(`Apagados ${quantosCustos} custos e ${quantasMargens} margens. Pode importar de novo.`, "ok");
   });
 
   $("botao-exportar-custos")?.addEventListener("click", () => {
