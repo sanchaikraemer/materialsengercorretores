@@ -425,6 +425,12 @@
     .precos-emp-massa .preco-massa-status.ok { color:var(--verde); font-weight:600; }
     .precos-emp-massa .preco-massa-status.falha { color:#a86612; font-weight:600; }
     .precos-emp-massa .campo-pct input { background:var(--cartao); }
+    /* v238 — "Apagar tudo do <predio>" fica na mesma faixa, empurrado para a
+       direita e em vermelho discreto: e destrutivo, mas nao pode competir com
+       o "Aplicar a todas as unidades", que e o uso do dia a dia. */
+    .precos-emp-massa .botao-gaveta.perigo { margin-left:auto; color:var(--vermelho);
+      border:1px solid rgba(157,73,73,.4); background:var(--cartao); }
+    .precos-emp-massa .botao-gaveta.perigo:hover { background:rgba(157,73,73,.08); border-color:var(--vermelho); }
     .precos-lista { border-top:1px solid var(--borda); background:var(--cartao); container-type:inline-size; }
     /* As colunas crescem junto com a lista, em vez de ficarem paradas na
        direita com um vao no meio: era o vazio entre o nome e o custo.
@@ -1160,7 +1166,7 @@
   // A versao DESTA pagina. O numero que aparecia no alto vinha do site, entao
   // uma pagina velha guardada pelo navegador se anunciava como nova — e o dono
   // ficou horas mexendo numa tela antiga achando que o sistema nao obedecia.
-  const VERSAO_PAINEL = 237;
+  const VERSAO_PAINEL = 238;
 
   const CUSTOS_ITEM = "senger-admin-custos-v1"; // legado v171
   const FINANCEIRO_ITEM = "senger-admin-financeiro-v2";
@@ -1186,6 +1192,10 @@
         // gravada e depois jogada fora na leitura, entao ao reabrir o painel
         // achava que nunca se apagou nada e o cofre devolvia tudo (v228).
         apagadoEm: bruto.apagadoEm || "",
+        // Quando cada empreendimento foi apagado sozinho (v238). Separado do
+        // apagadoEm geral de proposito: limpar um predio nao pode fazer os
+        // outros aparelhos apagarem o resto.
+        apagadoPorEmp: bruto.apagadoPorEmp && typeof bruto.apagadoPorEmp === "object" ? bruto.apagadoPorEmp : {},
       };
     } catch (e) { return null; }
   }
@@ -1206,6 +1216,7 @@
       margensDesejadas: mudou ? rascunho.margensDesejadas : salvo.margensDesejadas,
       salvoEm: salvo.salvoEm,
       apagadoEm: salvo.apagadoEm || "",
+      apagadoPorEmp: salvo.apagadoPorEmp || {},
       recuperado: !!mudou,
     };
   }
@@ -1218,6 +1229,7 @@
   // aba aberta com os valores velhos) devolvia os custos apagados na abertura
   // seguinte: a fusao da v190 soma os dois lados e uma limpeza nunca ganhava.
   let financeiroApagadoEm = financeiroInicial.apagadoEm || "";
+  let apagadoPorEmp = { ...(financeiroInicial.apagadoPorEmp || {}) };
   let financeiroSujo = financeiroInicial.recuperado;
   // Quantos itens da tabela ja tem custo. E o que responde na tela a pergunta
   // "cade meus custos?" sem o dono precisar rolar a tabela inteira.
@@ -1240,7 +1252,7 @@
   function gravarFinanceiroLocal() {
     try {
       localStorage.setItem(FINANCEIRO_ITEM, JSON.stringify({
-        versao: 2, salvoEm: financeiroSalvoEm, apagadoEm: financeiroApagadoEm, custos: custosInternos, margensDesejadas,
+        versao: 2, salvoEm: financeiroSalvoEm, apagadoEm: financeiroApagadoEm, apagadoPorEmp, custos: custosInternos, margensDesejadas,
       }));
       // Mantém o mapa antigo atualizado para não perder compatibilidade com backups v171.
       localStorage.setItem(CUSTOS_ITEM, JSON.stringify(custosInternos));
@@ -1851,7 +1863,31 @@
   // memoria. Bastava ela salvar (ou so recarregar) para devolver tudo ao cofre
   // — foi assim que os custos apagados voltaram dezenas de vezes. Entao: quem
   // nao conhece a ultima limpeza da conta limpa a si mesmo antes de falar.
+  // O mesmo, empreendimento a empreendimento: quem nao conhece a limpeza de um
+  // predio limpa o que tem dele antes de falar com a conta (v238).
+  function acatarLimpezasPorEmp(pacote) {
+    const remoto = (pacote && typeof pacote.apagadoPorEmp === "object" && pacote.apagadoPorEmp) || {};
+    let mudou = false;
+    Object.keys(remoto).forEach((empId) => {
+      const quandoRemoto = Date.parse(remoto[empId] || "") || 0;
+      const quandoLocal = Date.parse(apagadoPorEmp[empId] || "") || 0;
+      if (!quandoRemoto || quandoRemoto <= quandoLocal) return;
+      apagadoPorEmp[empId] = remoto[empId];
+      const prefixo = empId + ":";
+      [custosInternos, margensDesejadas].forEach((mapa) => {
+        Object.keys(mapa).forEach((k) => { if (k.startsWith(prefixo)) { delete mapa[k]; mudou = true; } });
+      });
+    });
+    if (mudou) {
+      gravarFinanceiroLocal();
+      atualizarEstadoFinanceiro(false);
+      renderCustosMargens();
+    }
+    return mudou;
+  }
+
   function acatarLimpezaDaConta(pacote) {
+    acatarLimpezasPorEmp(pacote);
     const apagadoRemoto = Date.parse(pacote?.apagadoEm || "") || 0;
     const apagadoLocal = Date.parse(financeiroApagadoEm || "") || 0;
     if (!apagadoRemoto || apagadoRemoto <= apagadoLocal) return false;
@@ -1878,7 +1914,7 @@
       let remoto = null;
       try { remoto = await cofreLer(); } catch (e) { remoto = null; }
       acatarLimpezaDaConta(remoto?.pacote);
-      await cofreEnviar({ versao: 2, salvoEm: financeiroSalvoEm, apagadoEm: financeiroApagadoEm, custos: custosInternos, margensDesejadas });
+      await cofreEnviar({ versao: 2, salvoEm: financeiroSalvoEm, apagadoEm: financeiroApagadoEm, apagadoPorEmp, custos: custosInternos, margensDesejadas });
       definirCofre("ok");
     } catch (e) {
       definirCofre(e.status ? "sem-permissao" : "offline");
@@ -1908,8 +1944,20 @@
     // seguinte, e outra aba aberta com os valores velhos os empurrava de volta.
     const apagadoLocal = Date.parse(financeiroApagadoEm || "") || 0;
     const valeORemoto = quandoRemoto > apagadoLocal;
-    const remotoCustos = valeORemoto ? mapaDeNumeros(pacote.custos) : {};
-    const remotoMargens = valeORemoto ? mapaDeNumeros(pacote.margensDesejadas) : {};
+    // Custo de um predio que ESTE aparelho apagou depois do pacote do cofre
+    // ter sido salvo nao volta: era assim que o "apagar so o Renaissance"
+    // voltaria atras sozinho na abertura seguinte.
+    const valeAChave = (chave) => {
+      const quandoApagado = Date.parse(apagadoPorEmp[String(chave).split(":")[0]] || "") || 0;
+      return !quandoApagado || quandoRemoto > quandoApagado;
+    };
+    const soAsQueValem = (mapa) => {
+      const saida = {};
+      Object.keys(mapa).forEach((k) => { if (valeAChave(k)) saida[k] = mapa[k]; });
+      return saida;
+    };
+    const remotoCustos = valeORemoto ? soAsQueValem(mapaDeNumeros(pacote.custos)) : {};
+    const remotoMargens = valeORemoto ? soAsQueValem(mapaDeNumeros(pacote.margensDesejadas)) : {};
     const remotoManda = quandoRemoto >= quandoLocal;
     const antes = JSON.stringify([custosInternos, margensDesejadas]);
     custosInternos = remotoManda ? { ...custosInternos, ...remotoCustos } : { ...remotoCustos, ...custosInternos };
@@ -3874,6 +3922,7 @@
         <span class="titulo-massa">Margem sobre o custo de todo o ${escapeHtml(emp.nome)}:</span>
         <div class="campo-pct"><input inputmode="decimal" data-pct-emp="${escapeHtml(emp.id)}" value="${escapeHtml(textoPct(pctComumDoEmp(emp, registros)))}" placeholder="ex.: 5" aria-label="Margem em porcentagem para todo o ${escapeHtml(emp.nome)}"><span>%</span></div>
         <button type="button" class="botao-gaveta" data-aplicar-emp="${escapeHtml(emp.id)}">Aplicar a todas as unidades</button>
+        <button type="button" class="botao-gaveta perigo" data-apagar-emp="${escapeHtml(emp.id)}">Apagar tudo do ${escapeHtml(emp.nome)}</button>
         <span class="preco-massa-status${statusPorEmp.get(emp.id) ? " " + escapeHtml(statusPorEmp.get(emp.id).tipo) : ""}" data-status-emp="${escapeHtml(emp.id)}">${statusPorEmp.get(emp.id) ? escapeHtml(statusPorEmp.get(emp.id).texto) : ""}</span>
       </div>
       <div class="precos-lista">
@@ -3979,6 +4028,10 @@
         if (det.open) precosEmpsAbertos.add(det.dataset.precoEmp);
         else precosEmpsAbertos.delete(det.dataset.precoEmp);
       });
+    });
+
+    alvo.querySelectorAll("[data-apagar-emp]").forEach((botao) => {
+      botao.addEventListener("click", () => apagarEmpreendimento(botao.dataset.apagarEmp));
     });
 
     alvo.querySelectorAll("[data-aplicar-emp]").forEach((botao) => {
@@ -4433,6 +4486,56 @@
     aviso(`Apagados ${quantosCustos} custos e ${quantasMargens} margens.`, "ok");
   });
 
+  // Apagar tudo de UM empreendimento: custo e margem internos (aparelho e
+  // conta) e tambem o preco dele no site. O dono pediu os dois juntos — so
+  // limpar o custo deixava o preco velho no ar, porque a fila de publicacao so
+  // leva preco quando existe venda desejada diferente.
+  async function apagarEmpreendimento(empId) {
+    const emp = (estado.dados?.EMPREENDIMENTOS || []).find((e) => e.id === empId);
+    if (!emp) return;
+    const prefixo = empId + ":";
+    const chavesCusto = Object.keys(custosInternos).filter((k) => k.startsWith(prefixo));
+    const chavesMargem = Object.keys(margensDesejadas).filter((k) => k.startsWith(prefixo));
+    const itens = [...itensDoEmp(emp), ...boxesDoEmp(emp)].filter((item) => Number(item.preco) > 0);
+    if (!chavesCusto.length && !chavesMargem.length && !itens.length) {
+      aviso(`Não há custo, margem nem preço para apagar no ${emp.nome}.`, "falha");
+      return;
+    }
+    const oQueVai = [
+      chavesCusto.length ? conta(chavesCusto.length, "custo", "custos") : "",
+      chavesMargem.length ? conta(chavesMargem.length, "margem", "margens") : "",
+      itens.length ? `${conta(itens.length, "preço", "preços")} do site` : "",
+    ].filter(Boolean).join(", ");
+    if (!confirm(`Apagar TUDO do ${emp.nome}?\n\n${oQueVai}.\n\nO custo e a margem saem agora, deste aparelho e da sua conta.\nOs preços só saem do site quando você clicar em “Publicar no site” — e as unidades passam a aparecer como “Sob consulta”.\n\nNenhum outro empreendimento é tocado. Se quiser guardar antes, cancele e use “Exportar backup”.`)) return;
+
+    chavesCusto.forEach((k) => { delete custosInternos[k]; });
+    chavesMargem.forEach((k) => { delete margensDesejadas[k]; });
+    financeiroSalvoEm = new Date().toISOString();
+    // Marca a limpeza DESTE empreendimento. Nao mexe no apagadoEm geral: ele
+    // faria os outros aparelhos apagarem tudo, e o dono pediu so este predio.
+    apagadoPorEmp[empId] = financeiroSalvoEm;
+    financeiroAntesDaPrevia = null;
+    gravarFinanceiroLocal();
+    try { localStorage.removeItem(FINANCEIRO_RASCUNHO); } catch (e) { /* modo privado */ }
+
+    // Os precos entram na fila; quem tira do ar e o "Publicar no site".
+    estado.ops = estado.ops.filter((op) => !(op.tipoOp === "preco-apagar" && op.empId === empId));
+    itens.forEach((item) => {
+      estado.ops.push({
+        tipoOp: "preco-apagar", apagar: true, chave: chaveDoItem(empId, item), empId, empNome: emp.nome,
+        rotulo: `${emp.nome} · ${item.rotulo}`, atual: Number(item.preco) || 0, novo: null,
+      });
+    });
+
+    statusPorEmp.clear();
+    precosDispensados.clear();
+    atualizarEstadoFinanceiro(false);
+    renderCustosMargens();
+    renderPendentes();
+    await enviarAoCofre();
+    aviso(`${emp.nome}: ${oQueVai} apagados.` + (itens.length ? " Clique em “Publicar no site” para tirar os preços do ar." : ""), "ok");
+  }
+
   $("botao-exportar-custos")?.addEventListener("click", () => {
     const blob = new Blob([JSON.stringify({ versao: 2, exportadoEm: new Date().toISOString(), custos: custosInternos, margensDesejadas }, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -4657,7 +4760,16 @@
     // O item pode ainda nao ter preco no cadastro (o dono apagou todos para
     // remontar a tabela pela venda desejada). Entao: troca se existir, e
     // acrescenta se nao existir — antes do status, para o arquivo ficar legivel.
+    // Apagar o preco de um empreendimento inteiro: tira o campo da linha em vez
+    // de gravar um valor. A linha sem "preco" e a mesma coisa que o site ja
+    // trata como "Sob consulta" (foi assim que a v225 esvaziou a tabela).
+    const tirarPreco = (t) => {
+      const sem = t.replace(/\bpreco:\s*-?\d+(?:\.\d+)?\s*,\s*/, "");
+      if (sem !== t) return sem;
+      return t.replace(/,\s*preco:\s*-?\d+(?:\.\d+)?/, "");
+    };
     const trocar = (linha) => {
+      if (op.apagar) return tirarPreco(linha);
       if (/preco:\s*-?\d/.test(linha)) return linha.replace(/preco:\s*-?\d+(?:\.\d+)?/, `preco: ${op.novo}`);
       if (/\bstatus:/.test(linha)) return linha.replace(/\bstatus:/, `preco: ${op.novo}, status:`);
       const fecha = linha.lastIndexOf("}");
@@ -4695,10 +4807,12 @@
       const depois = bloco.slice(posNome);
       const limite = depois.search(/\n\s*\},/);
       const trecho = depois.slice(0, limite === -1 ? undefined : limite);
-      const novoTrecho = /preco:\s*-?\d/.test(trecho)
-        ? trecho.replace(/preco:\s*-?\d+(?:\.\d+)?/, `preco: ${op.novo}`)
-        : trecho.replace(/(nome:\s*"[^"]*",)/, `$1\n        preco: ${op.novo},`);
-      if (novoTrecho === trecho) throw new Error(`Não consegui gravar o preço de "${nome}" em ${empId}.`);
+      const novoTrecho = op.apagar
+        ? tirarPreco(trecho)
+        : /preco:\s*-?\d/.test(trecho)
+          ? trecho.replace(/preco:\s*-?\d+(?:\.\d+)?/, `preco: ${op.novo}`)
+          : trecho.replace(/(nome:\s*"[^"]*",)/, `$1\n        preco: ${op.novo},`);
+      if (novoTrecho === trecho && !op.apagar) throw new Error(`Não consegui gravar o preço de "${nome}" em ${empId}.`);
       return bloco.slice(0, posNome) + novoTrecho + bloco.slice(posNome + trecho.length);
     });
   }
@@ -4953,6 +5067,11 @@
     const precos = estado.ops.filter((op) => op.tipoOp === "preco");
     if (precos.length === 1) partes.push(`${precos[0].rotulo.trim()} com preço novo`);
     else if (precos.length > 1) partes.push(`${precos.length} preços atualizados`);
+    const apagados = estado.ops.filter((op) => op.tipoOp === "preco-apagar");
+    if (apagados.length) {
+      const emps = [...new Set(apagados.map((op) => op.empNome))];
+      partes.push(`${apagados.length} ${apagados.length === 1 ? "preço apagado" : "preços apagados"} (${emps.join(", ")})`);
+    }
     const materiais = estado.ops.filter((op) => ["material", "galeria", "planta"].includes(op.tipoOp));
     const uploads = estado.ops.filter((op) => op.tipoOp === "upload");
     if (materiais.length === 1) partes.push("materiais de empreendimento atualizados");
@@ -4972,6 +5091,14 @@
       const amostra = precos.slice(0, 6).map((op) => `${op.rotulo}: ${moeda(op.atual)} → ${moeda(op.novo)}`).join("\n");
       const resto = precos.length > 6 ? `\n… e mais ${precos.length - 6}.` : "";
       if (!confirm(`${precos.length === 1 ? "1 preço vai mudar" : `${precos.length} preços vão mudar`} no site:\n\n${amostra}${resto}\n\nPublicar agora?`)) return;
+    }
+    // Apagar preco tira o valor do site: o cliente passa a ver "Sob consulta".
+    const apagarPrecos = estado.ops.filter((op) => op.tipoOp === "preco-apagar");
+    if (apagarPrecos.length) {
+      const porEmp = {};
+      apagarPrecos.forEach((op) => { porEmp[op.empNome] = (porEmp[op.empNome] || 0) + 1; });
+      const linhas = Object.entries(porEmp).map(([nome, n]) => `${nome}: ${conta(n, "preço", "preços")}`).join("\n");
+      if (!confirm(`Vão SAIR do site:\n\n${linhas}\n\nEssas unidades passam a aparecer como “Sob consulta” para o cliente.\n\nPublicar agora?`)) return;
     }
     // Publicar guarda antes o custo e a margem digitados. Sem isso o dono
     // teria de acertar a ordem dos botoes, e um esquecimento apagaria o que
@@ -5001,6 +5128,7 @@
       if (incc) texto = aplicarIncc(texto, incc);
       estado.ops.filter((op) => op.tipoOp === "status").forEach((op) => { texto = aplicarStatus(texto, op); });
       estado.ops.filter((op) => op.tipoOp === "preco").forEach((op) => { texto = aplicarPreco(texto, op); });
+      estado.ops.filter((op) => op.tipoOp === "preco-apagar").forEach((op) => { texto = aplicarPreco(texto, op); });
       estado.ops.filter((op) => op.tipoOp === "material").forEach((op) => { texto = aplicarMaterial(texto, op); });
       estado.ops.filter((op) => op.tipoOp === "galeria").forEach((op) => { texto = aplicarGaleria(texto, op); });
       estado.ops.filter((op) => op.tipoOp === "planta").forEach((op) => { texto = aplicarPlanta(texto, op); });
