@@ -62,8 +62,9 @@ até alguém informar o novo valor.
 
 ### A fazer na próxima atualização
 
-- **Botão "voltar" na tela de Preços e margem** (pedido em 10/09/2026). A tela é
-  longa e não há como subir nem sair dela sem rolar tudo.
+- **Botão "voltar" em todas as telas do painel** (pedido em 10/09/2026), não só
+  em Preços e margem. As telas são longas e não há como subir nem sair de
+  nenhuma delas sem rolar tudo.
 
 ### Custos e margem (somente painel)
 
