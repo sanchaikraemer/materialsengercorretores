@@ -354,6 +354,17 @@ folha de um empreendimento usa.
 Antes da v197 saía só o "a partir de" de cada prédio; a v197 juntou os cartões
 e a lista, e a v208 tirou os cartões: o corretor leva a tabela, não a vitrine.
 
+## O "Toque para ver maior" fugia da planta no celular (v236)
+
+O badge é `position: absolute` dentro do visor da planta. No computador o visor
+é `sticky`, que serve de referência; abaixo de 720 px ele virava `static` (para
+desligar o sticky) e **deixava de ser referência** — o badge subia sozinho para
+o alto da página, ficava por cima do texto da apresentação e, como tem
+`pointer-events: none`, não abria nada ao toque. Agora a regra do celular usa
+`position: relative`: desliga o sticky do mesmo jeito e continua sendo a
+referência. Vale a regra geral: **nunca troque um `sticky`/`relative` por
+`static` num elemento que tem filho absoluto.**
+
 ## Fotos
 
 As fotos ficam em **webp** (`assets/`), que é bem mais leve no 4G do corretor na

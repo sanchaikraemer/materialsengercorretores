@@ -691,7 +691,11 @@ img { max-width: 100%; display: block; }
   .info-differentials { grid-template-columns: 1fr; gap: 12px; }
   .gallery-featured { aspect-ratio: 6 / 5; }
   .plant-viewer { grid-template-columns: 1fr; }
-  .plant-viewer-preview { position: static; height: 280px; order: -1; }
+  /* "relative", nao "static": o static desliga o sticky mas tambem deixa de
+     ser referencia para o "Toque para ver maior", que e absoluto — no
+     celular ele fugia para o alto da pagina e ficava por cima do texto,
+     longe da planta, sem abrir nada ao toque. */
+  .plant-viewer-preview { position: relative; height: 280px; order: -1; }
   .units-table { display: none; }
   .mobile-units { display: block; }
   .footer-grid { grid-template-columns: 1fr; gap: 30px; }
