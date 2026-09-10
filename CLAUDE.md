@@ -198,6 +198,21 @@ ver"), fechada por padrão e que lembra se o dono a deixou aberta. **Só o box
 vendido** vai para lá: disponível e alugado continuam na lista, e a unidade
 vendida também, em vermelho, como antes.
 
+**Todo box vai para gaveta, não só o vendido (v232).** A v223 recolheu só o box
+vendido; o dono pediu o resto também — no Renaissance são 65 box para 43
+apartamentos, e a lista de preço é dos apartamentos. Agora cada empreendimento
+termina com duas gavetas fechadas, "N box à venda" e "N box vendidos", cada uma
+lembrando se foi deixada aberta. A unidade vendida continua na lista, em
+vermelho.
+
+**A faixa de "versão antiga" compara painel com painel (v232).** Ela olhava o
+`?v=` do `index.html`, que **sobe sozinho a cada publicação do dono** — então
+logo depois de publicar a faixa acusava desatualizado e o "Atualizar agora"
+recarregava a mesma página: *"to clicando em atualizar e nada acontece"*. Agora
+`conferirVersaoDoPainel` lê o `VERSAO_PAINEL` do `admin/index.html` que está no
+site e compara com o desta página — a faixa só aparece quando existe mesmo uma
+página de painel mais nova.
+
 **Três filtros e uma busca (v210)**: `Falta custo`, `Vai mudar de preço` e
 `Abaixo do custo`, cada um com a contagem ao lado, refeita a cada tecla
 digitada. Com filtro ligado os empreendimentos abrem sozinhos. A linha que vai
