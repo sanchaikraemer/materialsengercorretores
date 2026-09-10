@@ -1193,7 +1193,7 @@ const EMPREENDIMENTOS = [
         unidades: [
           { apto: "201A", preco: 550000, status: "disponivel" },
           { apto: "401A", preco: 580000, status: "disponivel", tags: ["Semimobiliado"] },
-          { apto: "501A", status: "vendido" },
+          { apto: "501A", status: "alugado" },
           { apto: "701A", preco: 590000, status: "disponivel" },
         ],
       },
