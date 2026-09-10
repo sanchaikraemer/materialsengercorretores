@@ -60,6 +60,11 @@ nenhuma disponível; se a venda for desfeita, o preço aparece como "Sob consult
 até alguém informar o novo valor.
 
 
+### A fazer na próxima atualização
+
+- **Botão "voltar" na tela de Preços e margem** (pedido em 10/09/2026). A tela é
+  longa e não há como subir nem sair dela sem rolar tudo.
+
 ### Custos e margem (somente painel)
 
 **Preços e margem é uma tela própria (v210)**, no menu, ao lado da Correção pelo
