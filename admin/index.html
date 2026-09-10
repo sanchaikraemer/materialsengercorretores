@@ -1160,7 +1160,7 @@
   // A versao DESTA pagina. O numero que aparecia no alto vinha do site, entao
   // uma pagina velha guardada pelo navegador se anunciava como nova — e o dono
   // ficou horas mexendo numa tela antiga achando que o sistema nao obedecia.
-  const VERSAO_PAINEL = 229;
+  const VERSAO_PAINEL = 230;
 
   const CUSTOS_ITEM = "senger-admin-custos-v1"; // legado v171
   const FINANCEIRO_ITEM = "senger-admin-financeiro-v2";
@@ -4350,6 +4350,11 @@
     if (!confirm(`Apagar TODOS os custos e margens?\n\n${oQueVai}\n\nNão dá para desfazer. Se quiser guardar antes, cancele e use “Exportar backup”.\n\nOs preços do site não mudam.`)) return;
     custosInternos = {};
     margensDesejadas = {};
+    // A correcao do INCC guarda um retrato dos custos para o "Descartar" poder
+    // voltar atras. Sem apagar esse retrato, o Descartar (e o Cancelar da
+    // correcao) devolvia os custos apagados inteirinhos — era daqui que eles
+    // voltavam, nao de outra aba.
+    financeiroAntesDaPrevia = null;
     financeiroSalvoEm = new Date().toISOString();
     financeiroApagadoEm = financeiroSalvoEm;
     gravarFinanceiroLocal();

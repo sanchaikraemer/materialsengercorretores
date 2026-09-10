@@ -1,5 +1,5 @@
-const CACHE = "senger-portfolio-v229-20260910-limpeza-vence-rascunho";
-const CORE = ["./", "./index.html", "./styles.css?v=229", "./data.js?v=229", "./app.js?v=229", "./manifest.json"];
+const CACHE = "senger-portfolio-v230-20260910-descartar-nao-ressuscita";
+const CORE = ["./", "./index.html", "./styles.css?v=230", "./data.js?v=230", "./app.js?v=230", "./manifest.json"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

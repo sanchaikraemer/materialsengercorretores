@@ -255,6 +255,14 @@ um `apagadoEm` mais novo que o desta aba, a aba se limpa (aparelho, rascunho e
 tela) e só então grava. A limpeza vence inclusive digitação em andamento — era o
 `financeiroSujo` que fazia o painel nem olhar o cofre.
 
+**Era o "Descartar" que devolvia os custos (v230).** A correcão do INCC guarda
+um retrato dos custos (`financeiroAntesDaPrevia`) para o "Descartar" poder voltar
+atrás. O "Apagar tudo" não apagava esse retrato: bastava clicar em **Descartar**
+depois de apagar e os custos voltavam inteiros à tela, ao aparelho e ao cofre no
+salvamento seguinte. Foi o que aconteceu em 10/09 — limpeza às 13:37:28, 118
+custos de volta às 13:38:20. Agora o "Apagar tudo" esquece o retrato junto.
+(Reproduzido no Chromium antes e depois: antes voltavam 18 de 18; depois, zero.)
+
 **Os dois lados se juntam, nunca se apagam (v190).** Ao abrir, o painel funde o cofre com o que está no aparelho: custo lançado aqui e custo lançado lá somam, e quando o mesmo item tem valor dos dois lados vale o do pacote com `salvoEm` mais recente. Se o aparelho tinha algo que faltava no cofre, ele devolve para o cofre na hora. Isso evita o acidente clássico: abrir num computador com poucos custos e apagar os de todos os outros. Digitação em andamento nunca é atropelada pelo cofre. Se a chave não tiver permissão para o repositório privado, nada quebra: os custos ficam no aparelho e a tela explica, apontando o **Exportar/Importar backup**.
 
 A linha de status diz a verdade — `X de Y itens com custo ✓ · salvo em dd/mm/aaaa`, ou "Nenhum custo guardado neste aparelho". O antigo "Dados salvos neste computador ✓" aparecia mesmo com a tabela vazia.
