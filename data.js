@@ -95,8 +95,13 @@ const EMPREENDIMENTOS = [
       {
         tipo: "Casa Suspensa (3 suítes)",
         area: "306 a 385 m² global · 208 a 280 m² privativo",
-        garagem: "Box opcional (consultar)",
-        obs: "Plantas exclusivas — pavimentos 4 e 13. Valor sem box de garagem.",
+        // Aqui a garagem nao e a mesma para todos: o 401/402 leva 1 box duplo e
+        // o 1301/1302 leva 1 box duplo + 1 box simples. Quem diz isso e o
+        // `estoque` de cada unidade, lido em vagasPorTipologia — o site mostra
+        // apartamento por apartamento em vez de um texto so, que estaria errado
+        // para metade do grupo.
+        garagem: "",
+        obs: "Plantas exclusivas — pavimentos 4 e 13.",
         unidades: [
           { apto: "401", preco: 1611000, status: "disponivel", areaUnit: "358 m² global · 258 m² privativo", planta: "ren-planta-401", estoque: "3 suítes — frente" },
           { apto: "402", preco: 1611000, status: "disponivel", areaUnit: "385 m² global · 280 m² privativo", planta: "ren-planta-402", estoque: "3 suítes — frente" },
@@ -109,7 +114,6 @@ const EMPREENDIMENTOS = [
         area: "180 m² global · 117 m² privativo",
         garagem: "1 box duplo",
         planta: "ren-planta-3s-frente-dir",
-        obs: "Valor sem box de garagem.",
         unidades: [
           { apto: "501", preco: 1201000, status: "disponivel", areaUnit: "179 m² global · 117 m² privativo" },
           { apto: "502", preco: 1201000, status: "disponivel", areaUnit: "179 m² global · 117 m² privativo" },
@@ -136,7 +140,7 @@ const EMPREENDIMENTOS = [
         area: "243 m² global · 159 m² privativo",
         garagem: "1 box duplo + 1 box simples",
         planta: "ren-planta-3s-superior",
-        obs: "Pé-direito livre de 3 metros. Valor sem box de garagem.",
+        obs: "Pé-direito livre de 3 metros.",
         unidades: [
           { apto: "1401", preco: 1645000, status: "disponivel" },
           { apto: "1402", preco: 1645000, status: "disponivel" },
@@ -170,7 +174,6 @@ const EMPREENDIMENTOS = [
         area: "130 m² global · 86 m² privativo",
         garagem: "1 box simples",
         planta: "ren-planta-2suites",
-        obs: "Valor sem box de garagem.",
         unidades: [
           { apto: "503", preco: 804000, status: "disponivel" },
           { apto: "603", preco: 804000, status: "disponivel" },
@@ -194,7 +197,7 @@ const EMPREENDIMENTOS = [
         area: "205 m² global · 146 m² privativo",
         garagem: "1 box simples",
         planta: "ren-planta-504",
-        obs: "Unidade 504 — lateral direita. Valor sem box de garagem.",
+        obs: "Unidade 504 — lateral direita.",
         unidades: [
           { apto: "504", preco: 954000, status: "disponivel", estoque: "2 suítes" },
         ],
@@ -207,7 +210,7 @@ const EMPREENDIMENTOS = [
         area: "175 m² global · 114 m² privativo",
         garagem: "",
         planta: "ren-planta-comercial-terreo",
-        obs: "Pavimento térreo. Valor sem box de garagem.",
+        obs: "Pavimento térreo. Sem box de garagem.",
         unidades: [
           { apto: "Sala 01", status: "vendido", areaUnit: "200 m² global · 131 m² privativo" },
           { apto: "Sala 02", status: "vendido", areaUnit: "177 m² global · 115 m² privativo" },

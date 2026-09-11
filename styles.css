@@ -1029,6 +1029,13 @@ tr.unit-highlight td:first-child { box-shadow: inset 4px 0 0 var(--brand); }
 .units-table th:nth-child(2), .units-table td:nth-child(2) { width: 26%; }
 .units-table th:nth-child(3), .units-table td:nth-child(3) { width: 13%; }
 .units-table th:nth-child(4), .units-table td:nth-child(4) { width: 14%; }
+/* v251 — quando o quadro mistura garagens, entra uma coluna a mais e as
+   larguras de cinco colunas espremiam o valor ate corta-lo. */
+.units-table.com-garagem th:nth-child(1), .units-table.com-garagem td:nth-child(1) { width: 17%; }
+.units-table.com-garagem th:nth-child(2), .units-table.com-garagem td:nth-child(2) { width: 23%; }
+.units-table.com-garagem th:nth-child(3), .units-table.com-garagem td:nth-child(3) { width: 16%; }
+.units-table.com-garagem th:nth-child(4), .units-table.com-garagem td:nth-child(4) { width: 12%; }
+.units-table.com-garagem th:nth-child(5), .units-table.com-garagem td:nth-child(5) { width: 14%; }
 
 /* v105 — "Meu contato": os dados do corretor que assinam mensagens e PDFs. */
 .corretor-tag {
