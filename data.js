@@ -947,8 +947,8 @@ const EMPREENDIMENTOS = [
         area: "172 m² global · 132 m² privativo",
         garagem: "1 box duplo",
         unidades: [
-          { apto: "602", preco: 1328200, status: "disponivel" },
-          { apto: "902", preco: 1467600, status: "disponivel", tags: ["Semimobiliado"] },
+          { apto: "602", status: "disponivel" },
+          { apto: "902", status: "disponivel", tags: ["Semimobiliado"] },
         ],
       },
     ],
