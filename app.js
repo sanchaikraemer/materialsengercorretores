@@ -1428,6 +1428,13 @@
     blocos.forEach((bloco) => {
       if (bloco.juntou) bloco.units.sort((a, b) => numeroDoApto(a) - numeroDoApto(b));
     });
+    // Os quadros tambem saem em ordem — pelo menor numero de apartamento que
+    // cada um tem, e so quando empatar (dois lotes, por exemplo, sem numero de
+    // apto) o menor preco decide. Antes eles saiam na ordem do data.js, que e
+    // a ordem em que o dono cadastrou, nao a que o cliente espera ler.
+    const menorNumero = (bloco) => Math.min(...bloco.units.map(numeroDoApto));
+    const menorPreco = (bloco) => Math.min(...bloco.units.map((it) => it.price || Number.MAX_SAFE_INTEGER));
+    blocos.sort((a, b) => menorNumero(a) - menorNumero(b) || menorPreco(a) - menorPreco(b));
     return blocos;
   }
 

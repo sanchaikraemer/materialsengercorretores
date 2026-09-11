@@ -535,7 +535,16 @@ para a vitrine e para o PDF. O `data.js` continua com os grupos separados de
 propósito: é por eles que o painel confere a garagem de cada coluna, e cada
 unidade guarda a sua própria planta e a sua própria área. No quadro que juntou,
 as unidades saem em ordem de número (503, 504, 603, 604…) em vez de uma coluna
-inteira depois da outra; os quadros que não juntaram mantêm a ordem do cadastro.
+inteira depois da outra.
+
+**Os quadros também saem em ordem, não na ordem do cadastro (v261).** Antes
+eles seguiam a ordem dos grupos no `data.js` — a ordem em que o dono cadastrou,
+não a que o cliente espera ler. No Renaissance isso fazia a Casa Suspensa de
+3 suítes superiores (1301, 1302) aparecer logo depois da de 3 suítes frente
+(401, 402), porque são os dois primeiros grupos do cadastro. Agora os quadros
+saem pelo **menor número de apartamento** de cada um, crescente, e só quando
+empatar decide o **menor valor**, também crescente. Vale para todos os
+empreendimentos.
 
 **O sufixo diz de qual final é a tipologia (v213).** O campo `sufixo` do grupo
 aparece ao lado do nome, em letra mais leve: "Sala comercial · final 01".
