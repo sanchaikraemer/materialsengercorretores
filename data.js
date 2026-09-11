@@ -92,19 +92,31 @@ const EMPREENDIMENTOS = [
       { src: "assets/ren-planta-comercial-terreo.webp", legenda: "Planta baixa — salas comerciais do térreo", tecnica: true },
     ],
     grupos: [
+      // v252 — sao duas Casas Suspensas de 3 suites, nao uma: a do 4o pavimento
+      // leva 1 box duplo e a do 13o leva 1 box duplo + 1 box simples. Num quadro
+      // so, a garagem ficava certa apenas na linha de cada apartamento e o
+      // cabecalho ficava sem ela. Separadas, cada quadro anuncia a sua — e e
+      // assim que o dono fala delas: frente e superior, como nos outros aptos.
       {
         tipo: "Casa Suspensa (3 suítes)",
-        area: "306 a 385 m² global · 208 a 280 m² privativo",
-        // Aqui a garagem nao e a mesma para todos: o 401/402 leva 1 box duplo e
-        // o 1301/1302 leva 1 box duplo + 1 box simples. Quem diz isso e o
-        // `estoque` de cada unidade, lido em vagasPorTipologia — o site mostra
-        // apartamento por apartamento em vez de um texto so, que estaria errado
-        // para metade do grupo.
-        garagem: "",
-        obs: "Plantas exclusivas — pavimentos 4 e 13.",
+        sufixo: "frente",
+        estoque: "3 suítes — frente",
+        area: "358 a 385 m² global · 258 a 280 m² privativo",
+        garagem: "1 box duplo",
+        obs: "Plantas exclusivas — 4º pavimento.",
         unidades: [
           { apto: "401", preco: 1611000, status: "disponivel", areaUnit: "358 m² global · 258 m² privativo", planta: "ren-planta-401", estoque: "3 suítes — frente" },
           { apto: "402", preco: 1611000, status: "disponivel", areaUnit: "385 m² global · 280 m² privativo", planta: "ren-planta-402", estoque: "3 suítes — frente" },
+        ],
+      },
+      {
+        tipo: "Casa Suspensa (3 suítes)",
+        sufixo: "pavimentos superiores",
+        estoque: "3 suítes — superiores",
+        area: "306 m² global · 208 m² privativo",
+        garagem: "1 box duplo + 1 box simples",
+        obs: "Plantas exclusivas — 13º pavimento.",
+        unidades: [
           { apto: "1301", preco: 1785000, status: "disponivel", areaUnit: "306 m² global · 208 m² privativo", planta: "ren-planta-1301", estoque: "3 suítes — superiores" },
           { apto: "1302", preco: 1785000, status: "disponivel", areaUnit: "306 m² global · 208 m² privativo", planta: "ren-planta-1302", estoque: "3 suítes — superiores" },
         ],
