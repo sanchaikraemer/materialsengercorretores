@@ -1169,7 +1169,7 @@
   // A versao DESTA pagina. O numero que aparecia no alto vinha do site, entao
   // uma pagina velha guardada pelo navegador se anunciava como nova — e o dono
   // ficou horas mexendo numa tela antiga achando que o sistema nao obedecia.
-  const VERSAO_PAINEL = 256;
+  const VERSAO_PAINEL = 258;
 
   const CUSTOS_ITEM = "senger-admin-custos-v1"; // legado v171
   const FINANCEIRO_ITEM = "senger-admin-financeiro-v2";
@@ -3813,13 +3813,26 @@
   // O prédio inteiro fica a vista: o box de todos os empreendimentos aparece
   // (onde e venda separada tem valor proprio; nos demais ja esta no preco do
   // apartamento) e o vendido vai para o fim da lista, em vermelho.
+  // O numero que o dono le no nome do item: o apartamento, o box, o lote. Quem
+  // nao tem numero (os imoveis de "outros") vai para o fim, em ordem de nome.
+  function numeroDoItemFinanceiro(item) {
+    const bruto = item.apto ?? item.box ?? item.numero ?? item.rotulo ?? "";
+    const achou = String(bruto).match(/\d+/);
+    return achou ? Number(achou[0]) : Number.MAX_SAFE_INTEGER;
+  }
+
   function itensFinanceiros() {
     if (!estado.dados) return [];
     return estado.dados.EMPREENDIMENTOS.map((emp) => ({
       emp,
       itens: [...itensDoEmp(emp), ...boxesDoEmp(emp).map((b) => ({ ...b, semValor: !emp.boxSeparado }))]
         .sort((a, b) => (a.tipo === "box" ? 1 : 0) - (b.tipo === "box" ? 1 : 0)
-          || (statusAtual(emp.id, a) === "vendido" ? 1 : 0) - (statusAtual(emp.id, b) === "vendido" ? 1 : 0)),
+          || (statusAtual(emp.id, a) === "vendido" ? 1 : 0) - (statusAtual(emp.id, b) === "vendido" ? 1 : 0)
+          // Dentro de cada bloco, do menor numero para o maior. Sem isso a lista
+          // saia na ordem dos quadros do data.js e o 1301 caia logo depois do
+          // 402, porque as Casas Suspensas sao os primeiros quadros do cadastro.
+          || numeroDoItemFinanceiro(a) - numeroDoItemFinanceiro(b)
+          || String(a.rotulo || "").localeCompare(String(b.rotulo || ""), "pt-BR")),
     })).filter(({ itens }) => itens.length);
   }
 
