@@ -391,20 +391,11 @@
        descontos de proposta moram na gaveta, que abre so quando ele precisa.
        No celular a mesma linha vira cartao, sem rolagem para o lado. */
     .precos-filtros { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:0 0 14px; }
-    .preco-chip { border:1px solid var(--borda); background:var(--fundo); color:var(--texto-suave); border-radius:999px; padding:7px 13px; font:inherit; font-size:.76rem; font-weight:600; cursor:pointer; }
-    .preco-chip:hover { border-color:var(--dourado); }
-    .preco-chip.ativo { background:var(--dourado); border-color:var(--dourado); color:#fff; }
-    .preco-chip.vazio { opacity:.45; }
     .preco-busca { flex:1; min-width:160px; padding:9px 11px; border:1px solid var(--borda); border-radius:9px; background:var(--fundo); color:var(--texto); font:inherit; font-size:.8rem; }
     .preco-busca:focus { outline:2px solid rgba(23,143,160,.2); border-color:var(--dourado); }
     /* Apagar custo e margem nao se desfaz: o botao e vermelho de proposito. */
     .botao.perigo { background:var(--cartao); color:var(--vermelho); border:1px solid rgba(157,73,73,.45); }
     .botao.perigo:hover { background:rgba(157,73,73,.08); border-color:var(--vermelho); }
-    .precos-massa { display:flex; flex-wrap:wrap; gap:10px; align-items:center; border:1px solid var(--borda); border-radius:10px; background:var(--fundo); padding:11px 13px; margin:0 0 14px; }
-    .precos-massa .titulo-massa { font-size:.78rem; font-weight:600; }
-    .precos-massa .preco-massa-status { font-size:.74rem; color:var(--texto-suave); flex:1 1 100%; }
-    .precos-massa .preco-massa-status.ok { color:var(--verde); font-weight:600; }
-    .precos-massa .preco-massa-status.falha { color:#a86612; font-weight:600; }
     .campo-pct { display:inline-flex; align-items:center; gap:5px; }
     .campo-pct input { width:78px; padding:7px 8px; border:1px solid var(--borda); border-radius:7px; background:var(--cartao); color:var(--texto); text-align:right; font:inherit; font-size:.8rem; font-variant-numeric:tabular-nums; }
     .campo-pct input:focus { outline:2px solid rgba(23,143,160,.2); border-color:var(--dourado); }
@@ -507,9 +498,6 @@
       .preco-campo input { text-align:left; }
       .preco-campo .campo-pct { justify-content:flex-start; }
       .preco-campo .campo-pct input { width:88px; }
-    }
-    @media (max-width: 860px) {
-      .precos-massa .titulo-massa { flex:1 1 100%; }
     }
     .custo-input, .margem-desejada-input { width:104px; padding:6px 6px; border:1px solid var(--borda); border-radius:7px; background:var(--fundo); color:var(--texto); text-align:right; font:inherit; font-size:.76rem; font-variant-numeric:tabular-nums; }
     .custo-input:focus, .margem-desejada-input:focus { outline:2px solid rgba(23,143,160,.2); border-color:var(--dourado); }
@@ -1057,17 +1045,7 @@
             <p class="custos-nota"><strong>Margem</strong> = o preço menos o custo. Enquanto a venda desejada estiver vazia, a margem mostrada é a do preço que está no site; assim que você informa a venda desejada, ela passa a mostrar a margem dessa venda. Tocando no <strong>⌄</strong> ao lado do nome do item aparecem: <strong>Custo - 5%</strong> = custo × 0,95 e <strong>Custo - 10%</strong> = custo × 0,90, para quando o cliente pede abatimento. Custo e margem são informação interna e não vão para o site.</p>
           </details>
           <div class="precos-filtros">
-            <button type="button" class="preco-chip ativo" data-preco-filtro="todos">Todos</button>
-            <button type="button" class="preco-chip" data-preco-filtro="sem-custo">Falta custo</button>
-            <button type="button" class="preco-chip" data-preco-filtro="muda">Vai mudar de preço</button>
-            <button type="button" class="preco-chip" data-preco-filtro="negativa">Abaixo do custo</button>
             <input class="preco-busca" id="preco-busca" type="search" placeholder="Procurar apto, sala, lote, box…" autocomplete="off">
-          </div>
-          <div class="precos-massa">
-            <span class="titulo-massa">Margem sobre o custo em vários itens de uma vez:</span>
-            <div class="campo-pct"><input id="preco-pct-massa" inputmode="decimal" placeholder="ex.: 5" aria-label="Percentual de margem sobre o custo"><span>%</span></div>
-            <button type="button" class="botao secundario" id="botao-pct-massa" style="margin-top:0">Aplicar aos itens da lista</button>
-            <span class="preco-massa-status" id="preco-massa-status"></span>
           </div>
           <div id="custos-venda"></div>
         </section>
@@ -1168,7 +1146,7 @@
   // A versao DESTA pagina. O numero que aparecia no alto vinha do site, entao
   // uma pagina velha guardada pelo navegador se anunciava como nova — e o dono
   // ficou horas mexendo numa tela antiga achando que o sistema nao obedecia.
-  const VERSAO_PAINEL = 260;
+  const VERSAO_PAINEL = 261;
 
   const CUSTOS_ITEM = "senger-admin-custos-v1"; // legado v171
   const FINANCEIRO_ITEM = "senger-admin-financeiro-v2";
@@ -1313,7 +1291,6 @@
     // Mexeu na venda desejada, a fila de publicacao muda junto — e o
     // "Publicar no site" acende ou apaga na hora.
     renderPendentes();
-    atualizarContagensPrecos();
   }
 
   // O custo sai da tabela do mes. Quando a tabela e corrigida pelo INCC, custo
@@ -3794,11 +3771,9 @@
   // Os tres filtros respondem as tres perguntas que o dono faz de pe na frente
   // da lista: o que ainda nao tem custo, o que vai mudar de preco quando ele
   // publicar, e o que esta abaixo do custo.
-  const ROTULO_FILTRO_PRECO = { todos: "Todos", "sem-custo": "Falta custo", muda: "Vai mudar de preço", negativa: "Abaixo do custo" };
   // O que a faixa de cada empreendimento está dizendo. Fica fora do desenho da
   // lista para sobreviver ao redesenho que vem logo depois de aplicar.
   const statusPorEmp = new Map();
-  let precoFiltro = "todos";
   let precoBusca = "";
   const precosEmpsAbertos = new Set();
   const precosVendidosAbertos = new Set();
@@ -3881,39 +3856,7 @@
 
   function passaNoFiltroPreco(reg) {
     if (precoBusca && !`${reg.emp.nome} ${reg.item.rotulo} ${reg.detalhe}`.toLowerCase().includes(precoBusca)) return false;
-    if (precoFiltro === "sem-custo") return reg.faltaCusto;
-    if (precoFiltro === "muda") return reg.muda;
-    if (precoFiltro === "negativa") return reg.negativa;
     return true;
-  }
-
-  // As contagens dos chips sao refeitas a cada tecla digitada, sem redesenhar
-  // a lista: redesenhar tiraria o cursor de dentro do campo.
-  function atualizarContagensPrecos() {
-    const contagem = { todos: 0, "sem-custo": 0, muda: 0, negativa: 0 };
-    itensFinanceiros().forEach(({ emp, itens }) => {
-      const boxesDaqui = boxesDoEmp(emp);
-      const prefixo = nomes(emp).prefixo;
-      itens.forEach((item) => {
-        const reg = lerItemFinanceiro(emp, item, boxesDaqui, prefixo);
-        // O box de garagem nao entra no "Todos": o dono conta a tabela em
-        // apartamento, sala e lote, e a garagem inflava o numero (638 com box,
-        // e sao 65 box para 43 apartamentos so no Renaissance). Eles continuam
-        // na lista, nas gavetas do fim de cada empreendimento.
-        if (reg.item.tipo !== "box") contagem.todos++;
-        if (reg.faltaCusto) contagem["sem-custo"]++;
-        if (reg.muda) contagem.muda++;
-        if (reg.negativa) contagem.negativa++;
-      });
-    });
-    document.querySelectorAll("[data-preco-filtro]").forEach((botao) => {
-      const filtro = botao.dataset.precoFiltro;
-      const n = contagem[filtro] || 0;
-      botao.textContent = `${ROTULO_FILTRO_PRECO[filtro]} (${n})`;
-      botao.classList.toggle("ativo", filtro === precoFiltro);
-      botao.classList.toggle("vazio", filtro !== "todos" && !n);
-    });
-    return contagem;
   }
 
   function renderCustosMargens() {
@@ -3931,7 +3874,7 @@
       if (custoInterno(chaveDoItem(emp.id, item))) financeiroCobertura.comCusto++;
     }));
 
-    const filtrando = precoFiltro !== "todos" || !!precoBusca;
+    const filtrando = !!precoBusca;
     let visiveis = 0;
 
     alvo.innerHTML = grupos.map(({ emp, itens }) => {
@@ -4292,21 +4235,8 @@
     atualizarEstadoFinanceiro(financeiroSujo);
   }
 
-  // Colocar 5% de margem item a item em 245 itens ninguem faz. Este botao
-  // aplica a porcentagem de uma vez em tudo o que esta na lista naquele
-  // momento — o filtro e a busca decidem o alcance, e nada vai para o site
-  // antes do "Publicar no site".
-  function mostrarStatusMassa(texto, tipo) {
-    const el = $("preco-massa-status");
-    if (!el) return;
-    el.textContent = texto;
-    el.classList.toggle("ok", tipo === "ok");
-    el.classList.toggle("falha", tipo === "falha");
-  }
-
   // Um percentual no topo do empreendimento precifica o predio inteiro de uma
-  // vez. Diferente da faixa de cima, esta nao olha o filtro: ela vale para
-  // todas as unidades a venda daquele empreendimento.
+  // vez: todas as unidades a venda daquele empreendimento, filtro ou nao.
   function aplicarPctNoEmp(empId, bruto) {
     const emp = (estado.dados?.EMPREENDIMENTOS || []).find((e) => e.id === empId);
     if (!emp) return;
@@ -4342,49 +4272,6 @@
     renderCustosMargens();
     aviso(`${textoPct(pct)}% de margem em ${quantos} ${quantos === 1 ? "item" : "itens"} do ${emp.nome}.`, "ok");
   }
-
-  $("botao-pct-massa")?.addEventListener("click", () => {
-    const pct = numeroDePct($("preco-pct-massa")?.value);
-    if (pct == null) {
-      mostrarStatusMassa("Informe o percentual antes, como 5 ou 7,5.", "falha");
-      aviso("Informe o percentual, como 5 ou 7,5.", "falha");
-      return;
-    }
-    const alvos = [];
-    let semCusto = 0;
-    itensFinanceiros().forEach(({ emp, itens }) => {
-      const boxesDaqui = boxesDoEmp(emp);
-      const prefixo = nomes(emp).prefixo;
-      itens.forEach((item) => {
-        const reg = lerItemFinanceiro(emp, item, boxesDaqui, prefixo);
-        if (!reg.vendavel || !passaNoFiltroPreco(reg)) return;
-        if (!reg.custo) { semCusto++; return; }
-        alvos.push(reg);
-      });
-    });
-    if (!alvos.length) {
-      mostrarStatusMassa(semCusto
-        ? `Nenhum item desta lista tem custo lançado (${semCusto} sem custo). A margem sai do custo, então é ele que vem primeiro.`
-        : "Nenhum item à venda nesta lista.", "falha");
-      return;
-    }
-    const quantos = `${alvos.length} ${alvos.length === 1 ? "item" : "itens"}`;
-    if (!confirm(`Colocar ${textoPct(pct)}% de margem sobre o custo em ${quantos} desta lista?\n\nA venda desejada de cada um passa a ser o custo mais ${textoPct(pct)}%. Nada muda no site antes de você conferir e clicar em “Publicar no site”.`)) return;
-    alvos.forEach((reg) => { margensDesejadas[reg.chave] = margemDePct(reg.custo, pct); });
-    atualizarEstadoFinanceiro(true);
-    renderCustosMargens();
-    mostrarStatusMassa(`${textoPct(pct)}% aplicado em ${quantos}.`
-      + (semCusto ? ` ${semCusto} ${semCusto === 1 ? "ficou de fora por não ter" : "ficaram de fora por não ter"} custo lançado.` : "")
-      + " Confira a coluna Venda desejada e clique em “Publicar no site”.", "ok");
-    aviso(`${textoPct(pct)}% de margem em ${quantos}. Confira e publique.`, "ok");
-  });
-
-  document.querySelectorAll("[data-preco-filtro]").forEach((botao) => {
-    botao.addEventListener("click", () => {
-      precoFiltro = botao.dataset.precoFiltro;
-      renderCustosMargens();
-    });
-  });
 
   // A busca nao redesenha a cada tecla: espera o dono parar de digitar, senao
   // o cursor sairia do campo no meio da palavra.
