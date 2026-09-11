@@ -691,7 +691,17 @@ painel.
 
 
 ### INCC e histórico (v173)
-- **O arredondamento é sempre para cima (v207)**, em R$ 100 (o padrão) ou R$ 1.000.
+- **O arredondamento voltou, e o padrão é o R$ 100 mais próximo (v254).** O dono
+  pediu de volta ("quero de volta aquele negócio de arredondar para os 100,00
+  mais próximo"): o seletor, escondido na v225, reaparece na tela do INCC com
+  cinco opções — R$ 100 / R$ 1.000, mais próximo ou para cima, e o valor exato.
+  Ele arredonda o **custo e a margem** corrigidos (`arredondarValor`), nunca o
+  preço do site: com os dois em valor redondo, a venda desejada também sai
+  redonda. **O perigo da v207 não se repete aqui**, porque ali o arredondado era
+  o preço enquanto o custo seguia exato — agora a margem é calculada em cima do
+  custo já arredondado. A pré-visualização mostra o custo novo já arredondado e
+  o resumo diz qual arredondamento está valendo.
+- **O arredondamento era sempre para cima (v207, valia para preço)**, em R$ 100 (o padrão) ou R$ 1.000.
   Arredondar para o "mais próximo" jogava o preço para baixo do valor corrigido —
   o custo sobe pelo INCC sem arredondar, então 43 unidades ficaram de R$ 5 a R$ 30
   **abaixo do custo** depois da correção de setembro, e a margem apareceu
