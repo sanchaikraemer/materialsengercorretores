@@ -1169,14 +1169,14 @@ const EMPREENDIMENTOS = [
         area: "57 m² global · 43 m² privativo",
         garagem: "1 box simples",
         planta: "qual-planta-57",
-        unidades: [{ apto: "802A", preco: 421661, status: "disponivel" }],
+        unidades: [{ apto: "802A", preco: 403328, status: "disponivel" }],
       },
       {
         tipo: "2 dormitórios c/ móveis",
         area: "69 m² global · 53 m² privativo",
         garagem: "1 box simples",
         planta: "qual-planta-69",
-        unidades: [{ apto: "701B", preco: 520048, status: "alugado" }],
+        unidades: [{ apto: "701B", preco: 497437, status: "alugado" }],
       },
       {
         tipo: "2 dormitórios — já alugados",
