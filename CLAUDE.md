@@ -68,6 +68,16 @@ até alguém informar o novo valor.
 - **Embutir o valor do box no custo do Renaissance**, como foi feito no
   Boulevard (pedido em 10/09/2026). Lá o box é venda separada e os custos ainda
   estão sem ele.
+### São três Casas Suspensas, não duas (v252)
+
+O dono fala delas separadas — **2 suítes**, **3 suítes frente** e
+**3 suítes superior** —, e é assim que elas estão no site desde a v252: a
+Casa Suspensa de 3 suítes virou dois quadros, "frente" (401 e 402, 1 box duplo,
+4º pavimento) e "pavimentos superiores" (1301 e 1302, 1 box duplo + 1 box
+simples, 13º pavimento), com o `sufixo` da v213 ao lado do nome. Num quadro só,
+a garagem certa aparecia apenas na linha de cada apartamento e **o cabeçalho
+ficava sem nenhuma** — que é onde o cliente olha primeiro.
+
 ### A garagem quem diz é a regra do cadastro (v251)
 
 O site não escreve mais um texto de garagem por tipologia: ele lê
