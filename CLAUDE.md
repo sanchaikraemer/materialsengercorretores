@@ -68,12 +68,28 @@ até alguém informar o novo valor.
 - **Embutir o valor do box no custo do Renaissance**, como foi feito no
   Boulevard (pedido em 10/09/2026). Lá o box é venda separada e os custos ainda
   estão sem ele.
-- **Renaissance · "Casa Suspensa (3 suítes)" ficou sem rótulo de garagem
-  padronizado.** Os quatro apartamentos do grupo não levam a mesma garagem: 401
-  e 402 contam como "3 suítes — frente" (1 box duplo) e 1301 e 1302 como
-  "3 suítes — superiores" (1 box duplo + 1 box simples). Um rótulo só no grupo
-  ficaria errado para metade deles, então ele segue com
-  "Box opcional (consultar)" até o dono dizer o que fazer.
+### A garagem quem diz é a regra do cadastro (v251)
+
+O site não escreve mais um texto de garagem por tipologia: ele lê
+`vagasPorTipologia` pelo rótulo de `estoque` da unidade — **a mesma regra que o
+painel usa** em "Garagem por unidade". Foi assim que a Casa Suspensa de 3 suítes
+parou de mentir: 401 e 402 levam 1 box duplo, 1301 e 1302 levam 1 box duplo + 1
+box simples, e antes o grupo inteiro dizia "Box opcional (consultar)".
+
+Quando todas as unidades do quadro levam a mesma garagem, ela continua sendo
+uma etiqueta no cabeçalho. **Misturou, vira coluna**: na tabela do computador,
+linha no cartão do celular, coluna no PDF e no texto que vai ao cliente. A
+tabela de seis colunas tem larguras próprias (`.units-table.com-garagem`) —
+sem elas o valor ficava cortado atrás dos botões.
+
+O campo `garagem` do grupo continua valendo como último recurso, para a
+tipologia sem regra cadastrada (as salas do térreo, por exemplo). No painel, a
+pendência "sem a garagem informada" só acusa quem não tem **nem** o texto **nem**
+a regra.
+
+**O box já está no preço do apartamento**, então o aviso "Valor sem box de
+garagem" saiu do Renaissance (ele vinha de quando o box era venda separada, o
+que acabou na v246).
 
 ### Garagem: "1 box simples" ou "1 box duplo" (v245)
 
