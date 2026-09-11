@@ -993,13 +993,16 @@
               <input id="incc-data" type="date" lang="pt-BR" autocomplete="off">
               <small class="incc-ajuda" id="incc-data-ajuda"></small>
             </div>
-            <div hidden>
-              <label for="incc-arredondar">Arredondar preços para</label>
+            <div>
+              <label for="incc-arredondar">Arredondar para</label>
               <select id="incc-arredondar">
-                <option value="100" selected>R$ 100 para cima</option>
-                <option value="1000">R$ 1.000 para cima</option>
+                <option value="100" selected>R$ 100 mais próximo</option>
+                <option value="100-cima">R$ 100 para cima</option>
+                <option value="1000">R$ 1.000 mais próximo</option>
+                <option value="1000-cima">R$ 1.000 para cima</option>
                 <option value="1">Valor exato (sem arredondar)</option>
               </select>
+              <small class="incc-ajuda">Vale para o custo e a margem corrigidos — é o que faz a venda desejada cair em valor redondo.</small>
             </div>
             <div>
               <button class="botao" id="botao-previa">Pré-visualizar</button>
@@ -1166,7 +1169,7 @@
   // A versao DESTA pagina. O numero que aparecia no alto vinha do site, entao
   // uma pagina velha guardada pelo navegador se anunciava como nova — e o dono
   // ficou horas mexendo numa tela antiga achando que o sistema nao obedecia.
-  const VERSAO_PAINEL = 252;
+  const VERSAO_PAINEL = 254;
 
   const CUSTOS_ITEM = "senger-admin-custos-v1"; // legado v171
   const FINANCEIRO_ITEM = "senger-admin-financeiro-v2";
@@ -1351,7 +1354,7 @@
     if (op && !financeiroAntesDaPrevia) {
       financeiroAntesDaPrevia = { custos: { ...custosInternos }, margens: { ...margensDesejadas } };
       const fator = 1 + op.pct / 100;
-      const corrigido = (n) => Math.round(n * fator * 100) / 100;
+      const corrigido = (n) => arredondarValor(n * fator, op.arredondar);
       Object.keys(custosInternos).forEach((k) => { const n = Number(custosInternos[k]); if (Number.isFinite(n) && n > 0) custosInternos[k] = corrigido(n); });
       Object.keys(margensDesejadas).forEach((k) => { const n = Number(margensDesejadas[k]); if (Number.isFinite(n)) margensDesejadas[k] = corrigido(n); });
       atualizarEstadoFinanceiro(true);
@@ -1363,10 +1366,10 @@
     }
   }
 
-  function corrigirFinanceiroPeloIncc(pct) {
+  function corrigirFinanceiroPeloIncc(pct, arredondar) {
     const fator = 1 + Number(pct) / 100;
     if (!Number.isFinite(fator) || fator <= 0) return 0;
-    const corrigido = (n) => Math.round(n * fator * 100) / 100;
+    const corrigido = (n) => arredondarValor(n * fator, arredondar);
     let quantos = 0;
     Object.keys(custosInternos).forEach((chave) => {
       const n = Number(custosInternos[chave]);
@@ -4704,13 +4707,28 @@
     return Number.isFinite(pct) && bruto !== "" ? pct : null;
   }
 
-  // Arredondar para o MAIS PROXIMO jogava o preco para baixo do valor corrigido
-  // — o 1301 subiu para 1.603.515 e virou 1.603.500, R$ 15 abaixo do custo, que
-  // e corrigido sem arredondar. Arredondamento e sempre para cima: a correcao
-  // do mes nunca pode diminuir a margem.
-  function novoPreco(preco, pct, arredondar) {
-    const passo = Number(arredondar);
-    return Math.ceil((preco * (1 + pct / 100)) / passo) * passo;
+  // v253 — o dono pediu de volta o arredondamento, com o R$ 100 MAIS PROXIMO
+  // como padrao. Ele vale para o CUSTO e para a margem corrigidos, nao para o
+  // preco do site: era o preco que a v207 tinha de arredondar sempre para cima,
+  // senao a correcao do mes deixava a unidade abaixo do custo. No custo nao ha
+  // esse risco — a margem e calculada depois, em cima do custo ja arredondado —
+  // e, com os dois arredondados, a venda desejada tambem cai em valor redondo.
+  function arredondarValor(n, modo) {
+    if (!Number.isFinite(n)) return n;
+    const texto = String(modo || "1");
+    const paraCima = texto.endsWith("-cima");
+    const passo = Number(texto.replace("-cima", "")) || 1;
+    if (passo <= 1) return Math.round(n * 100) / 100;
+    const sinal = n < 0 ? -1 : 1;
+    const valor = Math.abs(n);
+    return sinal * (paraCima ? Math.ceil(valor / passo) : Math.round(valor / passo)) * passo;
+  }
+
+  // Como arredondar agora: o que o dono escolheu na tela, ou o que ficou
+  // guardado na correcao que ja foi aplicada.
+  function arredondamentoEscolhido(op) {
+    if (op && op.arredondar) return op.arredondar;
+    return $("incc-arredondar")?.value || "100";
   }
 
   $("botao-previa").addEventListener("click", () => {
@@ -4718,6 +4736,7 @@
     if (pct === null) { aviso("Informe a variação do mês (ex.: 0,62).", "falha"); return; }
     // O INCC corrige o CUSTO. Venda e margem sao de outra tela.
     const fator = 1 + pct / 100;
+    const modo = arredondamentoEscolhido(null);
     // Um bloco por empreendimento, fechado: sao mais de cem linhas e o dono
     // pediu para nao rolar tudo de uma vez.
     let linhas = "";
@@ -4730,15 +4749,17 @@
       if (!daqui.length) return;
       total += daqui.length;
       const soma = daqui.reduce((t, x) => t + x.custo, 0);
+      const novoCusto = (n) => arredondarValor(n * fator, modo);
       linhas += `<details class="previa-emp">
-        <summary>${escapeHtml(emp.nome)} <span class="contagem">${conta(daqui.length, "custo", "custos")} · ${moedaFinanceira(soma)} → ${moedaFinanceira(Math.round(soma * fator * 100) / 100)}</span></summary>
+        <summary>${escapeHtml(emp.nome)} <span class="contagem">${conta(daqui.length, "custo", "custos")} · ${moedaFinanceira(soma)} → ${moedaFinanceira(daqui.reduce((t, x) => t + novoCusto(x.custo), 0))}</span></summary>
         <table><tbody>${daqui.map(({ item, custo }) => `<tr><td>${escapeHtml(item.rotulo)}</td>
-          <td class="num">${moedaFinanceira(custo)}</td><td class="num"><strong>${moedaFinanceira(Math.round(custo * fator * 100) / 100)}</strong></td></tr>`).join("")}</tbody></table>
+          <td class="num">${moedaFinanceira(custo)}</td><td class="num"><strong>${moedaFinanceira(novoCusto(custo))}</strong></td></tr>`).join("")}</tbody></table>
       </details>`;
     });
     $("previa-lista").innerHTML = linhas || `<p class="descricao">Nenhum custo lançado ainda. Informe os custos em <strong>Preços e margem</strong> antes de corrigir.</p>`;
+    const comoArredonda = $("incc-arredondar")?.selectedOptions?.[0]?.textContent?.trim() || "";
     $("previa-resumo").textContent = total
-      ? `Variação de ${pct.toLocaleString("pt-BR")}% aplicada a ${conta(total, "custo", "custos")}. Confira alguns valores antes de aplicar.`
+      ? `Variação de ${pct.toLocaleString("pt-BR")}% aplicada a ${conta(total, "custo", "custos")}${comoArredonda ? `, arredondando para ${comoArredonda.toLowerCase()}` : ""}. Confira alguns valores antes de aplicar.`
       : "Não há custo lançado para corrigir.";
     $("previa-incc").classList.add("visivel");
   });
@@ -5195,7 +5216,7 @@
       // A tabela subiu: o custo, que sai dela, sobe no mesmo passo.
       // A previa ja corrigiu custo e margem na tela; aqui so falta guardar.
       const custosCorrigidos = incc
-        ? (financeiroAntesDaPrevia ? Object.keys(custosInternos).length : corrigirFinanceiroPeloIncc(incc.pct))
+        ? (financeiroAntesDaPrevia ? Object.keys(custosInternos).length : corrigirFinanceiroPeloIncc(incc.pct, incc.arredondar))
         : 0;
       aviso(`Publicado! O site sobe para a v${novaVersao} em 1–2 minutos.` +
         (custosCorrigidos ? ` ${custosCorrigidos} custos também foram corrigidos em ${incc.pct.toLocaleString("pt-BR")}%.` : ""), "ok");
