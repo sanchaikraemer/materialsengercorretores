@@ -463,6 +463,33 @@
   // linha da v107: o que sobrou do estoque nao se mostra para o cliente.
   const vendida = (status) => (status || "disponivel") === "vendido";
 
+  // v251 — a garagem de cada unidade sai da MESMA regra que o painel usa para
+  // conferir as vagas (emp.vagasPorTipologia): o rotulo de estoque diz quantos
+  // box aquela tipologia leva. O site deixa de ter um texto solto por grupo,
+  // que nao tinha como estar certo quando a tipologia mistura dois rotulos —
+  // na Casa Suspensa de 3 suites o 401/402 leva 1 box duplo e o 1301/1302 leva
+  // 1 box duplo + 1 box simples. O campo `garagem` do grupo continua valendo
+  // como ultimo recurso, para quem nao tem regra cadastrada.
+  function textoDeBox(duplo, simples) {
+    return [duplo ? `${duplo} box duplo${duplo > 1 ? "s" : ""}` : "", simples ? `${simples} box simples` : ""]
+      .filter(Boolean)
+      .join(" + ");
+  }
+
+  function garagemDaUnidade(emp, group, unit) {
+    // Uma unidade pode dizer a sua garagem por escrito; fora isso, manda a regra.
+    if (unit && unit.garagem !== undefined) return String(unit.garagem);
+    const regra = (emp.vagasPorTipologia || {})[(unit && unit.estoque) || group.estoque || group.tipo];
+    return (regra ? textoDeBox(regra.duplo || 0, regra.simples || 0) : "") || group.garagem || "";
+  }
+
+  // A garagem do quadro: so existe quando todas as unidades dele levam a mesma.
+  // Misturou, cada linha mostra a sua.
+  function garagemComum(units) {
+    const escritas = [...new Set(units.map((it) => String(it.garage || "").trim()))];
+    return escritas.length === 1 ? escritas[0] : "";
+  }
+
   function buildInventory() {
     EMPREENDIMENTOS.forEach((emp) => {
       const items = [];
@@ -479,7 +506,7 @@
             price: Number(unit.preco) || 0,
             status: unit.status || "disponivel",
             area: unit.areaUnit || group.area || "",
-            garage: group.garagem || "",
+            garage: garagemDaUnidade(emp, group, unit),
             tags: unit.tags || [],
             notes: unit.obs || group.obs || "",
             // v96 — planta propria da unidade (ex.: Casa Suspensa tem uma por apto);
@@ -1424,15 +1451,18 @@
           // v103 — a area da tipologia fica so no cabecalho. A coluna Area da tabela
           // aparece apenas quando alguma unidade tem area diferente da do grupo.
           const showArea = true;
-          const showGarage = units.some((it) => normalizeText(it.garage) !== normalizeText(group.garagem || ""));
+          // v251 — a coluna Garagem so aparece quando as unidades do quadro
+          // levam garagens diferentes; senao ela ja esta na etiqueta do topo.
+          const garagem = garagemComum(units);
+          const showGarage = !garagem && units.some((it) => it.garage);
           return `
             <details class="unit-group"${abertoDeSaida ? " open" : ""}>
-              ${renderGroupHeader(group, units)}
-              <table class="units-table">
+              ${renderGroupHeader(group, units, garagem)}
+              <table class="units-table${showGarage ? " com-garagem" : ""}">
                 <thead><tr><th>Unidade</th>${showArea ? "<th>Área</th>" : ""}${showGarage ? "<th>Garagem</th>" : ""}<th>Status</th><th>Valor</th><th></th></tr></thead>
                 <tbody>${units.map((item) => renderUnitRow(item, showArea, showGarage)).join("")}</tbody>
               </table>
-              <div class="mobile-units">${units.map(renderMobileUnit).join("")}</div>
+              <div class="mobile-units">${units.map((item) => renderMobileUnit(item, showGarage)).join("")}</div>
             </details>
           `;
         }).join("")}
@@ -1456,12 +1486,13 @@
   const otherTags = (item) => (item.tags || []).filter((tag) => !isCasaSuspensa(tag));
 
   // v103 — modelo A: faixa colorida com o tipo em destaque e a area/garagem em etiquetas.
-  function renderGroupHeader(group, units = []) {
+  function renderGroupHeader(group, units = [], garagem = null) {
     const chips = String(group.area || "")
       .split("·")
       .map((part) => part.trim())
       .filter(Boolean);
-    if (group.garagem) chips.push(String(group.garagem).trim());
+    const box = String(garagem === null ? group.garagem || "" : garagem).trim();
+    if (box) chips.push(box);
     return `
       <summary class="unit-group-header">
         <div class="unit-group-main">
@@ -1554,7 +1585,7 @@
     `;
   }
 
-  function renderMobileUnit(item) {
+  function renderMobileUnit(item, showGarage = false) {
     const selectable = isMarketable(item.status);
     const selected = state.selected.has(item.key);
     return `
@@ -1569,6 +1600,7 @@
         ${casaSuspensaTag(item)
           ? `<p class="mobile-unit-casa"><span>${CASA_SUSPENSA}</span>${hasOwnArea(item) ? escapeHtml(item.area) : ""}</p>`
           : hasOwnArea(item) ? `<p class="mobile-unit-area">Esta unidade: ${escapeHtml(item.area)}</p>` : ""}
+        ${showGarage && item.garage ? `<p class="mobile-unit-area">Garagem: ${escapeHtml(item.garage)}</p>` : ""}
         ${otherTags(item).length ? `<p class="mobile-unit-tags">${escapeHtml(otherTags(item).join(" · "))}</p>` : ""}
         <div class="mobile-unit-actions"><button class="unit-action" type="button" data-share-item="${item.key}">Compartilhar</button><button class="selection-control ${selected ? "selected" : ""}" type="button" data-select-item="${item.key}" ${selectable ? "" : "disabled"}>${selected ? "Selecionado" : "Selecionar"}</button></div>
       </article>
@@ -2452,14 +2484,18 @@ const canCopyImage = () => Boolean(window.ClipboardItem && navigator.clipboard?.
   // empreendimento quanto para o portfolio inteiro, que sai com a lista toda.
   function tabelasDeUnidades(emp) {
     const groupTables = blocosDeTipologia(emp).map(({ group, units }) => {
+      // v251 — mesma conta da vitrine: garagem igual para todos vira uma linha
+      // so embaixo do nome; misturada, vira coluna, unidade por unidade.
+      const garagem = garagemComum(units);
+      const showGarage = !garagem && units.some((it) => it.garage);
       return `
         <div class="ps-group">
           <h3>${escapeHtml(group.tipo)}${group.sufixo ? ` — ${escapeHtml(group.sufixo)}` : ""}</h3>
-          <p class="ps-group-note">${escapeHtml([group.area, group.garagem, group.obs].filter(Boolean).join(" · "))}</p>
+          <p class="ps-group-note">${escapeHtml([group.area, garagem, group.obs].filter(Boolean).join(" · "))}</p>
           <table class="ps-table">
-            <thead><tr><th>Unidade</th><th>Área</th><th>Status</th><th>Valor</th></tr></thead>
+            <thead><tr><th>Unidade</th><th>Área</th>${showGarage ? "<th>Garagem</th>" : ""}<th>Status</th><th>Valor</th></tr></thead>
             <tbody>${units.map((item) => `
-              <tr><td>${escapeHtml(itemLabel(item))}${casaSuspensaTag(item) ? ` <b>· ${CASA_SUSPENSA}</b>` : ""}</td><td>${escapeHtml(item.area || "—")}</td><td>${escapeHtml(STATUS_LABELS[item.status] || item.status)}</td><td>${money(item.price)}</td></tr>
+              <tr><td>${escapeHtml(itemLabel(item))}${casaSuspensaTag(item) ? ` <b>· ${CASA_SUSPENSA}</b>` : ""}</td><td>${escapeHtml(item.area || "—")}</td>${showGarage ? `<td>${escapeHtml(item.garage || "—")}</td>` : ""}<td>${escapeHtml(STATUS_LABELS[item.status] || item.status)}</td><td>${money(item.price)}</td></tr>
             `).join("")}</tbody>
           </table>
         </div>

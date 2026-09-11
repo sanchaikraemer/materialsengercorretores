@@ -140,6 +140,20 @@ const pagina = ({ emp, titulo, desc, caminho, profundidade, destaque, extra }) =
 function unidadesDe(emp) {
   const itens = [];
 
+  // v251 — a garagem da unidade vem da mesma regra do painel e do site
+  // (emp.vagasPorTipologia), pelo rotulo de estoque da unidade. O texto do
+  // grupo so vale quando nao ha regra: na Casa Suspensa de 3 suites ele
+  // estaria errado para metade dos apartamentos.
+  const garagemDe = (grupo, unidade) => {
+    if (unidade.garagem !== undefined) return String(unidade.garagem);
+    const r = (emp.vagasPorTipologia || {})[unidade.estoque || grupo.estoque || grupo.tipo];
+    const pelaRegra = r
+      ? [r.duplo ? `${r.duplo} box duplo${r.duplo > 1 ? "s" : ""}` : "", r.simples ? `${r.simples} box simples` : ""]
+          .filter(Boolean).join(" + ")
+      : "";
+    return pelaRegra || grupo.garagem || "";
+  };
+
   (emp.grupos || []).forEach((grupo) => {
     (grupo.unidades || []).forEach((unidade) => {
       const prefixo = emp.categoria === "comercial" ? "Sala" : "Apto";
@@ -149,7 +163,7 @@ function unidadesDe(emp) {
         rotulo: /^\d/.test(codigo) ? `${prefixo} ${codigo}` : codigo,
         // A tipologia e a area sao o que faz a previa valer a pena: e o que a
         // pessoa quer saber antes de decidir se abre.
-        detalhes: [grupo.tipo, unidade.areaUnit || grupo.area, grupo.garagem].filter(Boolean),
+        detalhes: [grupo.tipo, unidade.areaUnit || grupo.area, garagemDe(grupo, unidade)].filter(Boolean),
         etiquetas: unidade.tags || [],
       });
     });

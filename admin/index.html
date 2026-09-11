@@ -1166,7 +1166,7 @@
   // A versao DESTA pagina. O numero que aparecia no alto vinha do site, entao
   // uma pagina velha guardada pelo navegador se anunciava como nova — e o dono
   // ficou horas mexendo numa tela antiga achando que o sistema nao obedecia.
-  const VERSAO_PAINEL = 250;
+  const VERSAO_PAINEL = 251;
 
   const CUSTOS_ITEM = "senger-admin-custos-v1"; // legado v171
   const FINANCEIRO_ITEM = "senger-admin-financeiro-v2";
@@ -3463,7 +3463,12 @@
       // A tipologia que diz por escrito que nao ha planta a mostrar
       // (plantaNota, como a cobertura vendida) esta resolvida, nao pendente.
       if (!plantaGrupo && !g.plantaNota && !todasComPlanta) semPlanta.push(rotulo);
-      if (!g.garagem && !ehComercial(rotulo)) semGaragem.push(rotulo);
+      // v251 — a tipologia cujas unidades todas tem regra de box em
+      // vagasPorTipologia ja diz a garagem (e o site escreve unidade por
+      // unidade). So falta garagem quando nao ha nem o texto nem a regra.
+      const regraDoGrupo = emp.vagasPorTipologia || {};
+      const garagemPelaRegra = unidades.length && unidades.every((u) => regraDoGrupo[u.estoque || rotulo]);
+      if (!g.garagem && !garagemPelaRegra && !ehComercial(rotulo)) semGaragem.push(rotulo);
     });
     if (semArea.length) marca(`${dizerTipologias(semArea)} sem a metragem`);
     if (semPlanta.length) marca(`${dizerTipologias(semPlanta)} sem planta ligada — quem abre o link da unidade vê as plantas de todas as outras junto`, false, { modulo: "materiais", materialFiltro: "plantas", rotulo: "Corrigir em Plantas" });
