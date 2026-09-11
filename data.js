@@ -568,9 +568,9 @@ const EMPREENDIMENTOS = [
         estoque: "Sala 2º pavimento",
         planta: "po-planta-2pav",
         unidades: [
-          { apto: "201", preco: 1169190, status: "disponivel", areaUnit: "160 m² global · 90 m² privativo" },
-          { apto: "202", preco: 1015520, status: "disponivel", areaUnit: "139 m² global · 78 m² privativo" },
-          { apto: "203", preco: 644490, status: "disponivel", areaUnit: "88 m² global · 49 m² privativo" },
+          { apto: "201", status: "disponivel", areaUnit: "160 m² global · 90 m² privativo" },
+          { apto: "202", status: "disponivel", areaUnit: "139 m² global · 78 m² privativo" },
+          { apto: "203", status: "disponivel", areaUnit: "88 m² global · 49 m² privativo" },
         ],
       },
       // Do 4o ao 8o pavimento a planta e a mesma: cinco salas, finais 01 a 05.
@@ -591,7 +591,7 @@ const EMPREENDIMENTOS = [
           { apto: "501", status: "vendido" },
           { apto: "601", status: "vendido" },
           { apto: "701", status: "vendido" },
-          { apto: "801", preco: 824450, status: "disponivel" },
+          { apto: "801", status: "disponivel" },
         ],
       },
       {
@@ -601,7 +601,7 @@ const EMPREENDIMENTOS = [
         garagem: "1 box simples",
         estoque: "Sala 122 a 129 m²",
         planta: "po-planta",
-        unidades: [{ apto: "802", preco: 835670, status: "disponivel" }],
+        unidades: [{ apto: "802", status: "disponivel" }],
       },
       // As outras salas de final 02 tem cada uma a sua area; contam junto com a
       // 802 no estoque do painel e ja estao todas vendidas.
@@ -633,7 +633,7 @@ const EMPREENDIMENTOS = [
           { apto: "503", status: "vendido" },
           { apto: "603", status: "vendido" },
           { apto: "703", status: "vendido" },
-          { apto: "803", preco: 404690, status: "disponivel" },
+          { apto: "803", status: "disponivel" },
         ],
       },
       {
@@ -644,12 +644,12 @@ const EMPREENDIMENTOS = [
         estoque: "Sala 72 m²",
         planta: "po-planta",
         unidades: [
-          { apto: "304", preco: 562100, status: "disponivel", planta: "po-planta-3pav" },
+          { apto: "304", status: "disponivel", planta: "po-planta-3pav" },
           { apto: "404", status: "vendido" },
           { apto: "504", status: "vendido" },
           { apto: "604", status: "vendido" },
           { apto: "704", status: "vendido" },
-          { apto: "804", preco: 562100, status: "disponivel" },
+          { apto: "804", status: "disponivel" },
         ],
       },
       {
@@ -664,7 +664,7 @@ const EMPREENDIMENTOS = [
           { apto: "405", status: "vendido" },
           { apto: "505", status: "vendido" },
           { apto: "605", status: "vendido" },
-          { apto: "705", preco: 562100, status: "disponivel" },
+          { apto: "705", status: "disponivel" },
           { apto: "805", status: "vendido" },
         ],
       },
