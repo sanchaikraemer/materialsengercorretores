@@ -1,5 +1,13 @@
 # Portfólio Senger Corretores
 
+## Regra que vale acima de tudo
+
+**NUNCA FAÇA NADA QUE NÃO FOR MANDADO OU ORDENADO PELO USUÁRIO.**
+
+Faça exatamente o que foi pedido — nada a mais. Nada de arquivo extra, opção
+extra, melhoria por conta própria ou passo que ninguém pediu. Na dúvida sobre o
+que ele quer, pergunte antes em vez de adivinhar e entregar as duas coisas.
+
 Site de portfólio dos empreendimentos da Construtora Senger (Carazinho/RS), com
 um painel administrativo que o dono usa pelo celular.
 
