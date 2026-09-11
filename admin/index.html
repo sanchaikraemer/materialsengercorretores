@@ -1038,13 +1038,12 @@
           <div class="faixa-precos" id="area-aplicar-precos" style="display:none">
             <div>
               <strong id="aplicar-precos-status"></strong>
-              <span>Clique em <strong>“Publicar no site”</strong>: ele mostra a lista antes de gravar e já guarda o custo e a margem junto. O <strong>“Salvar custos e margens”</strong> serve para guardar só o que é interno, sem mexer no site.</span>
+              <span>Custo e margem ficam guardados neste aparelho enquanto você digita. Clique em <strong>“Publicar no site”</strong> quando quiser: ele guarda o custo e a margem na sua conta e, se a venda desejada mudou, publica o preço novo também.</span>
             </div>
           </div>
           <div class="custos-acoes">
             <label class="botao-arquivo" for="arquivo-importar-custos">Importar backup</label>
             <input class="arquivo-input" type="file" id="arquivo-importar-custos" accept="application/json,.json">
-            <button type="button" class="botao" id="botao-salvar-financeiro" style="margin-top:0" disabled>Salvar custos e margens</button>
             <button type="button" class="botao secundario" id="botao-exportar-custos" style="margin-top:0">Exportar backup</button>
             <button type="button" class="botao perigo" id="botao-apagar-financeiro" style="margin-top:0">Apagar tudo</button>
             <span class="financeiro-status salvo" id="financeiro-status">Dados salvos neste aparelho ✓</span>
@@ -1169,7 +1168,7 @@
   // A versao DESTA pagina. O numero que aparecia no alto vinha do site, entao
   // uma pagina velha guardada pelo navegador se anunciava como nova — e o dono
   // ficou horas mexendo numa tela antiga achando que o sistema nao obedecia.
-  const VERSAO_PAINEL = 258;
+  const VERSAO_PAINEL = 260;
 
   const CUSTOS_ITEM = "senger-admin-custos-v1"; // legado v171
   const FINANCEIRO_ITEM = "senger-admin-financeiro-v2";
@@ -1265,7 +1264,7 @@
   }
 
   function textoFinanceiroStatus() {
-    if (financeiroSujo) return "Alterações não salvas — clique em “Salvar custos e margens”";
+    if (financeiroSujo) return "Alterações não salvas — clique em “Publicar no site”";
     const guardados = Object.keys(custosInternos).length;
     const quando = financeiroSalvoEm ? " · salvo em " + dataCurta(financeiroSalvoEm) : "";
     if (!guardados) return "Nenhum custo guardado neste aparelho";
@@ -1280,7 +1279,7 @@
     procurando: "Procurando os custos guardados na sua conta…",
     enviando: "Guardando os custos na sua conta…",
     ok: "Guardado na sua conta, em repositório privado — os mesmos custos aparecem no celular e em qualquer computador.",
-    vazio: "Ainda não há custos guardados na sua conta. Clique em “Salvar custos e margens” para levá-los aos outros aparelhos.",
+    vazio: "Ainda não há custos guardados na sua conta. Clique em “Publicar no site” para levá-los aos outros aparelhos.",
     conflito: "Há alterações não salvas aqui. Salve para enviá-las aos outros aparelhos.",
     "sem-permissao": "Não consegui guardar na sua conta: a chave do GitHub não tem permissão para o repositório privado senger-financeiro. Por enquanto os custos ficam só neste aparelho — use “Exportar backup”.",
     offline: "Sem conexão com o GitHub agora: os custos estão salvos neste aparelho e sobem na próxima vez.",
@@ -1301,11 +1300,7 @@
 
   function atualizarEstadoFinanceiro(sujo = financeiroSujo) {
     financeiroSujo = !!sujo;
-    const botao = $("botao-salvar-financeiro");
     const status = $("financeiro-status");
-    // Sempre clicavel: mesmo sem mudanca nova, e por ele que o dono manda os
-    // custos para a conta depois de trocar a chave do GitHub.
-    if (botao) botao.disabled = false;
     if (financeiroSujo) guardarRascunhoFinanceiro();
     if (status) {
       status.textContent = textoFinanceiroStatus();
@@ -3650,9 +3645,13 @@
     const badge = $("badge-pendentes");
     badge.textContent = partes.join(" · ") || "";
     badge.classList.toggle("visivel", n > 0);
-    $("botao-publicar").disabled = n === 0;
+    // Custo/margem sem preco novo na fila nao gera "op": sem isso, digitar so
+    // custo deixava "Publicar no site" apagado e o dono nao tinha por onde
+    // gravar - dois botoes para uma acao so.
+    const haAlgoParaPublicar = n > 0 || financeiroSujo;
+    $("botao-publicar").disabled = !haAlgoParaPublicar;
     $("botao-descartar").style.display = n > 0 ? "inline-block" : "none";
-    if ($("botao-publicar-modulo")) $("botao-publicar-modulo").disabled = n === 0;
+    if ($("botao-publicar-modulo")) $("botao-publicar-modulo").disabled = !haAlgoParaPublicar;
     if ($("botao-descartar-modulo")) $("botao-descartar-modulo").style.display = n > 0 ? "inline-block" : "none";
     if ($("publicacao-resumo")) {
       $("publicacao-resumo").innerHTML = n
@@ -4400,8 +4399,6 @@
     }, 250);
   });
 
-  $("botao-salvar-financeiro")?.addEventListener("click", salvarFinanceiroInterno);
-
   // Um backup pode vir de outra epoca do cadastro, com o codigo interno da
   // unidade diferente. Entao alem do codigo, o painel reconhece a unidade pelo
   // nome ("Apto 401", "Quadra 3 · Lote 12", "Sala 04"): e o que o dono le na
@@ -4488,8 +4485,8 @@
       mostrarResultadoImportacao(
         `Arquivo lido: ${quantos} custos entraram na tabela` +
         (semCorrespondencia ? ` · ${semCorrespondencia} unidades do arquivo não existem mais no cadastro` : "") +
-        ". Confira na tabela e clique em “Salvar custos e margens”.", "ok");
-      aviso(`${quantos} custos na tabela. Confira e clique em “Salvar custos e margens”.`, "ok");
+        ". Confira na tabela e clique em “Publicar no site”.", "ok");
+      aviso(`${quantos} custos na tabela. Confira e clique em “Publicar no site”.`, "ok");
     } catch (err) {
       mostrarResultadoImportacao(`Não consegui importar: ${err.message}.`, "falha");
       aviso(`Não consegui importar o backup: ${err.message}.`, "falha");
@@ -5171,6 +5168,16 @@
       const linhas = Object.entries(porEmp).map(([nome, n]) => `${nome}: ${conta(n, "preço", "preços")}`).join("\n");
       if (!confirm(`Vão SAIR do site:\n\n${linhas}\n\nEssas unidades passam a aparecer como “Sob consulta” para o cliente.\n\nPublicar agora?`)) return;
     }
+    // Sem nada para o site (so custo/margem editados, sem preco novo na
+    // fila), publicar e apenas guardar o financeiro — sem isso "Publicar no
+    // site" subiria uma versao vazia so por causa de um custo digitado.
+    if (!estado.ops.length) {
+      if (financeiroSujo) {
+        const ok = await salvarFinanceiroInterno();
+        if (ok) aviso("Custos e margens salvos. Nada foi publicado no site — não havia preço para mudar.", "ok");
+      }
+      return;
+    }
     // Publicar guarda antes o custo e a margem digitados. Sem isso o dono
     // teria de acertar a ordem dos botoes, e um esquecimento apagaria o que
     // ele acabou de digitar.
@@ -5250,7 +5257,7 @@
         aviso("Não consegui publicar: " + erro.message, "falha");
       }
     } finally {
-      botao.disabled = estado.ops.length === 0;
+      botao.disabled = estado.ops.length === 0 && !financeiroSujo;
       botao.textContent = "Publicar no site";
     }
   }

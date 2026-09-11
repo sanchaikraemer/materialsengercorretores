@@ -681,7 +681,16 @@ painel.
 
 ### Financeiro interno (v173)
 - Em Correção pelo INCC, custos e margens desejadas são dados privados do painel e não entram no `data.js`/site público.
-- O usuário edita custo e margem extra desejada por item e confirma em **Salvar custos e margens**; antes disso o painel mostra **Alterações não salvas** e alerta ao fechar a aba.
+- O usuário edita custo e margem extra desejada por item; antes de gravar, o painel mostra **Alterações não salvas** e alerta ao fechar a aba.
+- **Não existe mais o botão "Salvar custos e margens" (v260).** Ele e o "Publicar
+  no site" faziam quase a mesma coisa — o dono chamou isso de dobrar trabalho à
+  toa. Agora só **Publicar no site**: ele grava o custo e a margem digitados e,
+  se a venda desejada mudou, publica o preço novo também. Antes o botão ficava
+  desabilitado quando só havia custo editado (sem preço novo na fila), o que
+  obrigava usar o "Salvar" — agora ele acende também quando há alteração
+  financeira sem preço pendente. Publicar sem nenhum preço na fila **não sobe
+  versão no site**: só guarda o financeiro, para não gastar um número de versão
+  à toa.
 - `Margem extra atual = preço de venda atual - custo`; `Venda desejada = custo + margem extra desejada`.
 - **Margem desejada e venda desejada são os dois editáveis (v192)** e conversam entre si: digitar a venda calcula a margem (`venda − custo`), digitar a margem calcula a venda. O que fica guardado é sempre a **margem** — backup e cofre não mudam de formato. Venda abaixo do custo grava margem negativa, de propósito; sem custo lançado, o painel avisa em vez de adivinhar.
 - **A correção aparece no painel na hora (v224).** Antes, "Aplicar correção" só
